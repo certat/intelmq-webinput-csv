@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request
+from flask import Flask, request, jsonify, make_response
 import tempfile
 import os
 import atexit
@@ -24,18 +24,30 @@ def form():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    success = False
     if request.method == 'POST':
         if 'file' in request.files and request.files['file'].filename:
-            file = request.files['file']
             filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
-            TEMPORARY_FILES.append((filedescriptor, filename))
-            file.save(filename)
+            request.files['file'].save(filename)
+            success = True
         elif 'text' in request.form and request.form['text']:
             filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
-            TEMPORARY_FILES.append((filedescriptor, filename))
             with os.fdopen(filedescriptor, mode='w') as handle:
                 handle.write(request.form['text'])
-    return('')
+            success = True
+    if success == True:
+        TEMPORARY_FILES.append((filedescriptor, filename))
+        preview = []
+        with open(filename) as handle:
+            for counter in range(100):
+                line = handle.readline()
+                if line:
+                    preview.append(line)
+        response = make_response(jsonify(preview))
+        response.mimetype = 'application/json'
+        response.headers['Content-Type'] = "text/json; charset=utf-8"
+        return response
+    return ''
 
 
 def delete_temporary_files():
