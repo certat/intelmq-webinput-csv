@@ -114,7 +114,8 @@ def preview():
                     value = event._Message__sanitize_value(column, value)
                     valid = event._Message__is_valid_value(column, value)
                     if not valid[0]:
-                        retval.append((lineindex+1, columnindex+1, value, valid[1]))
+                        retval.append((lineindex, columnindex, value, valid[1]))
+            retval = {"total": lineindex+1, "errors": retval}
             response = make_response(jsonify(retval))
             response.mimetype = 'application/json'
             response.headers['Content-Type'] = "text/json; charset=utf-8"
@@ -122,7 +123,7 @@ def preview():
             return response
     else:
         retval = '''<html><body>
-    <form action="/submit" method="POST" enctype="multipart/form-data">'''
+    <form action="/preview" method="POST" enctype="multipart/form-data">'''
         for key, default_value in PARAMETERS.items():
             retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
         retval += '''<input type="submit" value="Submit">
