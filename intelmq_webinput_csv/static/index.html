@@ -24,7 +24,7 @@
             </div>
         </section>
 
-        <form action="http://localhost:5000/upload" method="POST" enctype="multipart/form-data" id="form" v-on:submit.prevent="redirectToPreview">
+        <form action="http://localhost:5000/upload" method="POST" enctype="multipart/form-data" id="form" onsubmit="redirectToPreview()">
             <!--file upload-->
             <section class="section">
                 <div class="container">
@@ -61,49 +61,49 @@
                     <div class="field">
                         <!-- obligatory -->
                         <div class="columns">
-                                <div class="column is-one-quarter">
-                                    <span>delimiter</span>
-                                </div>
-                                <div class="column is-one-quarter">
-                                    <input class="input" type="text" placeholder="Text input">
-                                </div>
+                            <div class="column is-one-quarter">
+                                <span>delimiter</span>
                             </div>
-                            <div class="columns is-one-quarter">
-                                <div class="column is-one-quarter">
-                                    <span>quotechar</span>
-                                </div>
-                                <div class="column is-one-quarter">
-                                    <input class="input" type="text" placeholder="Text input">
-                                </div>
+                            <div class="column is-one-quarter">
+                                <input class="input" type="text" placeholder="Text input">
                             </div>
-                            <div class="columns">
-                                <div class="column is-one-quarter">
-                                    <span>use header</span>
-                                </div>
-                                <div class="column is-one-quarter">
+                        </div>
+                        <div class="columns is-one-quarter">
+                            <div class="column is-one-quarter">
+                                <span>quotechar</span>
+                            </div>
+                            <div class="column is-one-quarter">
+                                <input class="input" type="text" placeholder="Text input">
+                            </div>
+                        </div>
+                        <div class="columns">
+                            <div class="column is-one-quarter">
+                                <span>use header</span>
+                            </div>
+                            <div class="column is-one-quarter">
+                                <div class="control">
                                     <div class="control">
-                                        <div class="control">
-                                            <label class="checkbox">
+                                        <label class="checkbox">
                                                 <input type="checkbox" v-model="useHeader">
                                             </label>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="columns">
-                                <div class="column is-one-quarter">
-                                    <span>has header</span>
-                                </div>
-                                <div class="column is-one-quarter">
+                        </div>
+                        <div class="columns">
+                            <div class="column is-one-quarter">
+                                <span>has header</span>
+                            </div>
+                            <div class="column is-one-quarter">
+                                <div class="control">
                                     <div class="control">
-                                        <div class="control">
-                                            <label class="checkbox">
+                                        <label class="checkbox">
                                                 <input type="checkbox" v-model="hasHeader">
                                             </label>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         <!-- optional -->
                         <hr navbar-divider>
                         <!-- <br> -->
@@ -159,7 +159,9 @@
 
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/vue"></script>
     <script src="js/upload.js"></script>
 </body>
+
 </html>
