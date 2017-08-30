@@ -9,6 +9,19 @@ import json
 
 
 TEMPORARY_FILES = []
+PARAMETERS = {
+    'timezone': '+00:00',
+    'classification.type': 'test',
+    'classification.identifier': 'test',
+    'text': 'default',
+    'delimiter': ',',
+    'has_header': False,
+    'use_header': False,  # TODO: define how it should be used
+    'quote_char': None,
+    'columns': [],
+    'ignore': [],
+    'dry_run': True,
+    }
 
 
 app = Flask('intelmq-webinput-csv')
@@ -55,6 +68,27 @@ def upload_file():
         response.headers['Content-Type'] = "text/json; charset=utf-8"
         return response
     return ''
+
+
+@app.route('/preview', methods=['GET', 'POST'])
+def preview():
+    if request.method == 'POST':
+        parameters = {}
+        for key, default_value in PARAMETERS.items():
+            parameters[key] = request.form.get(key, default_value)
+        if parameters['dry_run']:
+            parameters['classification.type'] = 'test'
+            parameters['classification.identifier'] = 'test'
+        retval = jsonify(parameters)
+    else:
+        retval = '''<html><body>
+    <form action="/preview" method="POST" enctype="multipart/form-data">'''
+        for key, default_value in PARAMETERS.items():
+            retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
+        retval += '''<input type="submit" value="Submit">
+        </form></body></html>
+        '''
+    return retval
 
 
 @app.route('/classification/types')
