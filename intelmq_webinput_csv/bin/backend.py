@@ -102,6 +102,8 @@ def preview():
                 for columnindex, (column, value) in enumerate(zip(columns, line)):
                     if not column:
                         continue
+                    if column.startswith('time.') and '+' not in value:
+                        value += parameters['timezone']
                     value = event._Message__sanitize_value(column, value)
                     valid = event._Message__is_valid_value(column, value)
                     if not valid[0]:
