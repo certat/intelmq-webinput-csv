@@ -3,12 +3,19 @@ from flask import Flask, request, jsonify, make_response
 import tempfile
 import os
 import atexit
+from intelmq.lib.harmonization import ClassificationType
+from intelmq import HARMONIZATION_CONF_FILE
+import json
 
 
 TEMPORARY_FILES = []
 
 
 app = Flask('intelmq-webinput-csv')
+
+
+with open(HARMONIZATION_CONF_FILE) as handle:
+    EVENT_FIELDS = json.load(handle)
 
 
 @app.route('/')
@@ -48,6 +55,22 @@ def upload_file():
         response.headers['Content-Type'] = "text/json; charset=utf-8"
         return response
     return ''
+
+
+@app.route('/classification/types')
+def classification_types():
+    response = make_response(jsonify(ClassificationType.allowed_values))
+    response.mimetype = 'application/json'
+    response.headers['Content-Type'] = "text/json; charset=utf-8"
+    return response
+
+
+@app.route('/harmonization/event/fields')
+def harmonization_event_fields():
+    response = make_response(jsonify(EVENT_FIELDS['event']))
+    response.mimetype = 'application/json'
+    response.headers['Content-Type'] = "text/json; charset=utf-8"
+    return response
 
 
 def delete_temporary_files():
