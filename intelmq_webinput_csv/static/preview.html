@@ -46,7 +46,8 @@
                                 <div class="control">
                                     <label class="label">classification type</label>
                                     <div class="select">
-                                        <select >
+                                        <select v-model="selectedClassificationType">
+                                            <option disabled value="">select ...</option>
                                             <option v-for="type in classificationTypes" :value="type">{{type}}</option>
                                         </select>
                                     </div>
@@ -55,20 +56,20 @@
                             <div class="field">
                                 <div class="control">
                                     <label class="label">classification identifier</label>
-                                    <input class="input is-success" type="text" placeholder="classification identifier">
+                                    <input class="input" type="text" placeholder="classification identifier" v-model="selectedClassificationId">
                                 </div>
                             </div>
                             <div class="field">
                                 <div class="control">
                                     <label class="label">text</label>
-                                    <input class="input is-success" type="text" placeholder="text">
+                                    <input class="input" type="text" placeholder="text" v-model="selectedText">
                                 </div>
                             </div>
                             <br>
                             <label class="checkbox">
-                            <input type="checkbox">
-                                dry run
-                        </label>
+                                <input type="checkbox" v-model="dryRun">
+                                    dry run
+                            </label>
                         </div>
                         <div class="column is-two-thirds is-offset-1">
                             <table class="table">
@@ -80,6 +81,7 @@
                         </div>
                     </div>
                 </div>
+            </div>
         </section>
 
         <!--buttons-->
@@ -95,14 +97,11 @@
                 </div>
             </div>
         </section>
-        </div>
+    </div>
 
-        <script
-        src="https://code.jquery.com/jquery-3.2.1.js"
-        integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE="
-        crossorigin="anonymous"></script>
-        <script src="https://unpkg.com/vue"></script>
-        <script src="js/preview.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="js/preview.js"></script>
 </body>
 
 </html>

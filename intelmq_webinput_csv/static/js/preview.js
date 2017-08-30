@@ -6,6 +6,11 @@ var vm_preview = new Vue({
         numberFailed: 0,
         selectedTimeZone: '00:00',
         classificationTypes: [],
+        selectedClassificationType: '',
+        selectedClassificationId: '',
+        selectedText: '',
+        dryRun: false,
+
     },
     computed: {
         timezones: function () {

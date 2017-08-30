@@ -3,6 +3,9 @@ var vm_upload = new Vue({
     fileInput: '#fileInput',
     data: {
         fileName: 'no file chosen',
+        useHeader: false,
+        hasHeader: false,
+        skipInitialSpace: false,
     },
     methods:{
         onChangeListener : function () {
