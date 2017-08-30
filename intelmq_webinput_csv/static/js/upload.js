@@ -10,6 +10,13 @@ var vm_upload = new Vue({
                 this.fileName = fileInput.files[0].name;
             }
         },
+        redirectToPreview : function () {
+            window.location.href = 'preview.html';
+            document.getElementById('form').submit();
+        },
+        clearAll : function () {
+            console.log('clearAll');
+        },
     },
 });
 

@@ -15,7 +15,7 @@
         <!--header-->
         <section class="section">
             <div class="container">
-                <h1 class="title">
+                <h1 class="title is-spaced">
                     Upload
                 </h1>
                 <p class="subtitle">
@@ -24,134 +24,138 @@
             </div>
         </section>
 
-        <!--file upload-->
-        <section class="section">
-            <div class="container">
-                <label class="label">Content</label>
-                <div class="field">
-                    <div class="control">
-                        <textarea class="textarea" id="textArea"></textarea>
-                    </div>
-                </div>
-                <br>
-                <div class="file has-name">
-                    <label class="file-label">
-                        <input class="file-input" type="file" name="resume" id="fileInput" @change="onChangeListener">
-                        <span class="file-cta">
-                            <span class="file-icon">
-                                <i class="fa fa-upload"></i>
-                            </span>
-                            <span class="file-label">
-                                Choose a file…
-                            </span>
-                        </span>
-                        <span class="file-name">
-                            {{fileName}}
-                        </span>
-                    </label>
-                </div>
-            </div>
-        </section>
-
-        <!--parser configuration-->
-        <section class="section">
-            <div class="container">
-                <label class="label">Parser Configuration</label>
-                <div class="field">
-                    <!-- obligatory -->
-                    <div class="columns">
-                        <div class="column">
-                            <span>delimiter</span>
-                        </div>
-                        <div class="column">
-                            <input class="input" type="text" placeholder="Text input">
+        <form action="http://localhost:5000/upload" method="POST" enctype="multipart/form-data" id="form" v-on:submit.prevent="redirectToPreview">
+            <!--file upload-->
+            <section class="section">
+                <div class="container">
+                    <label class="label">Content</label>
+                    <div class="field">
+                        <div class="control">
+                            <textarea class="textarea" id="textArea" name="text"></textarea>
                         </div>
                     </div>
-                    <div class="columns">
-                        <div class="column">
-                            <span>quotechar</span>
-                        </div>
-                        <div class="column">
-                            <input class="input" type="text" placeholder="Text input">
-                        </div>
-                    </div>
-                    <div class="columns">
-                        <div class="column">
-                            <span>use header</span>
-                        </div>
-                        <div class="column">
-                            <div class="control">
-                                <div class="control">
-                                    <label class="radio">
-                                    <input type="radio" name="useHeader">
-                                        Yes
-                                    </label>
-                                    <label class="radio">
-                                    <input type="radio" name="useHeader">
-                                        No
-                                </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- optional -->
-                    <hr style="margin-bottom: 0;">
                     <br>
-                    <div class="columns">
-                        <div class="column">
-                            <span>skip initial space</span>
+                    <div class="file has-name">
+                        <label class="file-label">
+                                <input class="file-input" type="file" name="file" id="fileInput" @change="onChangeListener">
+                                <span class="file-cta">
+                                    <span class="file-icon">
+                                        <i class="fa fa-upload"></i>
+                                    </span>
+                                    <span class="file-label">
+                                        Choose a file…
+                                    </span>
+                                </span>
+                                <span class="file-name">
+                                    {{fileName}}
+                                </span>
+                            </label>
+                    </div>
+                </div>
+            </section>
+
+            <!--parser configuration-->
+            <section class="section">
+                <div class="container">
+                    <label class="label">Parser Configuration</label>
+                    <div class="field">
+                        <!-- obligatory -->
+                        <div class="columns">
+                            <div class="column">
+                                <span>delimiter</span>
+                            </div>
+                            <div class="column">
+                                <input class="input" type="text" placeholder="Text input">
+                            </div>
                         </div>
-                        <div class="column">
-                            <div class="control">
+                        <div class="columns">
+                            <div class="column">
+                                <span>quotechar</span>
+                            </div>
+                            <div class="column">
+                                <input class="input" type="text" placeholder="Text input">
+                            </div>
+                        </div>
+                        <div class="columns">
+                            <div class="column">
+                                <span>use header</span>
+                            </div>
+                            <div class="column">
                                 <div class="control">
-                                    <label class="radio">
-                                    <input type="radio" name="skipInitial">
-                                        Yes
-                                </label>
-                                    <label class="radio">
-                                    <input type="radio" name="skipInitial">
-                                        No
-                                </label>
+                                    <div class="control">
+                                        <label class="radio">
+                                            <input type="radio" name="useHeader">
+                                                Yes
+                                            </label>
+                                        <label class="radio">
+                                            <input type="radio" name="useHeader">
+                                                No
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        <!-- optional -->
+                        <hr style="margin-bottom: 0;">
+                        <br>
+                        <div class="columns">
+                            <div class="column">
+                                <span>skip initial space</span>
+                            </div>
+                            <div class="column">
+                                <div class="control">
+                                    <div class="control">
+                                        <label class="radio">
+                                            <input type="radio" name="skipInitial">
+                                                Yes
+                                        </label>
+                                        <label class="radio">
+                                            <input type="radio" name="skipInitial">
+                                                No
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="columns">
+                            <div class="column">
+                                <span>skip initial N lines</span>
+                            </div>
+                            <div class="column">
+                                <input class="input" type="text" placeholder="Text input">
+                            </div>
+                        </div>
+                        <div class="columns">
+                            <div class="column">
+                                <span>load N lines maximum</span>
+                            </div>
+                            <div class="column">
+                                <input class="input" type="text" placeholder="Text input">
+                            </div>
+                        </div>
                     </div>
-                    <div class="columns">
-                        <div class="column">
-                            <span>skip initial N lines</span>
+
+                </div>
+            </section>
+
+            <!--buttons-->
+            <section class="section">
+                <div class="container">
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <button class="button is-primary" type="submit">Submit</button>
                         </div>
-                        <div class="column">
-                            <input class="input" type="text" placeholder="Text input">
-                        </div>
-                    </div>
-                    <div class="columns">
-                        <div class="column">
-                            <span>load N lines maximum</span>
-                        </div>
-                        <div class="column">
-                            <input class="input" type="text" placeholder="Text input">
+                        <div class="control">
+                            <button class="button is-default" type="button" v-on:click="clearAll">Clear All</button>
                         </div>
                     </div>
                 </div>
+            </section>
+        </form>
 
-            </div>
-        </section>
-
-        <!--buttons-->
-        <section class="section">
-            <div class="container">
-                <div class="field is-grouped">
-                    <div class="control">
-                        <button class="button is-primary">Submit</button>
-                    </div>
-                    <div class="control">
-                        <button class="button is-default">Clear All</button>
-                    </div>
-                </div>
-            </div>
-        </section>
     </div>
 
     <script src="https://unpkg.com/vue"></script>
     <script src="js/upload.js"></script>
 </body>
+</html>
