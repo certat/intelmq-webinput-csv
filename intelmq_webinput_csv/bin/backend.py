@@ -68,6 +68,7 @@ def upload_file():
         response = make_response(jsonify(preview))
         response.mimetype = 'application/json'
         response.headers['Content-Type'] = "text/json; charset=utf-8"
+        response.headers['Access-Control-Allow-Origin'] = "*"
         return response
     return ''
 
@@ -126,6 +127,7 @@ def classification_types():
     response = make_response(jsonify(ClassificationType.allowed_values))
     response.mimetype = 'application/json'
     response.headers['Content-Type'] = "text/json; charset=utf-8"
+    response.headers['Access-Control-Allow-Origin'] = "*"
     return response
 
 
@@ -134,6 +136,7 @@ def harmonization_event_fields():
     response = make_response(jsonify(EVENT_FIELDS['event']))
     response.mimetype = 'application/json'
     response.headers['Content-Type'] = "text/json; charset=utf-8"
+    response.headers['Access-Control-Allow-Origin'] = "*"
     return response
 
 
