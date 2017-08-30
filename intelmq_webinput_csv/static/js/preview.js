@@ -5,6 +5,7 @@ var vm_preview = new Vue({
         numberOkay: 0,
         numberFailed: 0,
         selectedTimeZone: '00:00',
+        classificationTypes: [],
     },
     computed: {
         timezones: function () {
@@ -39,11 +40,26 @@ var vm_preview = new Vue({
         },
     },
     methods: {
-        getData: function () {
-            $.get("http://localhost:5000/classification/types", function (data) {
-                $(".result").html(data);
-                alert("Load was performed.");
+        loadFile: function (url, callback) {
+            $.getJSON(url)
+            .done(function (json) {
+                callback(json);
+            })
+            .fail(function (jqxhr, textStatus, error) {
+                var err = textStatus + ", " + error;
+                callback({});
             });
+        },
+        loadClassificationTypes: function (classificationTypes) {
+            this.classificationTypes = classificationTypes;
+        },
+        getClassificationTypes: function () {
+            this.loadFile("http://localhost:5000/classification/types", this.loadClassificationTypes);
         },
     },
 });
+
+vm_preview.getClassificationTypes();
+
+
+

@@ -40,13 +40,16 @@
                                         <option v-for="timezone in timezones" :value="timezone">{{timezone}}</option>
                                     </select>
                                 </div>
-
                             </div>
                             <br>
                             <div class="field">
                                 <div class="control">
                                     <label class="label">classification type</label>
-                                    <input class="input is-success" type="text" placeholder="classification type">
+                                    <div class="select">
+                                        <select >
+                                            <option v-for="type in classificationTypes" :value="type">{{type}}</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             <div class="field">
