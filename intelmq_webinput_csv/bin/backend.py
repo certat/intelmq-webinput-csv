@@ -118,8 +118,8 @@ def preview():
                         continue
                     if column.startswith('time.') and '+' not in value:
                         value += parameters['timezone']
-                    value = event._Message__sanitize_value(column, value)
-                    valid = event._Message__is_valid_value(column, value)
+                    sanitized = event._Message__sanitize_value(column, value)
+                    valid = event._Message__is_valid_value(column, sanitized)
                     if not valid[0]:
                         retval.append((lineindex, columnindex, value, valid[1]))
             retval = {"total": lineindex+1, "errors": retval}
