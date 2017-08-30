@@ -57,6 +57,8 @@ def form():
 def upload_file():
     success = False
     if request.method == 'POST':
+        print('files:', list(request.files.keys()))
+        print('form data:', list(request.form.keys()))
         if 'file' in request.files and request.files['file'].filename:
             filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
             request.files['file'].save(filename)
@@ -79,7 +81,12 @@ def upload_file():
         response.headers['Content-Type'] = "text/json; charset=utf-8"
         response.headers['Access-Control-Allow-Origin'] = "*"
         return response
-    return ''
+    else:
+        response = make_response('no file or text')
+        response.mimetype = 'application/json'
+        response.headers['Content-Type'] = "text/json; charset=utf-8"
+        response.headers['Access-Control-Allow-Origin'] = "*"
+        return response
 
 
 @app.route('/preview', methods=['GET', 'POST'])
@@ -111,8 +118,8 @@ def preview():
                         continue
                     if column.startswith('time.') and '+' not in value:
                         value += parameters['timezone']
-                    value = event._Message__sanitize_value(column, value)
-                    valid = event._Message__is_valid_value(column, value)
+                    sanitized = event._Message__sanitize_value(column, value)
+                    valid = event._Message__is_valid_value(column, sanitized)
                     if not valid[0]:
                         retval.append((lineindex, columnindex, value, valid[1]))
             retval = {"total": lineindex+1, "errors": retval}
