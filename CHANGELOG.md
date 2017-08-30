@@ -11,3 +11,4 @@ CHANGELOG
 - preview returns list of errors
 - submit pushes the data into the destination pipeline
 - timezone is added to data if not given explicitly
+- add classification.{type,identifier} if not already existent

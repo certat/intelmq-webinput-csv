@@ -183,6 +183,10 @@ def submit():
                 if column.startswith('time.') and '+' not in value:
                     value += parameters['timezone']
                 event.add(column, value)
+            if 'classification.type' not in event:
+                event.add('classification.type', parameters['classification.type'])
+            if 'classification.identifier' not in event:
+                event.add('classification.identifier', parameters['classification.identifier'])
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
     return 'success'
