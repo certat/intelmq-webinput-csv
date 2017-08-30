@@ -6,6 +6,7 @@ import atexit
 from intelmq.lib.harmonization import ClassificationType
 from intelmq import HARMONIZATION_CONF_FILE
 import json
+import csv
 
 
 TEMPORARY_FILES = []
@@ -17,7 +18,7 @@ PARAMETERS = {
     'delimiter': ',',
     'has_header': False,
     'use_header': False,  # TODO: define how it should be used
-    'quote_char': None,
+    'quotechar': '"',
     'columns': [],
     'ignore': [],
     'dry_run': True,
@@ -80,6 +81,14 @@ def preview():
             parameters['classification.type'] = 'test'
             parameters['classification.identifier'] = 'test'
         retval = jsonify(parameters)
+        if not TEMPORARY_FILES:
+            return jsonify('No file')
+        with os.fdopen(TEMPORARY_FILES[-1][0]) as handle:
+            reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                                quotechar=parameters['quotechar'])
+            if parameters['has_header']:
+                next(reader)
+            retval = jsonify(list(reader))
     else:
         retval = '''<html><body>
     <form action="/preview" method="POST" enctype="multipart/form-data">'''
