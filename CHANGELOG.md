@@ -7,3 +7,8 @@ CHANGELOG
 ### Backend
 - Uploading of files and text, saves data in temporary files
 - Uploaded files are deleted explicitly at shutdown
+- Use configuration file for destination pipeline and number of preview lines
+- preview returns list of errors
+- submit pushes the data into the destination pipeline
+- timezone is added to data if not given explicitly
+- add classification.{type,identifier} if not already existent

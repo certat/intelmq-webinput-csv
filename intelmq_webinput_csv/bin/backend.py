@@ -4,7 +4,8 @@ import tempfile
 import os
 import atexit
 from intelmq.lib.harmonization import ClassificationType
-from intelmq.lib.message import Event
+from intelmq.lib.message import Event, MessageFactory
+from intelmq.lib.pipeline import PipelineFactory
 from intelmq import HARMONIZATION_CONF_FILE
 import json
 import csv
@@ -31,6 +32,14 @@ app = Flask('intelmq-webinput-csv')
 
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
+
+
+with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
+    CONFIG = json.load(handle)
+
+
+class Parameters(object):
+    pass
 
 
 @app.route('/')
@@ -61,7 +70,7 @@ def upload_file():
         TEMPORARY_FILES.append((filedescriptor, filename))
         preview = []
         with open(filename) as handle:
-            for counter in range(100):
+            for counter in range(CONFIG.get('preview_lines', 1000)):
                 line = handle.readline()
                 if line:
                     preview.append(line)
@@ -97,8 +106,6 @@ def preview():
             if parameters['has_header']:
                 next(reader)
             for lineindex, line in enumerate(reader):
-                if lineindex == 100:
-                    break
                 for columnindex, (column, value) in enumerate(zip(columns, line)):
                     if not column:
                         continue
@@ -115,7 +122,7 @@ def preview():
             return response
     else:
         retval = '''<html><body>
-    <form action="/preview" method="POST" enctype="multipart/form-data">'''
+    <form action="/submit" method="POST" enctype="multipart/form-data">'''
         for key, default_value in PARAMETERS.items():
             retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
         retval += '''<input type="submit" value="Submit">
@@ -140,6 +147,49 @@ def harmonization_event_fields():
     response.headers['Content-Type'] = "text/json; charset=utf-8"
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
+
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    parameters = {}
+    for key, default_value in PARAMETERS.items():
+        parameters[key] = request.form.get(key, default_value)
+    if parameters['dryrun']:
+        parameters['classification.type'] = 'test'
+        parameters['classification.identifier'] = 'test'
+    retval = jsonify(parameters)
+    if not TEMPORARY_FILES:
+        return jsonify('No file')
+    if type(parameters['columns']) is not list:
+        parameters['columns'] = parameters['columns'].split(',')
+        parameters['ignore'] = [bool(int(a)) for a in parameters['ignore'].split(',')]
+    columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
+
+    pipelineparameters = Parameters
+    destination_pipeline = PipelineFactory.create(pipelineparameters)
+    destination_pipeline.set_queues(CONFIG['destination_pipeline'], "destination")
+    destination_pipeline.connect()
+
+    with open(TEMPORARY_FILES[-1][1]) as handle:
+        reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                            quotechar=parameters['quotechar'])
+        if parameters['has_header']:
+            next(reader)
+        for lineindex, line in enumerate(reader):
+            event = Event()
+            for columnindex, (column, value) in enumerate(zip(columns, line)):
+                if not column:
+                    continue
+                if column.startswith('time.') and '+' not in value:
+                    value += parameters['timezone']
+                event.add(column, value)
+            if 'classification.type' not in event:
+                event.add('classification.type', parameters['classification.type'])
+            if 'classification.identifier' not in event:
+                event.add('classification.identifier', parameters['classification.identifier'])
+            raw_message = MessageFactory.serialize(event)
+            destination_pipeline.send(raw_message)
+    return 'success'
 
 
 def delete_temporary_files():
