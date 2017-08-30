@@ -3,12 +3,33 @@ from flask import Flask, request, jsonify, make_response
 import tempfile
 import os
 import atexit
+from intelmq.lib.harmonization import ClassificationType
+from intelmq import HARMONIZATION_CONF_FILE
+import json
+import csv
 
 
 TEMPORARY_FILES = []
+PARAMETERS = {
+    'timezone': '+00:00',
+    'classification.type': 'test',
+    'classification.identifier': 'test',
+    'text': 'default',
+    'delimiter': ',',
+    'has_header': False,
+    'use_header': False,  # TODO: define how it should be used
+    'quotechar': '"',
+    'columns': [],
+    'ignore': [],
+    'dry_run': True,
+    }
 
 
 app = Flask('intelmq-webinput-csv')
+
+
+with open(HARMONIZATION_CONF_FILE) as handle:
+    EVENT_FIELDS = json.load(handle)
 
 
 @app.route('/')
@@ -48,6 +69,51 @@ def upload_file():
         response.headers['Content-Type'] = "text/json; charset=utf-8"
         return response
     return ''
+
+
+@app.route('/preview', methods=['GET', 'POST'])
+def preview():
+    if request.method == 'POST':
+        parameters = {}
+        for key, default_value in PARAMETERS.items():
+            parameters[key] = request.form.get(key, default_value)
+        if parameters['dry_run']:
+            parameters['classification.type'] = 'test'
+            parameters['classification.identifier'] = 'test'
+        retval = jsonify(parameters)
+        if not TEMPORARY_FILES:
+            return jsonify('No file')
+        with os.fdopen(TEMPORARY_FILES[-1][0]) as handle:
+            reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                                quotechar=parameters['quotechar'])
+            if parameters['has_header']:
+                next(reader)
+            retval = jsonify(list(reader))
+    else:
+        retval = '''<html><body>
+    <form action="/preview" method="POST" enctype="multipart/form-data">'''
+        for key, default_value in PARAMETERS.items():
+            retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
+        retval += '''<input type="submit" value="Submit">
+        </form></body></html>
+        '''
+    return retval
+
+
+@app.route('/classification/types')
+def classification_types():
+    response = make_response(jsonify(ClassificationType.allowed_values))
+    response.mimetype = 'application/json'
+    response.headers['Content-Type'] = "text/json; charset=utf-8"
+    return response
+
+
+@app.route('/harmonization/event/fields')
+def harmonization_event_fields():
+    response = make_response(jsonify(EVENT_FIELDS['event']))
+    response.mimetype = 'application/json'
+    response.headers['Content-Type'] = "text/json; charset=utf-8"
+    return response
 
 
 def delete_temporary_files():
