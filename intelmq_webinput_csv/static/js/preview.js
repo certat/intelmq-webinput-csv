@@ -10,7 +10,6 @@ var vm_preview = new Vue({
         selectedClassificationId: '',
         selectedText: '',
         dryRun: false,
-
     },
     computed: {
         timezones: function () {
@@ -43,6 +42,14 @@ var vm_preview = new Vue({
 
             return timezones_list;
         },
+        uploadResponse: function () {
+            var data = sessionStorage.getItem('uploadResponse');
+            if (data == "") return;
+
+            data = this.preprocessData(data);
+            data = this.splitData(data);
+            return data;
+        },
     },
     methods: {
         loadFile: function (url, callback) {
@@ -60,6 +67,21 @@ var vm_preview = new Vue({
         },
         getClassificationTypes: function () {
             this.loadFile("http://localhost:5000/classification/types", this.loadClassificationTypes);
+        },
+        preprocessData: function (data) {
+            data = JSON.parse(data);
+
+            data.forEach(function(currentValue, index, array) {
+                array[index] = currentValue.replace(/\n/g,'');
+            });
+
+            return data;
+        },
+        splitData: function (data) {
+            data.forEach(function(currentValue, index, array) {
+                array[index] = currentValue.split(';');
+            });
+            return data;
         },
     },
 });

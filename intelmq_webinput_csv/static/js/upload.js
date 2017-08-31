@@ -1,19 +1,25 @@
 var vm_upload = new Vue({
     el: '#uploadApp',
     fileName: '#fileInput',
-    selectedFile: null,
-    formData: null,
     data: {
         fileName: 'no file chosen',
-        useHeader: false,
-        hasHeader: false,
-        skipInitialSpace: false,
+        inputFormData: {
+            text: '',
+            file: null,
+            delimiter: ';',
+            quotechar: '"',
+            useHeader: false,
+            hasHeader: false,
+            skipInitialSpace: false,
+            skipInitialLines: 0,
+            loadLinesMax: null,
+        },
     },
-    methods:{
-        onChangeListener : function () {
+    methods: {
+        onChangeListener: function () {
             if (fileInput.files.length === 1) {
                 this.fileName = fileInput.files[0].name;
-                this.selectedFile = fileInput.files[0]; 
+                this.inputFormData.file = fileInput.files[0];
             }
         },
         readBody: function (xhr) {
@@ -27,31 +33,47 @@ var vm_upload = new Vue({
             }
             return data;
         },
-        submitButtonClicked : function () {
-            var form = document.forms.item('form');
+        submitButtonClicked: function () {
+            var formData = new FormData();
 
-            this.formData = new FormData(form);
+            formData.append('text', this.inputFormData.text);
+            formData.append('file', this.inputFormData.file);
+            // formData.append('delimiter', this.inputFormData.delimiter);
+            // formData.append('quotechar', this.inputFormData.quotechar);
+            // formData.append('use_header', this.inputFormData.useHeader);
+            // formData.append('has_header', this.inputFormData.hasHeader);
+            // formData.append('skipInitialSpace', this.inputFormData.skipInitialSpace);
+            // formData.append('skipInitialLines', this.inputFormData.skipInitialLines);
+            // formData.append('loadLinesMax', this.inputFormData.loadLinesMax);
+
+            this.saveDataInSession();
+
             var request = new XMLHttpRequest();
-
             var self = this;
-            request.onreadystatechange = function() {
-                if(request.readyState == XMLHttpRequest.DONE) {
-                    console.log(self.readBody(request));
+
+            request.onreadystatechange = function () {
+                if (request.readyState == XMLHttpRequest.DONE) {
+                    var uploadResponse = self.readBody(request);
+                    sessionStorage.setItem('uploadResponse', uploadResponse);
+                    self.redirectToPreview();
                 }
             };
 
             request.open('POST', 'http://localhost:5000/upload');
-            request.send(this.formData);
-
-            this.redirectToPreview();
-
+            request.send(formData);
+        },
+        saveDataInSession: function () {
+            for (key in this.inputFormData) {
+                if ((key != 'text') && (key != 'file')) {
+                    sessionStorage.setItem(key,this.inputFormData[key]);
+                }
+            }
         },
         redirectToPreview: function () {
             window.location.href = 'preview.html';
         },
-        clearAll : function () {
+        clearAll: function () {
             console.log('clearAll');
         },
     },
 });
-
