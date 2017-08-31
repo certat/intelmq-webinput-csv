@@ -16,59 +16,38 @@ var vm_upload = new Vue({
                 this.selectedFile = fileInput.files[0]; 
             }
         },
-        submitButtonClicked : function () {
-
-            formData = new FormData();
-            formData.append(this.fileName ,this.selectedFile, this.fileName);
-            this.postFile();
-            // document.getElementById('form').submit();
+        readBody: function (xhr) {
+            var data;
+            if (!xhr.responseType || xhr.responseType === "text") {
+                data = xhr.responseText;
+            } else if (xhr.responseType === "document") {
+                data = xhr.responseXML;
+            } else {
+                data = xhr.response;
+            }
+            return data;
         },
-        postFile: function () {
+        submitButtonClicked : function () {
+            var form = document.forms.item('form');
+
+            this.formData = new FormData(form);
+            var request = new XMLHttpRequest();
+
             var self = this;
-            $.ajax({
-                // xhr: function() {
-                //     var progress = $('.progress'),
-                //         xhr = $.ajaxSettings.xhr();
-    
-                //     progress.show();
-    
-                //     xhr.upload.onprogress = function(ev) {
-                //         if (ev.lengthComputable) {
-                //             var percentComplete = parseInt((ev.loaded / ev.total) * 100);
-                //             progress.val(percentComplete);
-                //             if (percentComplete === 100) {
-                //                 progress.hide().val(0);
-                //             }
-                //         }
-                //     };
-    
-                //     return xhr;
-                // },
-                url: 'http://localhost:5000/upload',
-                type: 'POST',
-                data: this.formData,
-                contentType: false,
-                cache: false,
-                processData: false,
-                success: function(data, status, xhr) {
-                    console.log('hui');
-                },
-                error: function(xhr, status, error) {
-                    console.log('shit');                    
+            request.onreadystatechange = function() {
+                if(request.readyState == XMLHttpRequest.DONE) {
+                    console.log(self.readBody(request));
                 }
-            });
-            // $.post('http://localhost:5000/upload', this.formData)
-            // .done(function () {
-            //     console.log('it worked');
-            // })
-            // .fail(function (jqxhr, textStatus, error) {
-            //     self.redirectToPreview();
-            //     console.log('it did not work');                
-            // });
-            
+            };
+
+            request.open('POST', 'http://localhost:5000/upload');
+            request.send(this.formData);
+
+            this.redirectToPreview();
+
         },
         redirectToPreview: function () {
-            window.location.href = 'preview.html';            
+            window.location.href = 'preview.html';
         },
         clearAll : function () {
             console.log('clearAll');

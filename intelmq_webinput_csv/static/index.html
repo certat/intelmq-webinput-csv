@@ -24,7 +24,7 @@
             </div>
         </section>
 
-        <form action="http://localhost:5000/upload" method="POST" enctype="multipart/form-data" id="form" onsubmit="redirectToPreview()">
+        <form id="form">
             <!--file upload-->
             <section class="section">
                 <div class="container">
@@ -147,7 +147,7 @@
                 <div class="container">
                     <div class="field is-grouped">
                         <div class="control">
-                            <button class="button is-primary" type="submit">Submit</button>
+                            <button class="button is-primary" type="button" v-on:click="submitButtonClicked()">Submit</button>
                         </div>
                         <div class="control">
                             <button class="button is-default" type="button" v-on:click="clearAll">Clear All</button>
