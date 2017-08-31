@@ -3,7 +3,7 @@ var vm_upload = new Vue({
     fileName: '#fileInput',
     data: {
         fileName: 'no file chosen',
-        inputFormData: {
+        uploadFormData: {
             text: '',
             file: null,
             delimiter: ';',
@@ -19,7 +19,12 @@ var vm_upload = new Vue({
         onChangeListener: function () {
             if (fileInput.files.length === 1) {
                 this.fileName = fileInput.files[0].name;
-                this.inputFormData.file = fileInput.files[0];
+                this.uploadFormData.file = fileInput.files[0];
+            } else if (fileInput.files.length === 0) {
+                return;
+            } else {
+                alert('please select only one file');
+                return;
             }
         },
         readBody: function (xhr) {
@@ -36,15 +41,21 @@ var vm_upload = new Vue({
         submitButtonClicked: function () {
             var formData = new FormData();
 
-            formData.append('text', this.inputFormData.text);
-            formData.append('file', this.inputFormData.file);
-            // formData.append('delimiter', this.inputFormData.delimiter);
-            // formData.append('quotechar', this.inputFormData.quotechar);
-            // formData.append('use_header', this.inputFormData.useHeader);
-            // formData.append('has_header', this.inputFormData.hasHeader);
-            // formData.append('skipInitialSpace', this.inputFormData.skipInitialSpace);
-            // formData.append('skipInitialLines', this.inputFormData.skipInitialLines);
-            // formData.append('loadLinesMax', this.inputFormData.loadLinesMax);
+            formData.append('text', this.uploadFormData.text);
+            formData.append('file', this.uploadFormData.file);
+
+            // obligatory data
+            // should be implemented on server side
+            // formData.append('delimiter', this.uploadFormData.delimiter);
+            // formData.append('quotechar', this.uploadFormData.quotechar);
+            // formData.append('use_header', this.uploadFormData.useHeader);
+            // formData.append('has_header', this.uploadFormData.hasHeader);
+
+            // optional data
+            // should be implemented on server side
+            // formData.append('skipInitialSpace', this.uploadFormData.skipInitialSpace);
+            // formData.append('skipInitialLines', this.uploadFormData.skipInitialLines);
+            // formData.append('loadLinesMax', this.uploadFormData.loadLinesMax);
 
             this.saveDataInSession();
 
@@ -63,9 +74,9 @@ var vm_upload = new Vue({
             request.send(formData);
         },
         saveDataInSession: function () {
-            for (key in this.inputFormData) {
+            for (key in this.uploadFormData) {
                 if ((key != 'text') && (key != 'file')) {
-                    sessionStorage.setItem(key,this.inputFormData[key]);
+                    sessionStorage.setItem(key, this.uploadFormData[key]);
                 }
             }
         },
@@ -75,5 +86,23 @@ var vm_upload = new Vue({
         clearAll: function () {
             console.log('clearAll');
         },
+        loadDataFromSession: function () {
+            for (key in this.uploadFormData) {
+                if (sessionStorage.getItem(key) === null) {
+                    continue;
+                } else {
+                    try {
+                        this.uploadFormData[key] = JSON.parse(sessionStorage.getItem(key));
+                    } catch (e) {
+                        this.uploadFormData[key] = sessionStorage.getItem(key);
+                    }
+                }
+            }
+        },
     },
+    beforeMount() {
+        this.loadDataFromSession();
+    }
 });
+
+// $('#form').change(function(){console.log('hui')});
