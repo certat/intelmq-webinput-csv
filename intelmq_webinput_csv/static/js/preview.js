@@ -132,6 +132,8 @@ var vm_preview = new Vue({
             // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
             // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
 
+            this.getColumns();
+            this.getIgnore();
             this.saveDataInSession();
 
             var request = new XMLHttpRequest();
@@ -154,6 +156,8 @@ var vm_preview = new Vue({
             request.send(formData);
         },
         saveDataInSession: function () {
+            this.getColumns();
+            this.getIgnore();
             for (key in this.previewFormData) {
                 sessionStorage.setItem(key, this.previewFormData[key]);
             }
@@ -169,6 +173,26 @@ var vm_preview = new Vue({
                         this.previewFormData[key] = sessionStorage.getItem(key);
                     }
                 }
+            }
+        },
+        getColumns: function () {
+            this.previewFormData.columns = [];
+            var dataTable = $('#dataTable')[0];
+            var numberOfColumns = dataTable.rows[0].cells.length;
+
+            for (var i = 0; i < numberOfColumns; i++) {
+                var cell = dataTable.rows[0].cells[i];
+                this.previewFormData.columns.push($('select', cell)[0].value);
+            }
+        },
+        getIgnore: function () {
+            this.previewFormData.ignore = [];
+            var dataTable = $('#dataTable')[0];
+            var numberOfColumns = dataTable.rows[0].cells.length;
+
+            for (var i = 0; i < numberOfColumns; i++) {
+                var cell = dataTable.rows[1].cells[i];
+                this.previewFormData.ignore.push($('input', cell)[0].checked);
             }
         },
     },
