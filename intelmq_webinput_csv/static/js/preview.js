@@ -2,7 +2,7 @@ var vm_preview = new Vue({
     el: '#previewApp',
 
     data: {
-        numberOk: 0,
+        numberTotal: 0,
         numberFailed: 0,
         classificationTypes: [],
         dhoFields: [],
@@ -110,21 +110,26 @@ var vm_preview = new Vue({
                 scrollTop: 0
             }, 800);
 
+            this.getColumns();
+            this.getIgnore();
+
             var formData = new FormData();
 
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('classification.identifier', this.previewFormData.classificationId);
-            formData.append('text', this.previewFormData.text);
+            formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
+            // this.previewFormData.ignore = 0;
+            // this.previewFormData.columns = "source.ip";
             formData.append('ignore', this.previewFormData.ignore);
             formData.append('columns', this.previewFormData.columns);
 
             // obligatory data -> from upload form
             formData.append('delimiter', sessionStorage.delimiter);
             formData.append('quotechar', sessionStorage.quotechar);
-            formData.append('use_header', sessionStorage.use_header);
-            formData.append('has_header', sessionStorage.has_header);
+            formData.append('use_header', sessionStorage.useHeader);
+            formData.append('has_header', sessionStorage.hasHeader);
 
             // optional data -> from upload form
             // should be implemented on server side
@@ -132,8 +137,7 @@ var vm_preview = new Vue({
             // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
             // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
 
-            this.getColumns();
-            this.getIgnore();
+
             this.saveDataInSession();
 
             var request = new XMLHttpRequest();
@@ -146,8 +150,9 @@ var vm_preview = new Vue({
 
                     previewResponse = JSON.parse(previewResponse);
                     self.numberFailed = previewResponse.errors.length;
-                    self.numberOk = previewResponse.total;
+                    self.numberTotal = previewResponse.total;
 
+                    self.colorizeErrors(previewResponse);
                     console.log(previewResponse);
                 }
             };
@@ -193,6 +198,11 @@ var vm_preview = new Vue({
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[1].cells[i];
                 this.previewFormData.ignore.push($('input', cell)[0].checked);
+            }
+        },
+        colorizeErrors: function (data) {
+            for (var i = 0; i < data.errors.length; i++) {
+                $('#dataTable')[0].rows[data.errors[i][0] + 3].cells[data.errors[i][1]].setAttribute('style','background-color: #ffcccc')
             }
         },
     },

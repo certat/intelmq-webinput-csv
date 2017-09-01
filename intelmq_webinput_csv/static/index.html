@@ -24,20 +24,20 @@
             </div>
         </section>
 
-        <form id="form">
+        <form id="form" @change="saveDataInSession()">
             <!--file upload-->
             <section class="section">
                 <div class="container">
                     <h4 class="title is-4">Content</h4>
                     <div class="field">
                         <div class="control">
-                            <textarea class="textarea" id="textArea" name="text"></textarea>
+                            <textarea class="textarea" id="textArea" v-model="uploadFormData.text"></textarea>
                         </div>
                     </div>
                     <br>
                     <div class="file has-name">
                         <label class="file-label">
-                                <input class="file-input" type="file" name="file" id="fileInput" @change="onChangeListener">
+                                <input class="file-input" type="file" id="fileInput" @change="onChangeListener">
                                 <span class="file-cta">
                                     <span class="file-icon">
                                         <i class="fa fa-upload"></i>
@@ -65,7 +65,7 @@
                                 <span>delimiter</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input">
+                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.delimiter">
                             </div>
                         </div>
                         <div class="columns is-one-quarter">
@@ -73,7 +73,7 @@
                                 <span>quotechar</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input">
+                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.quotechar">
                             </div>
                         </div>
                         <div class="columns">
@@ -84,7 +84,7 @@
                                 <div class="control">
                                     <div class="control">
                                         <label class="checkbox">
-                                                <input type="checkbox" v-model="useHeader">
+                                                <input type="checkbox" v-model="uploadFormData.useHeader">
                                             </label>
                                     </div>
                                 </div>
@@ -98,7 +98,7 @@
                                 <div class="control">
                                     <div class="control">
                                         <label class="checkbox">
-                                                <input type="checkbox" v-model="hasHeader">
+                                                <input type="checkbox" v-model="uploadFormData.hasHeader">
                                             </label>
                                     </div>
                                 </div>
@@ -115,7 +115,7 @@
                                 <div class="control">
                                     <div class="control">
                                         <label class="checkbox">
-                                            <input type="checkbox" v-model="skipInitialSpace">
+                                            <input type="checkbox" v-model="uploadFormData.skipInitialSpace">
                                         </label>
                                     </div>
                                 </div>
@@ -126,7 +126,7 @@
                                 <span>skip initial N lines</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input">
+                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.skipInitialLines">
                             </div>
                         </div>
                         <div class="columns">
@@ -134,7 +134,7 @@
                                 <span>load N lines maximum</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input">
+                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.loadLinesMax">
                             </div>
                         </div>
                     </div>
