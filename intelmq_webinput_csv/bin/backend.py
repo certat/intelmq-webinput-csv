@@ -19,11 +19,14 @@ PARAMETERS = {
     'text': 'default',
     'delimiter': ',',
     'has_header': False,
-    'use_header': False,  # TODO: define how it should be used
-    'quotechar': '"',
+    'quotechar': '\"',
+    'escapechar': '\\',
     'columns': [],
     'use_column': [],
     'dryrun': True,
+    'skipInitialSpace': False,
+    'skipInitialLines': 0,
+    'loadLinesMax': 100,
     }
 
 
@@ -44,22 +47,31 @@ class Parameters(object):
 
 def handle_parameters(form):
     parameters = {}
+    for key, default_value in CONFIG.items():
+        parameters[key] = form.get(key, default_value)
     for key, default_value in PARAMETERS.items():
         parameters[key] = form.get(key, default_value)
     if parameters['dryrun']:
         parameters['classification.type'] = 'test'
         parameters['classification.identifier'] = 'test'
     if type(parameters['columns']) is not list:  # for debugging purpose only
+        parameters['use_column'] = [json.loads(a.lower()) for a in
+                                    parameters['use_column'].split(',')]
         parameters['columns'] = parameters['columns'].split(',')
-        parameters['use_column'] = [json.loads(a.lower()) for a in parameters['use_column'].split(',')]
+    parameters['columns'] = [a if b else None for a, b in
+                             zip(parameters['columns'],
+                                 parameters['use_column'])]
+    # for debugging purpose only
+    parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
+    parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
 
 
 def create_response(text):
-    is_json = True
+    is_json = False
     if type(text) is not str:
         text = jsonify(text)
-        is_json = False
+        is_json = True
     response = make_response(text)
     if is_json:
         response.mimetype = 'application/json'
@@ -79,30 +91,51 @@ def form():
     ''')
 
 
+@app.route('/form/<kind>')
+def preview_form(kind):
+    retval = '''<html><body>
+<form action="/%s" method="POST" enctype="multipart/form-data">''' % kind
+    for key, default_value in sorted(PARAMETERS.items()):
+        retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
+    retval += '''<input type="submit" value="Submit">
+</form></body></html>
+'''
+    return retval
+
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
-    if request.method == 'POST':
-        print('files:', list(request.files.keys()))
-        print('form data:', list(request.form.keys()))
-        if 'file' in request.files and request.files['file'].filename:
-            filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
-            request.files['file'].save(filename)
-            success = True
-        elif 'text' in request.form and request.form['text']:
-            filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
-            with os.fdopen(filedescriptor, mode='w') as handle:
-                handle.write(request.form['text'])
-            success = True
-    if success == True:
+    print('files:', list(request.files.keys()))
+    print('form data:', list(request.form.keys()))
+    if 'file' in request.files and request.files['file'].filename:
+        filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
+        request.files['file'].save(filename)
+        success = True
+    elif 'text' in request.form and request.form['text']:
+        filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
+        with os.fdopen(filedescriptor, mode='w') as handle:
+            handle.write(request.form['text'])
+        success = True
+    if success:
         TEMPORARY_FILES.append((filedescriptor, filename))
         parameters = handle_parameters(request.form)
         preview = []
         with open(filename) as handle:
             reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'])
+                                quotechar=parameters['quotechar'],
+                                skipinitialspace=parameters['skipInitialSpace'],
+                                escapechar=parameters['escapechar'],
+                                )
             for lineindex, line in enumerate(reader):
-                if lineindex >= CONFIG.get('preview_lines', 1000):
+                if parameters['skipInitialLines']:
+                    if parameters['has_header'] and lineindex == 1:
+                        for _ in range(parameters['skipInitialLines']):
+                            next(reader)
+                    elif not parameters['has_header'] and lineindex == 0:
+                        for _ in range(parameters['skipInitialLines']):
+                            next(reader)
+                if lineindex >= parameters['loadLinesMax']:
                     break
                 preview.append(line)
         return create_response(preview)
@@ -110,42 +143,41 @@ def upload_file():
         return create_response('no file or text')
 
 
-@app.route('/preview', methods=['GET', 'POST'])
+@app.route('/preview', methods=['POST'])
 def preview():
-    if request.method == 'POST':
-        parameters = handle_parameters(request.form)
-        if not TEMPORARY_FILES:
-            app.logger.info('no file')
-            return create_response('No file')
-        columns = [a if b else None for a, b in zip(parameters['columns'], parameters['use_column'])]
-        retval = []
-        event = Event()
-        with open(TEMPORARY_FILES[-1][1]) as handle:
-            reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'])
-            if parameters['has_header']:
-                next(reader)
-            for lineindex, line in enumerate(reader):
-                for columnindex, (column, value) in enumerate(zip(columns, line)):
-                    if not column:
-                        continue
-                    if column.startswith('time.') and '+' not in value:
-                        value += parameters['timezone']
-                    sanitized = event._Message__sanitize_value(column, value)
-                    valid = event._Message__is_valid_value(column, sanitized)
-                    if not valid[0]:
-                        retval.append((lineindex, columnindex, value, valid[1]))
-            retval = {"total": lineindex+1, "errors": retval}
-            return create_response(retval)
-    else:
-        retval = '''<html><body>
-    <form action="/preview" method="POST" enctype="multipart/form-data">'''
-        for key, default_value in PARAMETERS.items():
-            retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
-        retval += '''<input type="submit" value="Submit">
-        </form></body></html>
-        '''
-    return retval
+    parameters = handle_parameters(request.form)
+    if not TEMPORARY_FILES:
+        app.logger.info('no file')
+        return create_response('No file')
+    retval = []
+    lines_valid = 0
+    event = Event()
+    with open(TEMPORARY_FILES[-1][1]) as handle:
+        reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                            quotechar=parameters['quotechar'])
+        if parameters['has_header']:
+            next(reader)
+        for _ in range(parameters['skipInitialLines']):
+            next(reader)
+        for lineindex, line in enumerate(reader):
+            line_valid = True
+            for columnindex, (column, value) in \
+                    enumerate(zip(parameters['columns'], line)):
+                if not column:
+                    continue
+                if column.startswith('time.') and '+' not in value:
+                    value += parameters['timezone']
+                sanitized = event._Message__sanitize_value(column, value)
+                valid = event._Message__is_valid_value(column, sanitized)
+                if not valid[0]:
+                    retval.append((lineindex, columnindex, value, valid[1]))
+                    line_valid = False
+            if line_valid:
+                lines_valid += 1
+    retval = {"total": lineindex+1,
+              "lines_invalid": lineindex+1-lines_valid,
+              "errors": retval}
+    return create_response(retval)
 
 
 @app.route('/classification/types')
@@ -163,33 +195,44 @@ def submit():
     parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
         return create_response('No file')
-    columns = [a if b else None for a, b in zip(parameters['columns'], parameters['use_column'])]
 
     pipelineparameters = Parameters
     destination_pipeline = PipelineFactory.create(pipelineparameters)
     destination_pipeline.set_queues(CONFIG['destination_pipeline'], "destination")
     destination_pipeline.connect()
 
+    successful_lines = 0
+
     with open(TEMPORARY_FILES[-1][1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                            quotechar=parameters['quotechar'])
+                            quotechar=parameters['quotechar'],
+                            skipinitialspace=parameters['skipInitialSpace'],
+                            escapechar=parameters['escapechar'],
+                            )
         if parameters['has_header']:
+            next(reader)
+        for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
             event = Event()
-            for columnindex, (column, value) in enumerate(zip(columns, line)):
-                if not column:
-                    continue
-                if column.startswith('time.') and '+' not in value:
-                    value += parameters['timezone']
-                event.add(column, value)
+            try:
+                for columnindex, (column, value) in \
+                        enumerate(zip(parameters['columns'], line)):
+                    if not column:
+                        continue
+                    if column.startswith('time.') and '+' not in value:
+                        value += parameters['timezone']
+                    event.add(column, value)
+            except Exception:
+                continue
             if 'classification.type' not in event:
                 event.add('classification.type', parameters['classification.type'])
             if 'classification.identifier' not in event:
                 event.add('classification.identifier', parameters['classification.identifier'])
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
-    return create_response('success')
+            successful_lines += 1
+    return create_response({'successful_lines': successful_lines})
 
 
 def delete_temporary_files():
@@ -203,4 +246,4 @@ def main():
 
 
 if __name__ == "__main__":
-    app.run()
+    main()
