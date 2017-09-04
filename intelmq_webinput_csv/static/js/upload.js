@@ -3,6 +3,7 @@ var vm_upload = new Vue({
     fileName: '#fileInput',
     data: {
         fileName: 'no file chosen',
+        delimiterOptions: [';', ',', '#'],
         uploadFormData: {
             text: '',
             file: null,

@@ -65,7 +65,11 @@
                                 <span>delimiter</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.delimiter">
+                                <div class="select">
+                                    <select v-model="uploadFormData.delimiter">
+                                        <option v-for="option in delimiterOptions" :value="option">{{option}}</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                         <div class="columns is-one-quarter">
