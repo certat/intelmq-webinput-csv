@@ -22,7 +22,7 @@ PARAMETERS = {
     'use_header': False,  # TODO: define how it should be used
     'quotechar': '"',
     'columns': [],
-    'ignore': [],
+    'use_column': [],
     'dryrun': True,
     }
 
@@ -51,7 +51,7 @@ def handle_parameters(form):
         parameters['classification.identifier'] = 'test'
     if type(parameters['columns']) is not list:  # for debugging purpose only
         parameters['columns'] = parameters['columns'].split(',')
-        parameters['ignore'] = [json.loads(a.lower()) for a in parameters['ignore'].split(',')]
+        parameters['use_column'] = [json.loads(a.lower()) for a in parameters['use_column'].split(',')]
     return parameters
 
 
@@ -117,7 +117,7 @@ def preview():
         if not TEMPORARY_FILES:
             app.logger.info('no file')
             return create_response('No file')
-        columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
+        columns = [a if b else None for a, b in zip(parameters['columns'], parameters['use_column'])]
         retval = []
         event = Event()
         with open(TEMPORARY_FILES[-1][1]) as handle:
@@ -163,7 +163,7 @@ def submit():
     parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
         return create_response('No file')
-    columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
+    columns = [a if b else None for a, b in zip(parameters['columns'], parameters['use_column'])]
 
     pipelineparameters = Parameters
     destination_pipeline = PipelineFactory.create(pipelineparameters)
