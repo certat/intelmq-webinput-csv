@@ -138,7 +138,7 @@
                                 <span>skip initial N lines</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.skipInitialLines">
+                                <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.skipInitialLines">
                             </div>
                         </div>
                         <div class="columns">
@@ -146,7 +146,7 @@
                                 <span>load N lines maximum</span>
                             </div>
                             <div class="column is-one-quarter">
-                                <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.loadLinesMax">
+                                <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.loadLinesMax">
                             </div>
                         </div>
                     </div>
