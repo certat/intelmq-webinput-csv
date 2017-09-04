@@ -4,6 +4,9 @@ var vm_preview = new Vue({
     data: {
         numberTotal: 0,
         numberFailed: 0,
+        paragraphStyle: {
+            color: 'black',
+        },
         classificationTypes: [],
         dhoFields: [],
         previewFormData: {
@@ -12,7 +15,7 @@ var vm_preview = new Vue({
             classificationId: 'test',
             boilerPlateText: 'default',
             dryRun: true,
-            ignore: 0,
+            useColumn: 0,
             columns: 'source.ip',
         },
         hasHeader: JSON.parse(sessionStorage.hasHeader),
@@ -74,21 +77,6 @@ var vm_preview = new Vue({
         getDhoFields: function () {
             this.loadFile("http://localhost:5000/harmonization/event/fields", this.loadDhoFields);
         },
-        preprocessData: function (data) {
-            data = JSON.parse(data);
-
-            data.forEach(function (currentValue, index, array) {
-                array[index] = currentValue.replace(/\n/g, '');
-            });
-
-            return data;
-        },
-        splitData: function (data) {
-            data.forEach(function (currentValue, index, array) {
-                array[index] = currentValue.split(';');
-            });
-            return data;
-        },
         readBody: function (xhr) {
             var data;
             if (!xhr.responseType || xhr.responseType === "text") {
@@ -106,7 +94,7 @@ var vm_preview = new Vue({
             }, 800);
 
             this.getColumns();
-            this.getIgnore();
+            this.getUseColumn();
 
             var formData = new FormData();
 
@@ -115,9 +103,53 @@ var vm_preview = new Vue({
             formData.append('classification.identifier', this.previewFormData.classificationId);
             formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
-            // this.previewFormData.ignore = 0;
-            // this.previewFormData.columns = "source.ip";
-            formData.append('ignore', this.previewFormData.ignore);
+            formData.append('use_column', this.previewFormData.useColumn);
+            formData.append('columns', this.previewFormData.columns);
+
+            // obligatory data -> from upload form
+            formData.append('delimiter', sessionStorage.delimiter);
+            formData.append('quotechar', sessionStorage.quotechar);
+            formData.append('use_header', sessionStorage.useHeader);
+            formData.append('has_header', sessionStorage.hasHeader);
+
+            // optional data -> from upload form
+            // should be implemented on server side
+            // formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
+            // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
+            // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
+
+
+            this.saveDataInSession();
+
+            var request = new XMLHttpRequest();
+            var self = this;
+
+            request.onreadystatechange = function () {
+                if (request.readyState == XMLHttpRequest.DONE) {
+                    var submitResponse = self.readBody(request);
+                    alert(submitResponse);
+                }
+            };
+
+            request.open('POST', 'http://localhost:5000/submit');
+            request.send(formData);
+        },
+        refreshButtonClicked: function () {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+
+            this.getColumns();
+            this.getUseColumn();
+
+            var formData = new FormData();
+
+            formData.append('timezone', this.previewFormData.timezone);
+            formData.append('classification.type', this.previewFormData.classificationType);
+            formData.append('classification.identifier', this.previewFormData.classificationId);
+            formData.append('text', this.previewFormData.boilerPlateText);
+            formData.append('dryrun', this.previewFormData.dryRun);
+            formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
 
             // obligatory data -> from upload form
@@ -147,8 +179,7 @@ var vm_preview = new Vue({
                     self.numberFailed = previewResponse.errors.length;
                     self.numberTotal = previewResponse.total;
 
-                    self.colorizeErrors(previewResponse);
-                    console.log(previewResponse);
+                    self.highlightErrors(previewResponse);
                 }
             };
 
@@ -157,7 +188,7 @@ var vm_preview = new Vue({
         },
         saveDataInSession: function () {
             this.getColumns();
-            this.getIgnore();
+            this.getUseColumn();
             for (key in this.previewFormData) {
                 sessionStorage.setItem(key, this.previewFormData[key]);
             }
@@ -185,34 +216,43 @@ var vm_preview = new Vue({
                 this.previewFormData.columns.push($('select', cell)[0].value);
             }
         },
-        getIgnore: function () {
-            this.previewFormData.ignore = [];
+        getUseColumn: function () {
+            this.previewFormData.useColumn = [];
             var dataTable = $('#dataTable')[0];
             var numberOfColumns = dataTable.rows[0].cells.length;
 
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[1].cells[i];
-                this.previewFormData.ignore.push($('input', cell)[0].checked);
+                this.previewFormData.useColumn.push($('input', cell)[0].checked);
             }
         },
-        colorizeErrors: function (data) {
-            if (this.hasHeader) {
-                for (var i = 0; i < data.errors.length; i++) {
-                    $('#dataTable')[0].rows[data.errors[i][0] + 3].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
+        resetTableColor: function () {
+            var rows = $('#dataTable > tbody')[0].rows.length;
+            var columns = $('#dataTable > tbody')[0].rows[0].cells.length;
+
+            for (var i = 0; i < columns; i++) {
+                for (var j = 0; j < rows; j++) {
+                    $('#dataTable > tbody')[0].rows[j].cells[i].removeAttribute('style')
                 }
+            }
+        },
+        highlightErrors: function (data) {
+            this.resetTableColor();
+
+            if (data.errors.length === 0) {
+                this.paragraphStyle.color = '#00cc00'
             } else {
-                for (var i = 0; i < data.errors.length; i++) {
-                    $('#dataTable')[0].rows[data.errors[i][0] + 2].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
-                }
+                this.paragraphStyle.color = '#cc0000'
+            }
+
+            for (var i = 0; i < data.errors.length; i++) {
+                $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
             }
         },
         splitUploadResponse: function () {
             var uploadResponse = sessionStorage.getItem('uploadResponse');
+            uploadResponse = JSON.parse(uploadResponse);
             if (uploadResponse == "") return;
-
-            // will be done by backend later on
-            uploadResponse = this.preprocessData(uploadResponse);
-            uploadResponse = this.splitData(uploadResponse);
 
             if (this.hasHeader) {
                 this.headerContent = uploadResponse.splice(0,1);

@@ -3,16 +3,17 @@ var vm_upload = new Vue({
     fileName: '#fileInput',
     data: {
         fileName: 'no file chosen',
+        delimiterOptions: [';', ',', '#'],
         uploadFormData: {
             text: '',
             file: null,
             delimiter: ';',
             quotechar: '"',
-            useHeader: false,
+            escapechar: '\\',
             hasHeader: false,
             skipInitialSpace: false,
             skipInitialLines: 0,
-            loadLinesMax: null,
+            loadLinesMax: 100,
         },
     },
     methods: {
@@ -45,11 +46,10 @@ var vm_upload = new Vue({
             formData.append('file', this.uploadFormData.file);
 
             // obligatory data
-            // should be implemented on server side
-            // formData.append('delimiter', this.uploadFormData.delimiter);
-            // formData.append('quotechar', this.uploadFormData.quotechar);
-            // formData.append('use_header', this.uploadFormData.useHeader);
-            // formData.append('has_header', this.uploadFormData.hasHeader);
+            formData.append('delimiter', this.uploadFormData.delimiter);
+            formData.append('quotechar', this.uploadFormData.quotechar);
+            // formData.append('escapechar', this.uploadFormData.escapechar);
+            formData.append('has_header', this.uploadFormData.hasHeader);
 
             // optional data
             // should be implemented on server side
@@ -84,7 +84,8 @@ var vm_upload = new Vue({
             window.location.href = 'preview.html';
         },
         clearAll: function () {
-            console.log('clearAll');
+            sessionStorage.clear();
+            location.reload(false);
         },
         loadDataFromSession: function () {
             for (key in this.uploadFormData) {
@@ -104,5 +105,3 @@ var vm_upload = new Vue({
         this.loadDataFromSession();
     }
 });
-
-// $('#form').change(function(){console.log('hui')});

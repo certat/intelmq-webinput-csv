@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Preview</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.1/css/bulma.min.css">
-    <!-- <link rel="stylesheet" href="plugins/bulma/css/bulma.css"> -->
+    <link rel="stylesheet" href="plugins/bulma/css/bulma.css">
 </head>
 
 <body style="overflow:auto">
@@ -18,10 +17,10 @@
                 <h1 class="title is-spaced">
                     Preview
                 </h1>
-                <p class="subtitle">
+                <p class="subtitle" v-bind:style="paragraphStyle">
                     {{numberTotal}} lines in total
                 </p>
-                <p class="subtitle">
+                <p class="subtitle" v-bind:style="paragraphStyle">
                     {{numberFailed}} lines failed
                 </p>
             </div>
@@ -75,11 +74,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="column is-two-thirds is-offset-1">
+                        <div class="column is-offset-1">
                             <table class="table is-bordered is-striped" id="dataTable">
                                 <thead style="background-color:#e6ffff">
                                     <tr>
-                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
                                             <div class="select">
                                                 <select>
                                                     <option disabled value="" selected>select ...</option>
@@ -89,7 +88,7 @@
                                         </th>
                                     </tr>
                                     <tr>
-                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
                                             <input type="checkbox" />
                                         </th>
                                     </tr>
@@ -108,19 +107,20 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="column is-one-eighth">
+                        </div>
                     </div>
                 </div>
             </section>
-
             <!--buttons-->
             <section class="section">
                 <div class="container">
                     <div class="field is-grouped">
                         <div class="control">
-                            <button class="button is-primary" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked()">Refresh Table</button>
                         </div>
                         <div class="control">
-                            <button class="button is-default" type="button">Cancel</button>
+                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked()">Submit</button>
                         </div>
                     </div>
                 </div>
@@ -132,5 +132,4 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="js/preview.js"></script>
 </body>
-
 </html>
