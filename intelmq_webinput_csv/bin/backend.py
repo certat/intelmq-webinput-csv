@@ -55,6 +55,19 @@ def handle_parameters(form):
     return parameters
 
 
+def create_response(text):
+    is_json = True
+    if type(text) is not str:
+        text = jsonify(text)
+        is_json = False
+    response = make_response(text)
+    if is_json:
+        response.mimetype = 'application/json'
+        response.headers['Content-Type'] = "text/json; charset=utf-8"
+    response.headers['Access-Control-Allow-Origin'] = "*"
+    return response
+
+
 @app.route('/')
 def form():
     return('''<html><body>
@@ -89,17 +102,9 @@ def upload_file():
                 line = handle.readline()
                 if line:
                     preview.append(line)
-        response = make_response(jsonify(preview))
-        response.mimetype = 'application/json'
-        response.headers['Content-Type'] = "text/json; charset=utf-8"
-        response.headers['Access-Control-Allow-Origin'] = "*"
-        return response
+        return create_response(preview)
     else:
-        response = make_response('no file or text')
-        response.mimetype = 'application/json'
-        response.headers['Content-Type'] = "text/json; charset=utf-8"
-        response.headers['Access-Control-Allow-Origin'] = "*"
-        return response
+        return create_response('no file or text')
 
 
 @app.route('/preview', methods=['GET', 'POST'])
@@ -108,7 +113,7 @@ def preview():
         parameters = handle_parameters(request.form)
         if not TEMPORARY_FILES:
             app.logger.info('no file')
-            return jsonify('No file')
+            return create_response('No file')
         columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
         retval = []
         event = Event()
@@ -128,11 +133,7 @@ def preview():
                     if not valid[0]:
                         retval.append((lineindex, columnindex, value, valid[1]))
             retval = {"total": lineindex+1, "errors": retval}
-            response = make_response(jsonify(retval))
-            response.mimetype = 'application/json'
-            response.headers['Content-Type'] = "text/json; charset=utf-8"
-            response.headers['Access-Control-Allow-Origin'] = "*"
-            return response
+            return create_response(retval)
     else:
         retval = '''<html><body>
     <form action="/preview" method="POST" enctype="multipart/form-data">'''
@@ -146,27 +147,19 @@ def preview():
 
 @app.route('/classification/types')
 def classification_types():
-    response = make_response(jsonify(ClassificationType.allowed_values))
-    response.mimetype = 'application/json'
-    response.headers['Content-Type'] = "text/json; charset=utf-8"
-    response.headers['Access-Control-Allow-Origin'] = "*"
-    return response
+    return create_response(ClassificationType.allowed_values)
 
 
 @app.route('/harmonization/event/fields')
 def harmonization_event_fields():
-    response = make_response(jsonify(EVENT_FIELDS['event']))
-    response.mimetype = 'application/json'
-    response.headers['Content-Type'] = "text/json; charset=utf-8"
-    response.headers['Access-Control-Allow-Origin'] = "*"
-    return response
+    return create_response(EVENT_FIELDS['event'])
 
 
 @app.route('/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
-        return jsonify('No file')
+        return create_response('No file')
     columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
 
     pipelineparameters = Parameters
@@ -193,7 +186,7 @@ def submit():
                 event.add('classification.identifier', parameters['classification.identifier'])
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
-    return 'success'
+    return create_response('success')
 
 
 def delete_temporary_files():
