@@ -19,11 +19,14 @@ PARAMETERS = {
     'text': 'default',
     'delimiter': ',',
     'has_header': False,
-    'use_header': False,  # TODO: define how it should be used
-    'quotechar': '"',
+    'quotechar': '\"',
+    'escapechar': '\\',
     'columns': [],
     'use_column': [],
     'dryrun': True,
+    'skipInitialSpace': False,
+    'skipInitialLines': 0,
+    'loadLinesMax': 100,
     }
 
 
@@ -44,6 +47,8 @@ class Parameters(object):
 
 def handle_parameters(form):
     parameters = {}
+    for key, default_value in CONFIG.items():
+        parameters[key] = form.get(key, default_value)
     for key, default_value in PARAMETERS.items():
         parameters[key] = form.get(key, default_value)
     if parameters['dryrun']:
@@ -56,14 +61,17 @@ def handle_parameters(form):
     parameters['columns'] = [a if b else None for a, b in
                              zip(parameters['columns'],
                                  parameters['use_column'])]
+    # for debugging purpose only
+    parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
+    parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
 
 
 def create_response(text):
-    is_json = True
+    is_json = False
     if type(text) is not str:
         text = jsonify(text)
-        is_json = False
+        is_json = True
     response = make_response(text)
     if is_json:
         response.mimetype = 'application/json'
@@ -115,9 +123,19 @@ def upload_file():
         preview = []
         with open(filename) as handle:
             reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'])
+                                quotechar=parameters['quotechar'],
+                                skipinitialspace=parameters['skipInitialSpace'],
+                                escapechar=parameters['escapechar'],
+                                )
             for lineindex, line in enumerate(reader):
-                if lineindex >= CONFIG.get('preview_lines', 1000):
+                if parameters['skipInitialLines']:
+                    if parameters['has_header'] and lineindex == 1:
+                        for _ in range(parameters['skipInitialLines']):
+                            next(reader)
+                    elif not parameters['has_header'] and lineindex == 0:
+                        for _ in range(parameters['skipInitialLines']):
+                            next(reader)
+                if lineindex >= parameters['loadLinesMax']:
                     break
                 preview.append(line)
         return create_response(preview)
@@ -138,6 +156,8 @@ def preview():
                             quotechar=parameters['quotechar'])
         if parameters['has_header']:
             next(reader)
+        for _ in range(parameters['skipInitialLines']):
+            next(reader)
         for lineindex, line in enumerate(reader):
             for columnindex, (column, value) in \
                     enumerate(zip(parameters['columns'], line)):
@@ -151,7 +171,6 @@ def preview():
                     retval.append((lineindex, columnindex, value, valid[1]))
     retval = {"total": lineindex+1, "errors": retval}
     return create_response(retval)
-
 
 
 @app.route('/classification/types')
@@ -177,8 +196,13 @@ def submit():
 
     with open(TEMPORARY_FILES[-1][1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                            quotechar=parameters['quotechar'])
+                            quotechar=parameters['quotechar'],
+                            skipinitialspace=parameters['skipInitialSpace'],
+                            escapechar=parameters['escapechar'],
+                            )
         if parameters['has_header']:
+            next(reader)
+        for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
             event = Event()
