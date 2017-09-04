@@ -88,6 +88,9 @@ var vm_preview = new Vue({
             }
             return data;
         },
+        cancelButtonClicked: function () {
+            console.log('cancel');
+        },
         submitButtonClicked: function () {
             $('body,html').animate({
                 scrollTop: 0
@@ -134,7 +137,6 @@ var vm_preview = new Vue({
                     self.numberTotal = previewResponse.total;
 
                     self.highlightErrors(previewResponse);
-                    console.log(previewResponse);
                 }
             };
 
@@ -181,7 +183,19 @@ var vm_preview = new Vue({
                 this.previewFormData.useColumn.push($('input', cell)[0].checked);
             }
         },
+        resetTableColor: function () {
+            var rows = $('#dataTable > tbody')[0].rows.length;
+            var columns = $('#dataTable > tbody')[0].rows[0].cells.length;
+
+            for (var i = 0; i < columns; i++) {
+                for (var j = 0; j < rows; j++) {
+                    $('#dataTable > tbody')[0].rows[j].cells[i].removeAttribute('style')
+                }
+            }
+        },
         highlightErrors: function (data) {
+            this.resetTableColor();
+
             if (data.errors.length === 0) {
                 this.paragraphStyle.color = '#00cc00'
             } else {

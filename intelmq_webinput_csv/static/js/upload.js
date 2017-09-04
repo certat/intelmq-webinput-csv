@@ -86,7 +86,8 @@ var vm_upload = new Vue({
             window.location.href = 'preview.html';
         },
         clearAll: function () {
-            console.log('clearAll');
+            sessionStorage.clear();
+            location.reload(false);
         },
         loadDataFromSession: function () {
             for (key in this.uploadFormData) {
@@ -106,5 +107,3 @@ var vm_upload = new Vue({
         this.loadDataFromSession();
     }
 });
-
-// $('#form').change(function(){console.log('hui')});
