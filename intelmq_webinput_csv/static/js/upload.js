@@ -14,7 +14,7 @@ var vm_upload = new Vue({
             hasHeader: false,
             skipInitialSpace: false,
             skipInitialLines: 0,
-            loadLinesMax: null,
+            loadLinesMax: 100,
         },
     },
     methods: {
