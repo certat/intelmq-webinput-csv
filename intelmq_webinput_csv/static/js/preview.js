@@ -74,21 +74,6 @@ var vm_preview = new Vue({
         getDhoFields: function () {
             this.loadFile("http://localhost:5000/harmonization/event/fields", this.loadDhoFields);
         },
-        preprocessData: function (data) {
-            data = JSON.parse(data);
-
-            data.forEach(function (currentValue, index, array) {
-                array[index] = currentValue.replace(/\n/g, '');
-            });
-
-            return data;
-        },
-        splitData: function (data) {
-            data.forEach(function (currentValue, index, array) {
-                array[index] = currentValue.split(';');
-            });
-            return data;
-        },
         readBody: function (xhr) {
             var data;
             if (!xhr.responseType || xhr.responseType === "text") {
@@ -208,11 +193,8 @@ var vm_preview = new Vue({
         },
         splitUploadResponse: function () {
             var uploadResponse = sessionStorage.getItem('uploadResponse');
+            uploadResponse = JSON.parse(uploadResponse);
             if (uploadResponse == "") return;
-
-            // will be done by backend later on
-            uploadResponse = this.preprocessData(uploadResponse);
-            uploadResponse = this.splitData(uploadResponse);
 
             if (this.hasHeader) {
                 this.headerContent = uploadResponse.splice(0,1);
