@@ -12,7 +12,7 @@ var vm_preview = new Vue({
             classificationId: 'test',
             boilerPlateText: 'default',
             dryRun: true,
-            ignore: 0,
+            useColumn: 0,
             columns: 'source.ip',
         },
         hasHeader: JSON.parse(sessionStorage.hasHeader),
@@ -106,7 +106,7 @@ var vm_preview = new Vue({
             }, 800);
 
             this.getColumns();
-            this.getIgnore();
+            this.getUseColumn();
 
             var formData = new FormData();
 
@@ -115,9 +115,9 @@ var vm_preview = new Vue({
             formData.append('classification.identifier', this.previewFormData.classificationId);
             formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
-            // this.previewFormData.ignore = 0;
+            // this.previewFormData.useColumn = 0;
             // this.previewFormData.columns = "source.ip";
-            formData.append('ignore', this.previewFormData.ignore);
+            formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
 
             // obligatory data -> from upload form
@@ -157,7 +157,7 @@ var vm_preview = new Vue({
         },
         saveDataInSession: function () {
             this.getColumns();
-            this.getIgnore();
+            this.getUseColumn();
             for (key in this.previewFormData) {
                 sessionStorage.setItem(key, this.previewFormData[key]);
             }
@@ -185,14 +185,14 @@ var vm_preview = new Vue({
                 this.previewFormData.columns.push($('select', cell)[0].value);
             }
         },
-        getIgnore: function () {
-            this.previewFormData.ignore = [];
+        getUseColumn: function () {
+            this.previewFormData.useColumn = [];
             var dataTable = $('#dataTable')[0];
             var numberOfColumns = dataTable.rows[0].cells.length;
 
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[1].cells[i];
-                this.previewFormData.ignore.push($('input', cell)[0].checked);
+                this.previewFormData.useColumn.push($('input', cell)[0].checked);
             }
         },
         colorizeErrors: function (data) {
