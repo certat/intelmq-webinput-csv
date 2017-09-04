@@ -194,6 +194,8 @@ def submit():
     destination_pipeline.set_queues(CONFIG['destination_pipeline'], "destination")
     destination_pipeline.connect()
 
+    successful_lines = 0
+
     with open(TEMPORARY_FILES[-1][1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
@@ -206,20 +208,24 @@ def submit():
             next(reader)
         for lineindex, line in enumerate(reader):
             event = Event()
-            for columnindex, (column, value) in \
-                    enumerate(zip(parameters['columns'], line)):
-                if not column:
-                    continue
-                if column.startswith('time.') and '+' not in value:
-                    value += parameters['timezone']
-                event.add(column, value)
+            try:
+                for columnindex, (column, value) in \
+                        enumerate(zip(parameters['columns'], line)):
+                    if not column:
+                        continue
+                    if column.startswith('time.') and '+' not in value:
+                        value += parameters['timezone']
+                    event.add(column, value)
+            except Exception:
+                continue
             if 'classification.type' not in event:
                 event.add('classification.type', parameters['classification.type'])
             if 'classification.identifier' not in event:
                 event.add('classification.identifier', parameters['classification.identifier'])
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
-    return create_response('success')
+            successful_lines += 1
+    return create_response({'successful_lines': successful_lines})
 
 
 def delete_temporary_files():
