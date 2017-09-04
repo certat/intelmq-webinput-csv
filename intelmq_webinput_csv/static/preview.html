@@ -75,11 +75,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="column is-two-thirds is-offset-1">
+                        <div class="column is-offset-1">
                             <table class="table is-bordered is-striped" id="dataTable">
                                 <thead style="background-color:#e6ffff">
                                     <tr>
-                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length">
                                             <div class="select">
                                                 <select>
                                                     <option disabled value="" selected>select ...</option>
@@ -89,7 +89,7 @@
                                         </th>
                                     </tr>
                                     <tr>
-                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length">
                                             <input type="checkbox" />
                                         </th>
                                     </tr>
@@ -107,6 +107,8 @@
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+                        <div class="column is-one-quarter">
                         </div>
                     </div>
                 </div>
