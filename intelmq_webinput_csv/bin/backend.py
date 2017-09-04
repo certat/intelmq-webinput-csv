@@ -42,6 +42,19 @@ class Parameters(object):
     pass
 
 
+def handle_parameters(form):
+    parameters = {}
+    for key, default_value in PARAMETERS.items():
+        parameters[key] = form.get(key, default_value)
+    if parameters['dryrun']:
+        parameters['classification.type'] = 'test'
+        parameters['classification.identifier'] = 'test'
+    if type(parameters['columns']) is not list:  # for debugging purpose only
+        parameters['columns'] = parameters['columns'].split(',')
+        parameters['ignore'] = [json.loads(a.lower()) for a in parameters['ignore'].split(',')]
+    return parameters
+
+
 @app.route('/')
 def form():
     return('''<html><body>
@@ -88,22 +101,14 @@ def upload_file():
         response.headers['Access-Control-Allow-Origin'] = "*"
         return response
 
+
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'POST':
-        parameters = {}
-        for key, default_value in PARAMETERS.items():
-            parameters[key] = request.form.get(key, default_value)
-        if parameters['dryrun']:
-            parameters['classification.type'] = 'test'
-            parameters['classification.identifier'] = 'test'
-        retval = jsonify(parameters)
+        parameters = handle_parameters(request.form)
         if not TEMPORARY_FILES:
             app.logger.info('no file')
             return jsonify('No file')
-        if type(parameters['columns']) is not list:
-            parameters['columns'] = parameters['columns'].split(',')
-            parameters['ignore'] = [json.loads(a.lower()) for a in parameters['ignore'].split(',')]
         columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
         retval = []
         event = Event()
@@ -159,18 +164,9 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    parameters = {}
-    for key, default_value in PARAMETERS.items():
-        parameters[key] = request.form.get(key, default_value)
-    if parameters['dryrun']:
-        parameters['classification.type'] = 'test'
-        parameters['classification.identifier'] = 'test'
-    retval = jsonify(parameters)
+    parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
         return jsonify('No file')
-    if type(parameters['columns']) is not list:
-        parameters['columns'] = parameters['columns'].split(',')
-        parameters['ignore'] = [bool(int(a)) for a in parameters['ignore'].split(',')]
     columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
 
     pipelineparameters = Parameters
