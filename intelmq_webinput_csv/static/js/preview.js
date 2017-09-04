@@ -100,8 +100,6 @@ var vm_preview = new Vue({
             formData.append('classification.identifier', this.previewFormData.classificationId);
             formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
-            // this.previewFormData.useColumn = 0;
-            // this.previewFormData.columns = "source.ip";
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
 
@@ -181,14 +179,8 @@ var vm_preview = new Vue({
             }
         },
         colorizeErrors: function (data) {
-            if (this.hasHeader) {
-                for (var i = 0; i < data.errors.length; i++) {
-                    $('#dataTable')[0].rows[data.errors[i][0] + 3].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
-                }
-            } else {
-                for (var i = 0; i < data.errors.length; i++) {
-                    $('#dataTable')[0].rows[data.errors[i][0] + 2].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
-                }
+            for (var i = 0; i < data.errors.length; i++) {
+                $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
             }
         },
         splitUploadResponse: function () {
