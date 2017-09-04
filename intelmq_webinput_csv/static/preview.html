@@ -79,7 +79,7 @@
                             <table class="table is-bordered is-striped" id="dataTable">
                                 <thead style="background-color:#e6ffff">
                                     <tr>
-                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length">
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
                                             <div class="select">
                                                 <select>
                                                     <option disabled value="" selected>select ...</option>
@@ -89,7 +89,7 @@
                                         </th>
                                     </tr>
                                     <tr>
-                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length">
+                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
                                             <input type="checkbox" />
                                         </th>
                                     </tr>
@@ -108,7 +108,7 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div class="column is-one-quarter">
+                        <div class="column is-one-eighth">
                         </div>
                     </div>
                 </div>
