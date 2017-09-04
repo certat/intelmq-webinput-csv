@@ -9,6 +9,7 @@ var vm_upload = new Vue({
             file: null,
             delimiter: ';',
             quotechar: '"',
+            escapechar: '\\',
             useHeader: false,
             hasHeader: false,
             skipInitialSpace: false,
@@ -48,6 +49,7 @@ var vm_upload = new Vue({
             // obligatory data
             formData.append('delimiter', this.uploadFormData.delimiter);
             formData.append('quotechar', this.uploadFormData.quotechar);
+            // formData.append('escapechar', this.uploadFormData.escapechar);
             formData.append('use_header', this.uploadFormData.useHeader);
             formData.append('has_header', this.uploadFormData.hasHeader);
 
