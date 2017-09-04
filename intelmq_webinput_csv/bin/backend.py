@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, make_response
 import tempfile
 import os
 import atexit
-from intelmq.lib.harmonization import ClassificationType
+from intelmq.lib.harmonization import ClassificationType, IPAddress
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq import HARMONIZATION_CONF_FILE
@@ -111,16 +111,20 @@ def upload_file():
     if 'file' in request.files and request.files['file'].filename:
         filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
         request.files['file'].save(filename)
+        request.files['file'].stream.seek(0)
+        total_lines = request.files['file'].stream.read().count(b'\n')  # we don't care about headers here
         success = True
     elif 'text' in request.form and request.form['text']:
         filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
         with os.fdopen(filedescriptor, mode='w') as handle:
             handle.write(request.form['text'])
         success = True
+        total_lines = request.form['text'].count('\n')
     if success:
         TEMPORARY_FILES.append((filedescriptor, filename))
         parameters = handle_parameters(request.form)
         preview = []
+        valid_ip_addresses = None
         with open(filename) as handle:
             reader = csv.reader(handle, delimiter=parameters['delimiter'],
                                 quotechar=parameters['quotechar'],
@@ -137,8 +141,17 @@ def upload_file():
                             next(reader)
                 if lineindex >= parameters['loadLinesMax']:
                     break
+                if valid_ip_addresses is None:
+                    valid_ip_addresses = [0] * len(line)
+                for columnindex, value in enumerate(line):
+                    if IPAddress.is_valid(value, sanitize=True):
+                        valid_ip_addresses[columnindex] += 1
                 preview.append(line)
-        return create_response(preview)
+        column_types = ["IPAddress" if x/total_lines > 0.7 else None for x in valid_ip_addresses]
+        return create_response({"column_types": column_types,
+                                "use_column": [bool(x) for x in column_types],
+                                "preview": preview,
+                                })
     else:
         return create_response('no file or text')
 
