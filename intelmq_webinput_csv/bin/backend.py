@@ -150,6 +150,7 @@ def preview():
         app.logger.info('no file')
         return create_response('No file')
     retval = []
+    lines_valid = 0
     event = Event()
     with open(TEMPORARY_FILES[-1][1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
@@ -159,6 +160,7 @@ def preview():
         for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
+            line_valid = True
             for columnindex, (column, value) in \
                     enumerate(zip(parameters['columns'], line)):
                 if not column:
@@ -169,7 +171,12 @@ def preview():
                 valid = event._Message__is_valid_value(column, sanitized)
                 if not valid[0]:
                     retval.append((lineindex, columnindex, value, valid[1]))
-    retval = {"total": lineindex+1, "errors": retval}
+                    line_valid = False
+            if line_valid:
+                lines_valid += 1
+    retval = {"total": lineindex+1,
+              "lines_invalid": lineindex+1-lines_valid,
+              "errors": retval}
     return create_response(retval)
 
 
