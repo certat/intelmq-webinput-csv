@@ -176,7 +176,7 @@ var vm_preview = new Vue({
                     sessionStorage.setItem('previewResponse', previewResponse);
 
                     previewResponse = JSON.parse(previewResponse);
-                    self.numberFailed = previewResponse.errors.length;
+                    self.numberFailed = previewResponse.lines_invalid;
                     self.numberTotal = previewResponse.total;
 
                     self.highlightErrors(previewResponse);
