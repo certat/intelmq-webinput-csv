@@ -45,11 +45,10 @@ var vm_upload = new Vue({
             formData.append('file', this.uploadFormData.file);
 
             // obligatory data
-            // should be implemented on server side
-            // formData.append('delimiter', this.uploadFormData.delimiter);
-            // formData.append('quotechar', this.uploadFormData.quotechar);
-            // formData.append('use_header', this.uploadFormData.useHeader);
-            // formData.append('has_header', this.uploadFormData.hasHeader);
+            formData.append('delimiter', this.uploadFormData.delimiter);
+            formData.append('quotechar', this.uploadFormData.quotechar);
+            formData.append('use_header', this.uploadFormData.useHeader);
+            formData.append('has_header', this.uploadFormData.hasHeader);
 
             // optional data
             // should be implemented on server side
