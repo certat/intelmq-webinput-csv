@@ -77,26 +77,30 @@
                         </div>
                         <div class="column is-two-thirds is-offset-1">
                             <table class="table is-bordered is-striped" id="dataTable">
-                                <thead>
-                                </thead>
-                                <tbody>
+                                <thead style="background-color:#e6ffff">
                                     <tr>
-                                        <td style="text-align:center;vertical-align:middle" v-for="n in uploadResponse.length-1">
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
                                             <div class="select">
-                                                <!-- ??? -->
                                                 <select>
                                                     <option disabled value="" selected>select ...</option>
                                                     <option v-for="(item, key, index) in dhoFields" :value="key">{{key}}</option>
                                                 </select>
                                             </div>
-                                        </td>
+                                        </th>
                                     </tr>
                                     <tr>
-                                        <td style="text-align:center;vertical-align:middle" v-for="n in uploadResponse.length-1">
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
                                             <input type="checkbox" />
-                                        </td>
+                                        </th>
                                     </tr>
-                                    <tr v-for="line in uploadResponse">
+                                    <tr v-show="hasHeader" v-for="line in headerContent">
+                                        <th v-for="cell in line" style="text-align:center;vertical-align:middle">
+                                            {{cell}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="line in bodyContent">
                                         <td v-for="cell in line">
                                             {{cell}}
                                         </td>

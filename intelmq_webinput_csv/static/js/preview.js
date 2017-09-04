@@ -14,7 +14,10 @@ var vm_preview = new Vue({
             dryRun: true,
             ignore: 0,
             columns: 'source.ip',
-        }
+        },
+        hasHeader: JSON.parse(sessionStorage.hasHeader),
+        headerContent: [],
+        bodyContent: [],
     },
     computed: {
         timezones: function () {
@@ -46,14 +49,6 @@ var vm_preview = new Vue({
             }
 
             return timezones_list;
-        },
-        uploadResponse: function () {
-            var data = sessionStorage.getItem('uploadResponse');
-            if (data == "") return;
-
-            data = this.preprocessData(data);
-            data = this.splitData(data);
-            return data;
         },
     },
     methods: {
@@ -201,13 +196,36 @@ var vm_preview = new Vue({
             }
         },
         colorizeErrors: function (data) {
-            for (var i = 0; i < data.errors.length; i++) {
-                $('#dataTable')[0].rows[data.errors[i][0] + 3].cells[data.errors[i][1]].setAttribute('style','background-color: #ffcccc')
+            if (this.hasHeader) {
+                for (var i = 0; i < data.errors.length; i++) {
+                    $('#dataTable')[0].rows[data.errors[i][0] + 3].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
+                }
+            } else {
+                for (var i = 0; i < data.errors.length; i++) {
+                    $('#dataTable')[0].rows[data.errors[i][0] + 2].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
+                }
+            }
+        },
+        splitUploadResponse: function () {
+            var uploadResponse = sessionStorage.getItem('uploadResponse');
+            if (uploadResponse == "") return;
+
+            // will be done by backend later on
+            uploadResponse = this.preprocessData(uploadResponse);
+            uploadResponse = this.splitData(uploadResponse);
+
+            if (this.hasHeader) {
+                this.headerContent = uploadResponse.splice(0,1);
+                this.bodyContent = uploadResponse;
+            } else {
+                this.headerContent = [];
+                this.bodyContent = uploadResponse;
             }
         },
     },
     beforeMount() {
         this.loadDataFromSession();
+        this.splitUploadResponse();
     }
 });
 
