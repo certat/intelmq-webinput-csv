@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Preview</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.5.1/css/bulma.min.css">
+    <!-- <link rel="stylesheet" href="plugins/bulma/css/bulma.css"> -->
+</head>
+
+<body style="overflow:auto">
+    <div class="container" id="previewApp">
+        <!--header-->
+        <section class="section">
+            <div class="container">
+                <h1 class="title is-spaced">
+                    Preview
+                </h1>
+                <p class="subtitle">
+                    {{numberTotal}} lines in total
+                </p>
+                <p class="subtitle">
+                    {{numberFailed}} lines failed
+                </p>
+            </div>
+        </section>
+
+        <!--parameters-->
+        <form id="form" @change="saveDataInSession()">
+            <section class="section">
+                <div class="container">
+                    <div class="columns">
+                        <div class="column is-one-quarter">
+                            <div class="field">
+                                <div class="control">
+                                    <label class="label">timezone</label>
+                                    <div class="select">
+                                        <select v-model="previewFormData.timezone">
+                                            <option v-for="timezone in timezones" :value="timezone">{{timezone}}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="field">
+                                    <div class="control">
+                                        <label class="label">classification type</label>
+                                        <div class="select">
+                                            <select v-model="previewFormData.classificationType">
+                                                <option disabled value="">select ...</option>
+                                                <option v-for="type in classificationTypes" :value="type">{{type}}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="control">
+                                        <label class="label">classification identifier</label>
+                                        <input class="input" type="text" placeholder="classification identifier" v-model="previewFormData.classificationId">
+                                    </div>
+                                </div>
+                                <div class="field">
+                                    <div class="control">
+                                        <label class="label">text</label>
+                                        <input class="input" type="text" placeholder="text" v-model="previewFormData.boilerPlateText">
+                                    </div>
+                                </div>
+                                <br>
+                                <div class="field">
+                                    <div class="control">
+                                        <label class="label">dry run</label>
+                                        <input type="checkbox" v-model="previewFormData.dryRun">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="column is-two-thirds is-offset-1">
+                            <table class="table is-bordered is-striped" id="dataTable">
+                                <thead style="background-color:#e6ffff">
+                                    <tr>
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                            <div class="select">
+                                                <select>
+                                                    <option disabled value="" selected>select ...</option>
+                                                    <option v-for="(item, key, index) in dhoFields" :value="key">{{key}}</option>
+                                                </select>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
+                                            <input type="checkbox" />
+                                        </th>
+                                    </tr>
+                                    <tr v-show="hasHeader" v-for="line in headerContent">
+                                        <th v-for="cell in line" style="text-align:center;vertical-align:middle">
+                                            {{cell}}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="line in bodyContent">
+                                        <td v-for="cell in line">
+                                            {{cell}}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!--buttons-->
+            <section class="section">
+                <div class="container">
+                    <div class="field is-grouped">
+                        <div class="control">
+                            <button class="button is-primary" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                        </div>
+                        <div class="control">
+                            <button class="button is-default" type="button">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.js" integrity="sha256-DZAnKJ/6XZ9si04Hgrsxu/8s717jcIzLy3oi35EouyE=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="js/preview.js"></script>
+</body>
+
+</html>

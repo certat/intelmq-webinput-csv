@@ -88,7 +88,6 @@ def upload_file():
         response.headers['Access-Control-Allow-Origin'] = "*"
         return response
 
-
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'POST':
@@ -100,10 +99,11 @@ def preview():
             parameters['classification.identifier'] = 'test'
         retval = jsonify(parameters)
         if not TEMPORARY_FILES:
+            app.logger.info('no file')
             return jsonify('No file')
         if type(parameters['columns']) is not list:
             parameters['columns'] = parameters['columns'].split(',')
-            parameters['ignore'] = [bool(int(a)) for a in parameters['ignore'].split(',')]
+            parameters['ignore'] = [json.loads(a.lower()) for a in parameters['ignore'].split(',')]
         columns = [a if not b else None for a, b in zip(parameters['columns'], parameters['ignore'])]
         retval = []
         event = Event()
@@ -211,4 +211,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    app.run()
