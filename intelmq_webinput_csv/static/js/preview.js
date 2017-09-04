@@ -4,6 +4,9 @@ var vm_preview = new Vue({
     data: {
         numberTotal: 0,
         numberFailed: 0,
+        paragraphStyle: {
+            color: 'black',
+        },
         classificationTypes: [],
         dhoFields: [],
         previewFormData: {
@@ -130,7 +133,7 @@ var vm_preview = new Vue({
                     self.numberFailed = previewResponse.errors.length;
                     self.numberTotal = previewResponse.total;
 
-                    self.colorizeErrors(previewResponse);
+                    self.highlightErrors(previewResponse);
                     console.log(previewResponse);
                 }
             };
@@ -178,7 +181,13 @@ var vm_preview = new Vue({
                 this.previewFormData.useColumn.push($('input', cell)[0].checked);
             }
         },
-        colorizeErrors: function (data) {
+        highlightErrors: function (data) {
+            if (data.errors.length === 0) {
+                this.paragraphStyle.color = '#00cc00'
+            } else {
+                this.paragraphStyle.color = '#cc0000'
+            }
+
             for (var i = 0; i < data.errors.length; i++) {
                 $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
             }

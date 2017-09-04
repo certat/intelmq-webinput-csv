@@ -18,10 +18,10 @@
                 <h1 class="title is-spaced">
                     Preview
                 </h1>
-                <p class="subtitle">
+                <p class="subtitle" v-bind:style="paragraphStyle">
                     {{numberTotal}} lines in total
                 </p>
-                <p class="subtitle">
+                <p class="subtitle" v-bind:style="paragraphStyle">
                     {{numberFailed}} lines failed
                 </p>
             </div>
@@ -90,7 +90,7 @@
                                     </tr>
                                     <tr>
                                         <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent.length-1">
-                                            <input type="checkbox"/>
+                                            <input type="checkbox" />
                                         </th>
                                     </tr>
                                     <tr v-show="hasHeader" v-for="line in headerContent">
