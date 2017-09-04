@@ -96,12 +96,15 @@ def upload_file():
             success = True
     if success == True:
         TEMPORARY_FILES.append((filedescriptor, filename))
+        parameters = handle_parameters(request.form)
         preview = []
         with open(filename) as handle:
-            for counter in range(CONFIG.get('preview_lines', 1000)):
-                line = handle.readline()
-                if line:
-                    preview.append(line)
+            reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                                quotechar=parameters['quotechar'])
+            for lineindex, line in enumerate(reader):
+                if lineindex >= CONFIG.get('preview_lines', 1000):
+                    break
+                preview.append(line)
         return create_response(preview)
     else:
         return create_response('no file or text')
