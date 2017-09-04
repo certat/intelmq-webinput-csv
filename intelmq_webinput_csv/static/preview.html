@@ -112,16 +112,15 @@
                     </div>
                 </div>
             </section>
-
             <!--buttons-->
             <section class="section">
                 <div class="container">
                     <div class="field is-grouped">
                         <div class="control">
-                            <button class="button is-primary" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked()">Refresh Table</button>
                         </div>
                         <div class="control">
-                            <button class="button is-default" type="button" v-on:click="cancelButtonClicked()">Cancel</button>
+                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked()">Submit</button>
                         </div>
                     </div>
                 </div>
@@ -133,5 +132,4 @@
     <script src="https://unpkg.com/vue"></script>
     <script src="js/preview.js"></script>
 </body>
-
 </html>

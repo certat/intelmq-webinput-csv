@@ -88,10 +88,53 @@ var vm_preview = new Vue({
             }
             return data;
         },
-        cancelButtonClicked: function () {
-            console.log('cancel');
-        },
         submitButtonClicked: function () {
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+
+            this.getColumns();
+            this.getUseColumn();
+
+            var formData = new FormData();
+
+            formData.append('timezone', this.previewFormData.timezone);
+            formData.append('classification.type', this.previewFormData.classificationType);
+            formData.append('classification.identifier', this.previewFormData.classificationId);
+            formData.append('text', this.previewFormData.boilerPlateText);
+            formData.append('dryrun', this.previewFormData.dryRun);
+            formData.append('use_column', this.previewFormData.useColumn);
+            formData.append('columns', this.previewFormData.columns);
+
+            // obligatory data -> from upload form
+            formData.append('delimiter', sessionStorage.delimiter);
+            formData.append('quotechar', sessionStorage.quotechar);
+            formData.append('use_header', sessionStorage.useHeader);
+            formData.append('has_header', sessionStorage.hasHeader);
+
+            // optional data -> from upload form
+            // should be implemented on server side
+            // formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
+            // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
+            // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
+
+
+            this.saveDataInSession();
+
+            var request = new XMLHttpRequest();
+            var self = this;
+
+            request.onreadystatechange = function () {
+                if (request.readyState == XMLHttpRequest.DONE) {
+                    var submitResponse = self.readBody(request);
+                    alert(submitResponse);
+                }
+            };
+
+            request.open('POST', 'http://localhost:5000/submit');
+            request.send(formData);
+        },
+        refreshButtonClicked: function () {
             $('body,html').animate({
                 scrollTop: 0
             }, 800);
