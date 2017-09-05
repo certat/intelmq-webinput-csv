@@ -120,40 +120,45 @@ def upload_file():
             handle.write(request.form['text'])
         success = True
         total_lines = request.form['text'].count('\n')
-    if success:
+    if not success and request.form.get('use_last_file', False):
+        success = True
+        filedescriptor, filename = TEMPORARY_FILES[-1]
+    elif success:
         TEMPORARY_FILES.append((filedescriptor, filename))
-        parameters = handle_parameters(request.form)
-        preview = []
-        valid_ip_addresses = None
-        with open(filename) as handle:
-            reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'],
-                                skipinitialspace=parameters['skipInitialSpace'],
-                                escapechar=parameters['escapechar'],
-                                )
-            for lineindex, line in enumerate(reader):
-                if parameters['skipInitialLines']:
-                    if parameters['has_header'] and lineindex == 1:
-                        for _ in range(parameters['skipInitialLines']):
-                            next(reader)
-                    elif not parameters['has_header'] and lineindex == 0:
-                        for _ in range(parameters['skipInitialLines']):
-                            next(reader)
-                if lineindex >= parameters['loadLinesMax']:
-                    break
-                if valid_ip_addresses is None:
-                    valid_ip_addresses = [0] * len(line)
-                for columnindex, value in enumerate(line):
-                    if IPAddress.is_valid(value, sanitize=True):
-                        valid_ip_addresses[columnindex] += 1
-                preview.append(line)
-        column_types = ["IPAddress" if x/total_lines > 0.7 else None for x in valid_ip_addresses]
-        return create_response({"column_types": column_types,
-                                "use_column": [bool(x) for x in column_types],
-                                "preview": preview,
-                                })
-    else:
+    if not success:
         return create_response('no file or text')
+
+    parameters = handle_parameters(request.form)
+    preview = []
+    valid_ip_addresses = None
+    with open(filename) as handle:
+        reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                            quotechar=parameters['quotechar'],
+                            skipinitialspace=parameters['skipInitialSpace'],
+                            escapechar=parameters['escapechar'],
+                            )
+        for lineindex, line in enumerate(reader):
+            if parameters['skipInitialLines']:
+                if parameters['has_header'] and lineindex == 1:
+                    for _ in range(parameters['skipInitialLines']):
+                        next(reader)
+                elif not parameters['has_header'] and lineindex == 0:
+                    for _ in range(parameters['skipInitialLines']):
+                        next(reader)
+            if lineindex >= parameters['loadLinesMax']:
+                break
+            if valid_ip_addresses is None:
+                valid_ip_addresses = [0] * len(line)
+            for columnindex, value in enumerate(line):
+                if IPAddress.is_valid(value, sanitize=True):
+                    valid_ip_addresses[columnindex] += 1
+            preview.append(line)
+    column_types = ["IPAddress" if x/total_lines > 0.7 else None for x in valid_ip_addresses]
+    return create_response({"column_types": column_types,
+                            "use_column": [bool(x) for x in column_types],
+                            "preview": preview,
+                            })
+
 
 
 @app.route('/preview', methods=['POST'])
