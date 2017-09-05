@@ -15,4 +15,6 @@ needed to submit data to IntelMQ. There is no internal default.
 Usage
 -----
 
-Empty lines are ignored.
+Empty lines and empty values (columns) are always ignored.
+
+The timezone will only be added if there is no plus sign in the value.

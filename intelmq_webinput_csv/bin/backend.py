@@ -176,10 +176,10 @@ def preview():
             line_valid = True
             for columnindex, (column, value) in \
                     enumerate(zip(parameters['columns'], line)):
-                if not column:
+                if not column or not value:
                     continue
                 if column.startswith('time.') and '+' not in value:
-                    value += parameters['timezone']
+                    value += '+' + parameters['timezone']
                 sanitized = event._Message__sanitize_value(column, value)
                 valid = event._Message__is_valid_value(column, sanitized)
                 if not valid[0]:
@@ -231,10 +231,10 @@ def submit():
             try:
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
-                    if not column:
+                    if not column or not value:
                         continue
                     if column.startswith('time.') and '+' not in value:
-                        value += parameters['timezone']
+                        value += '+' + parameters['timezone']
                     event.add(column, value)
             except Exception:
                 continue
@@ -245,7 +245,7 @@ def submit():
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1
-    return create_response({'successful_lines': successful_lines})
+    return create_response('Successfully processed %s lines.' % successful_lines)
 
 
 def delete_temporary_files():
