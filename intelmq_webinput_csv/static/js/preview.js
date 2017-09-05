@@ -4,11 +4,16 @@ var vm_preview = new Vue({
     data: {
         numberTotal: 0,
         numberFailed: 0,
+        servedUseColumns: [],
+        servedColumnTypes: [],
         paragraphStyle: {
             color: 'black',
         },
         classificationTypes: [],
-        dhoFields: [],
+        servedDhoFields: [],
+        customDhoFields: [],
+        customUseColumns: [],
+        finishedRequests: [],
         previewFormData: {
             timezone: '00:00',
             classificationType: 'test',
@@ -67,15 +72,38 @@ var vm_preview = new Vue({
         },
         loadClassificationTypes: function (classificationTypes) {
             this.classificationTypes = classificationTypes;
+            this.completeRequest('types');
         },
-        loadDhoFields: function (dhoFields) {
-            this.dhoFields = dhoFields;
+        loadServedDhoFields: function (servedDhoFields) {
+            this.servedDhoFields = servedDhoFields;
+            this.completeRequest('fields');
         },
         getClassificationTypes: function () {
-            this.loadFile("http://localhost:5000/classification/types", this.loadClassificationTypes);
+            this.dispatchRequest('http://localhost:5000/classification/types', this.loadClassificationTypes, 'types');
         },
-        getDhoFields: function () {
-            this.loadFile("http://localhost:5000/harmonization/event/fields", this.loadDhoFields);
+        getServedDhoFields: function () {
+            this.dispatchRequest('http://localhost:5000/harmonization/event/fields', this.loadServedDhoFields, 'fields');
+        },
+        dispatchRequest: function (url, callback, key) {
+            this.loadFile(url, callback);
+            this.finishedRequests[key] = false;
+        },
+        completeRequest: function (url) {
+            this.finishedRequests[url] = true;
+            this.checkAllRequestsFinished();
+        },
+        checkAllRequestsFinished: function () {
+            var allFinished = true;
+            for (key in this.finishedRequests) {
+                if (!this.finishedRequests[key]) {
+                    allFinished = false;
+                    break;
+                }
+            }
+
+            if (allFinished) {
+                this.setPredefinedData();
+            }
         },
         readBody: function (xhr) {
             var data;
@@ -176,7 +204,7 @@ var vm_preview = new Vue({
                     sessionStorage.setItem('previewResponse', previewResponse);
 
                     previewResponse = JSON.parse(previewResponse);
-                    self.numberFailed = previewResponse.errors.length;
+                    self.numberFailed = previewResponse.lines_invalid;
                     self.numberTotal = previewResponse.total;
 
                     self.highlightErrors(previewResponse);
@@ -255,19 +283,46 @@ var vm_preview = new Vue({
             if (uploadResponse == "") return;
 
             if (this.hasHeader) {
-                this.headerContent = uploadResponse.splice(0,1);
-                this.bodyContent = uploadResponse;
+                this.headerContent = uploadResponse.preview.splice(0, 1);
+                this.bodyContent = uploadResponse.preview;
             } else {
                 this.headerContent = [];
-                this.bodyContent = uploadResponse;
+                this.bodyContent = uploadResponse.preview;
+            }
+
+            this.servedColumnTypes = uploadResponse.column_types;
+            this.servedUseColumns = uploadResponse.use_column;
+        },
+        fillCustomDhoFields: function () {
+            for (index in this.servedColumnTypes) {
+                if (this.servedColumnTypes[index] === null) {
+                    this.customDhoFields.push(this.servedDhoFields);
+                } else {
+                    this.customDhoFields.push(this.getDhoListOfType(this.servedColumnTypes[index]));
+                }
             }
         },
+        fillCustomUseColumns: function () {
+            this.customUseColumns = this.servedUseColumns;
+        },
+        setPredefinedData: function () {
+            this.fillCustomDhoFields();
+            this.fillCustomUseColumns();
+        },
+        getDhoListOfType: function (type) {
+            var dhoList = {};
+            for (key in this.servedDhoFields) {
+                if (this.servedDhoFields[key].type === type) {
+                    dhoList[key] = this.servedDhoFields[key];
+                }
+            }
+            return dhoList;
+        }
     },
     beforeMount() {
+        this.getServedDhoFields();
+        this.getClassificationTypes();
         this.loadDataFromSession();
         this.splitUploadResponse();
-    }
+    },
 });
-
-vm_preview.getClassificationTypes();
-vm_preview.getDhoFields();
