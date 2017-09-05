@@ -253,6 +253,10 @@ var vm_preview = new Vue({
                 var cell = dataTable.rows[1].cells[i];
                 this.previewFormData.useColumn.push($('input', cell)[0].checked);
             }
+
+            if (this.previewFormData.useColumn.length > 0) {
+                this.customUseColumns = this.previewFormData.useColumn;
+            }
         },
         resetTableColor: function () {
             var rows = $('#dataTable > tbody')[0].rows.length;
