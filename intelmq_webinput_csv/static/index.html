@@ -77,10 +77,10 @@
                     <div class="field">
                         <!-- obligatory -->
                         <div class="columns">
-                            <div class="column is-one-quarter">
-                                <span>delimiter</span>
+                            <div class="column is-one-third">
+                                <label class="label">delimiter</label>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <div class="select">
                                     <select v-model="uploadFormData.delimiter">
                                         <option v-for="option in delimiterOptions" :value="option">{{option}}</option>
@@ -88,27 +88,27 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="columns is-one-quarter">
-                            <div class="column is-one-quarter">
-                                <span>quotechar</span>
+                        <div class="columns">
+                            <div class="column is-one-third">
+                                <label class="label">quotechar</label>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.quotechar">
                             </div>
                         </div>
-                        <div class="columns is-one-quarter">
-                            <div class="column is-one-quarter">
-                                <span>escapechar</span>
+                        <div class="columns">
+                            <div class="column is-one-third">
+                                <label class="label">escapechar</label>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.escapechar">
                             </div>
                         </div>
                         <div class="columns">
-                            <div class="column is-one-quarter">
-                                <span>has header</span>
+                            <div class="column is-one-third">
+                                <label class="label">has header</label>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <div class="control">
                                     <div class="control">
                                         <label class="checkbox">
@@ -121,10 +121,11 @@
                         <!-- optional -->
                         <div class="is-divider" data-content="OPTIONAL"></div>
                         <div class="columns">
-                            <div class="column is-one-quarter">
-                                <span>skip initial space</span>
+                            <div class="column is-one-third">
+                                <label class="label">skip initial space</label>
+                                <p class="subtitle is-6">When True, whitespace immediately following the delimiter is ignored. </p>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <div class="control">
                                     <div class="control">
                                         <label class="checkbox">
@@ -135,18 +136,20 @@
                             </div>
                         </div>
                         <div class="columns">
-                            <div class="column is-one-quarter">
-                                <span>skip initial N lines</span>
+                            <div class="column is-one-third">
+                                <label class="label">skip initial N lines</label>
+                                <p class="subtitle is-6">Skip initial N lines after the header.</p>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.skipInitialLines">
                             </div>
                         </div>
                         <div class="columns">
-                            <div class="column is-one-quarter">
-                                <span>load N lines maximum</span>
+                            <div class="column is-one-third">
+                                <label class="label">load N lines maximum</label>
+                                <p class="subtitle is-6">Do not load more than N lines.</p>
                             </div>
-                            <div class="column is-one-quarter">
+                            <div class="column is-one-third">
                                 <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.loadLinesMax">
                             </div>
                         </div>
