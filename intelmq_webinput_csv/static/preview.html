@@ -78,11 +78,11 @@
                             <table class="table is-bordered is-striped" id="dataTable">
                                 <thead style="background-color:#e6ffff">
                                     <tr>
-                                        <th style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
+                                        <th style="text-align:center;vertical-align:middle" v-for="selectGroup in customDhoFields">
                                             <div class="select">
                                                 <select>
                                                     <option disabled value="" selected>select ...</option>
-                                                    <option v-for="(item, key, index) in servedDhoFields" :value="key">{{key}}</option>
+                                                    <option v-for="(item, key, index) in selectGroup" :value="key">{{key}}</option>
                                                 </select>
                                             </div>
                                         </th>
