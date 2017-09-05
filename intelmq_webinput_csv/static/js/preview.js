@@ -12,6 +12,7 @@ var vm_preview = new Vue({
         classificationTypes: [],
         servedDhoFields: [],
         customDhoFields: [],
+        customUseColumns: [],
         finishedRequests: [],
         previewFormData: {
             timezone: '00:00',
@@ -292,16 +293,7 @@ var vm_preview = new Vue({
             this.servedColumnTypes = uploadResponse.column_types;
             this.servedUseColumns = uploadResponse.use_column;
         },
-        updateUseColumns: function () {
-            var columns = $('#dataTable > tbody')[0].rows[0].cells.length;
-
-            for (var i = 0; i < columns; i++) {
-                var cell = $('#dataTable')[0].rows[1].cells[i];
-                $('input', cell)[0].checked = this.servedUseColumns[i];
-            }
-        },
-        setPredefinedData: function () {
-
+        fillCustomDhoFields: function () {
             for (index in this.servedColumnTypes) {
                 if (this.servedColumnTypes[index] === null) {
                     this.customDhoFields.push(this.servedDhoFields);
@@ -309,9 +301,15 @@ var vm_preview = new Vue({
                     this.customDhoFields.push(this.getDhoListOfType(this.servedColumnTypes[index]));
                 }
             }
-            this.updateUseColumns();
         },
-        getDhoListOfType: function(type) {
+        fillCustomUseColumns: function () {
+            this.customUseColumns = this.servedUseColumns;
+        },
+        setPredefinedData: function () {
+            this.fillCustomDhoFields();
+            this.fillCustomUseColumns();
+        },
+        getDhoListOfType: function (type) {
             var dhoList = {};
             for (key in this.servedDhoFields) {
                 if (this.servedDhoFields[key].type === type) {

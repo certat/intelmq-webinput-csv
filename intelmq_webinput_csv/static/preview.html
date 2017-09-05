@@ -88,8 +88,8 @@
                                         </th>
                                     </tr>
                                     <tr>
-                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="n in bodyContent[0].length">
-                                            <input type="checkbox" />
+                                        <th title="use" style="text-align:center;vertical-align:middle" v-for="bool in customUseColumns">
+                                            <input type="checkbox" v-bind:checked="bool" />
                                         </th>
                                     </tr>
                                     <tr v-show="hasHeader" v-for="line in headerContent">
