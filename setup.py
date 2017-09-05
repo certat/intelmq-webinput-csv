@@ -34,7 +34,7 @@ setup(
     },
     include_package_data=True,
     url='https://github.com/certat/intelmq_webinput_csv/',
-    license='AGPLv3',
+    license='AGPLv3 and MIT',
     description='This is a Flask-based web interface allowing the user to '
                 'insert data into intelmq\'s pipelines interactively with '
                 'preview from the parser.',
@@ -47,6 +47,7 @@ setup(
         'Intended Audience :: System Administrators',
         'Intended Audience :: Telecommunications Industry',
         'License :: OSI Approved :: GNU Affero General Public License v3',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
