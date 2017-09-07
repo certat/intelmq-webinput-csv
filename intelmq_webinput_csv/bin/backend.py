@@ -120,40 +120,45 @@ def upload_file():
             handle.write(request.form['text'])
         success = True
         total_lines = request.form['text'].count('\n')
-    if success:
+    if not success and request.form.get('use_last_file', False):
+        success = True
+        filedescriptor, filename = TEMPORARY_FILES[-1]
+    elif success:
         TEMPORARY_FILES.append((filedescriptor, filename))
-        parameters = handle_parameters(request.form)
-        preview = []
-        valid_ip_addresses = None
-        with open(filename) as handle:
-            reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'],
-                                skipinitialspace=parameters['skipInitialSpace'],
-                                escapechar=parameters['escapechar'],
-                                )
-            for lineindex, line in enumerate(reader):
-                if parameters['skipInitialLines']:
-                    if parameters['has_header'] and lineindex == 1:
-                        for _ in range(parameters['skipInitialLines']):
-                            next(reader)
-                    elif not parameters['has_header'] and lineindex == 0:
-                        for _ in range(parameters['skipInitialLines']):
-                            next(reader)
-                if lineindex >= parameters['loadLinesMax']:
-                    break
-                if valid_ip_addresses is None:
-                    valid_ip_addresses = [0] * len(line)
-                for columnindex, value in enumerate(line):
-                    if IPAddress.is_valid(value, sanitize=True):
-                        valid_ip_addresses[columnindex] += 1
-                preview.append(line)
-        column_types = ["IPAddress" if x/total_lines > 0.7 else None for x in valid_ip_addresses]
-        return create_response({"column_types": column_types,
-                                "use_column": [bool(x) for x in column_types],
-                                "preview": preview,
-                                })
-    else:
+    if not success:
         return create_response('no file or text')
+
+    parameters = handle_parameters(request.form)
+    preview = []
+    valid_ip_addresses = None
+    with open(filename) as handle:
+        reader = csv.reader(handle, delimiter=parameters['delimiter'],
+                            quotechar=parameters['quotechar'],
+                            skipinitialspace=parameters['skipInitialSpace'],
+                            escapechar=parameters['escapechar'],
+                            )
+        for lineindex, line in enumerate(reader):
+            if parameters['skipInitialLines']:
+                if parameters['has_header'] and lineindex == 1:
+                    for _ in range(parameters['skipInitialLines']):
+                        next(reader)
+                elif not parameters['has_header'] and lineindex == 0:
+                    for _ in range(parameters['skipInitialLines']):
+                        next(reader)
+            if lineindex >= parameters['loadLinesMax']:
+                break
+            if valid_ip_addresses is None:
+                valid_ip_addresses = [0] * len(line)
+            for columnindex, value in enumerate(line):
+                if IPAddress.is_valid(value, sanitize=True):
+                    valid_ip_addresses[columnindex] += 1
+            preview.append(line)
+    column_types = ["IPAddress" if x/total_lines > 0.7 else None for x in valid_ip_addresses]
+    return create_response({"column_types": column_types,
+                            "use_column": [bool(x) for x in column_types],
+                            "preview": preview,
+                            })
+
 
 
 @app.route('/preview', methods=['POST'])
@@ -176,10 +181,10 @@ def preview():
             line_valid = True
             for columnindex, (column, value) in \
                     enumerate(zip(parameters['columns'], line)):
-                if not column:
+                if not column or not value:
                     continue
                 if column.startswith('time.') and '+' not in value:
-                    value += parameters['timezone']
+                    value += '+' + parameters['timezone']
                 sanitized = event._Message__sanitize_value(column, value)
                 valid = event._Message__is_valid_value(column, sanitized)
                 if not valid[0]:
@@ -231,10 +236,10 @@ def submit():
             try:
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
-                    if not column:
+                    if not column or not value:
                         continue
                     if column.startswith('time.') and '+' not in value:
-                        value += parameters['timezone']
+                        value += '+' + parameters['timezone']
                     event.add(column, value)
             except Exception:
                 continue
@@ -245,7 +250,7 @@ def submit():
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1
-    return create_response({'successful_lines': successful_lines})
+    return create_response('Successfully processed %s lines.' % successful_lines)
 
 
 def delete_temporary_files():
