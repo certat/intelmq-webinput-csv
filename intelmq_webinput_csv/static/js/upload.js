@@ -7,6 +7,7 @@ var vm_upload = new Vue({
         uploadFormData: {
             text: '',
             file: null,
+            useLastUploadedFile: false,
             delimiter: ';',
             quotechar: '"',
             escapechar: '\\',
