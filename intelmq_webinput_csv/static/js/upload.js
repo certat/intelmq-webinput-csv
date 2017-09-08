@@ -45,18 +45,18 @@ var vm_upload = new Vue({
 
             formData.append('text', this.uploadFormData.text);
             formData.append('file', this.uploadFormData.file);
+            formData.append('use_last_file', this.uploadFormData.useLastUploadedFile);
 
             // obligatory data
             formData.append('delimiter', this.uploadFormData.delimiter);
             formData.append('quotechar', this.uploadFormData.quotechar);
-            // formData.append('escapechar', this.uploadFormData.escapechar);
+            formData.append('escapechar', this.uploadFormData.escapechar);
             formData.append('has_header', this.uploadFormData.hasHeader);
 
             // optional data
-            // should be implemented on server side
-            // formData.append('skipInitialSpace', this.uploadFormData.skipInitialSpace);
-            // formData.append('skipInitialLines', this.uploadFormData.skipInitialLines);
-            // formData.append('loadLinesMax', this.uploadFormData.loadLinesMax);
+            formData.append('skipInitialSpace', this.uploadFormData.skipInitialSpace);
+            formData.append('skipInitialLines', this.uploadFormData.skipInitialLines);
+            formData.append('loadLinesMax', this.uploadFormData.loadLinesMax);
 
             this.saveDataInSession();
 
