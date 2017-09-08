@@ -106,8 +106,6 @@ def preview_form(kind):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
-    print('files:', list(request.files.keys()))
-    print('form data:', list(request.form.keys()))
     if 'file' in request.files and request.files['file'].filename:
         filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
         request.files['file'].save(filename)
@@ -122,9 +120,9 @@ def upload_file():
         total_lines = request.form['text'].count('\n')
     if not success and request.form.get('use_last_file', False):
         success = True
-        filedescriptor, filename = TEMPORARY_FILES[-1]
+        filedescriptor, filename, total_lines = TEMPORARY_FILES[-1]
     elif success:
-        TEMPORARY_FILES.append((filedescriptor, filename))
+        TEMPORARY_FILES.append((filedescriptor, filename, total_lines))
     if not success:
         return create_response('no file or text')
 
