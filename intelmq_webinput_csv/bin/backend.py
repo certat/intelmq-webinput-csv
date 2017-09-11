@@ -252,7 +252,7 @@ def submit():
 
 
 def delete_temporary_files():
-    for filedescriptor, filename in TEMPORARY_FILES:
+    for filedescriptor, filename, total_lines in TEMPORARY_FILES:
         os.remove(filename)
 
 
