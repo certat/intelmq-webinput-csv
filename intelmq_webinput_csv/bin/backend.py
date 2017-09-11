@@ -182,7 +182,7 @@ def preview():
                 if not column or not value:
                     continue
                 if column.startswith('time.') and '+' not in value:
-                    value += '+' + parameters['timezone']
+                    value += parameters['timezone']
                 sanitized = event._Message__sanitize_value(column, value)
                 valid = event._Message__is_valid_value(column, sanitized)
                 if not valid[0]:
@@ -237,7 +237,7 @@ def submit():
                     if not column or not value:
                         continue
                     if column.startswith('time.') and '+' not in value:
-                        value += '+' + parameters['timezone']
+                        value += parameters['timezone']
                     event.add(column, value)
             except Exception:
                 continue

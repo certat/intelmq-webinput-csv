@@ -15,7 +15,7 @@ var vm_preview = new Vue({
         customUseColumns: [],
         finishedRequests: [],
         previewFormData: {
-            timezone: '00:00',
+            timezone: '+00:00',
             classificationType: 'test',
             classificationId: 'test',
             boilerPlateText: 'default',
@@ -43,10 +43,10 @@ var vm_preview = new Vue({
                     }
                 } else {
                     if ((i / 10) < 1) {
-                        timeZoneString = '0' + i;
+                        timeZoneString = '+0' + i;
                         timezones_list.push(timeZoneString);
                     } else {
-                        timezones_list.push(i.toString());
+                        timezones_list.push('+' + i.toString());
                     }
                 }
             }
