@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify, make_response
+from flask import Flask, request, jsonify, make_response, send_from_directory
 import tempfile
 import os
 import pkg_resources
@@ -36,15 +36,6 @@ PARAMETERS = {
 STATIC_FILES = {
     'js/preview.js': None,
     'js/upload.js': None,
-    'plugins/bulma/css/bulma.css': None,
-    'plugins/bulma/css/bulma.css.map': None,
-    'plugins/jquery-3.2.1.js': None,
-    'plugins/vue-2.4.2.js': None,
-    'plugins/font-awesome-4.7.0/css/font-awesome.min.css': None,
-    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.eot': None,
-    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.svg': None,
-    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf': None,
-    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.woff2': None,
     'preview.html': None,
     'index.html': None,
     }
@@ -113,14 +104,7 @@ def form():
 
 @app.route('/plugins/<path:page>')
 def plugins(page):
-    response = make_response(STATIC_FILES['plugins/%s' % page])
-    if page.endswith('.css'):
-        response.mimetype = 'text/css'
-        response.headers['Content-Type'] = "text/css; charset=utf-8"
-    elif page.endswith('.js'):
-        response.mimetype = 'application/x-javascript'
-        response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
-    return response
+    return send_from_directory('static/plugins', page)
 
 
 @app.route('/js/<page>')
