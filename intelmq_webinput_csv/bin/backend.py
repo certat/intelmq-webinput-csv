@@ -14,7 +14,6 @@ import csv
 
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
-    print(CONFIG)
 
 
 TEMPORARY_FILES = []
