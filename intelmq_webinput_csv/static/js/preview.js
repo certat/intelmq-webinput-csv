@@ -141,10 +141,9 @@ var vm_preview = new Vue({
             formData.append('has_header', sessionStorage.hasHeader);
 
             // optional data -> from upload form
-            // should be implemented on server side
-            // formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
-            // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
-            // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
+            formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
+            formData.append('skipInitialLines', sessionStorage.skipInitialLines);
+            formData.append('loadLinesMax', sessionStorage.loadLinesMax);
 
 
             this.saveDataInSession();
@@ -187,10 +186,9 @@ var vm_preview = new Vue({
             formData.append('has_header', sessionStorage.hasHeader);
 
             // optional data -> from upload form
-            // should be implemented on server side
-            // formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
-            // formData.append('skipInitialLines', sessionStorage.skipInitialLines);
-            // formData.append('loadLinesMax', sessionStorage.loadLinesMax);
+            formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
+            formData.append('skipInitialLines', sessionStorage.skipInitialLines);
+            formData.append('loadLinesMax', sessionStorage.loadLinesMax);
 
 
             this.saveDataInSession();
