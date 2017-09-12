@@ -1,16 +1,17 @@
 # -*- coding: utf-8 -*-
-from flask import Flask, request, jsonify, make_response, send_from_directory
-import tempfile
-import os
-import pkg_resources
 import atexit
+import csv
+import json
+import os
+import tempfile
+
+import pkg_resources
+from flask import Flask, jsonify, make_response, request, send_from_directory
+
+from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.harmonization import ClassificationType, IPAddress
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq import HARMONIZATION_CONF_FILE
-import json
-import csv
-
 
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
@@ -42,8 +43,7 @@ STATIC_FILES = {
 
 for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    mode = 'r' if static_file.startswith('js/') else 'rb'
-    with open(filename, mode) as handle:
+    with open(filename) as handle:
         STATIC_FILES[static_file] = handle.read()
         if static_file.startswith('js/'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', CONFIG.get('base_url', ''))
@@ -187,7 +187,10 @@ def preview():
     event = Event()
     with open(TEMPORARY_FILES[-1][1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                            quotechar=parameters['quotechar'])
+                            quotechar=parameters['quotechar'],
+                            skipinitialspace=parameters['skipInitialSpace'],
+                            escapechar=parameters['escapechar'],
+                            )
         if parameters['has_header']:
             next(reader)
         for _ in range(parameters['skipInitialLines']):
