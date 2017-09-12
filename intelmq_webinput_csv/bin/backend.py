@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify, make_response
 import tempfile
 import os
+import pkg_resources
 import atexit
 from intelmq.lib.harmonization import ClassificationType, IPAddress
 from intelmq.lib.message import Event, MessageFactory
@@ -9,6 +10,11 @@ from intelmq.lib.pipeline import PipelineFactory
 from intelmq import HARMONIZATION_CONF_FILE
 import json
 import csv
+
+
+with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
+    CONFIG = json.load(handle)
+    print(CONFIG)
 
 
 TEMPORARY_FILES = []
@@ -28,17 +34,29 @@ PARAMETERS = {
     'skipInitialLines': 0,
     'loadLinesMax': 100,
     }
+STATIC_FILES = {
+    'js/preview.js': None,
+    'js/upload.js': None,
+    'plugins/bulma/css/bulma.css': None,
+    'plugins/bulma/css/bulma.css.map': None,
+    'plugins/jquery-3.2.1.js': None,
+    'plugins/vue-2.4.2.js': None,
+    'plugins/font-awesome-4.7.0.min.css': None,
+    'preview.html': None,
+    'index.html': None,
+    }
+
+for static_file in STATIC_FILES.keys():
+    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
+    with open(filename) as handle:
+        STATIC_FILES[static_file] = handle.read().replace('__BASE_URL__', CONFIG.get('base_url', ''))
 
 
-app = Flask('intelmq-webinput-csv')
+app = Flask('intelmq_webinput_csv')
 
 
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
-
-
-with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
-    CONFIG = json.load(handle)
 
 
 class Parameters(object):
@@ -82,25 +100,30 @@ def create_response(text):
 
 @app.route('/')
 def form():
-    return('''<html><body>
-    <form action="/upload" method="POST" enctype="multipart/form-data">
-    <input type="file" name="file">
-    <input type="text" name="text">
-    <input type="submit" value="Submit">
-    </form></body></html>
-    ''')
+    response = make_response(STATIC_FILES['index.html'])
+    response.mimetype = 'text/html'
+    response.headers['Content-Type'] = "text/html; charset=utf-8"
+    return response
 
 
-@app.route('/form/<kind>')
-def preview_form(kind):
-    retval = '''<html><body>
-<form action="/%s" method="POST" enctype="multipart/form-data">''' % kind
-    for key, default_value in sorted(PARAMETERS.items()):
-        retval += '{key}: <input type="text" name="{key}" value="{value}"><br />'.format(key=key, value=default_value)
-    retval += '''<input type="submit" value="Submit">
-</form></body></html>
-'''
-    return retval
+@app.route('/plugins/<path:page>')
+def plugins(page):
+    response = make_response(STATIC_FILES['plugins/%s' % page])
+    if page.endswith('.css'):
+        response.mimetype = 'text/css'
+        response.headers['Content-Type'] = "text/css; charset=utf-8"
+    elif page.endswith('.js'):
+        response.mimetype = 'application/x-javascript'
+        response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
+    return response
+
+
+@app.route('/js/<page>')
+def js(page):
+    response = make_response(STATIC_FILES['js/%s' % page])
+    response.mimetype = 'application/x-javascript'
+    response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
+    return response
 
 
 @app.route('/upload', methods=['POST'])
@@ -158,9 +181,14 @@ def upload_file():
                             })
 
 
-
-@app.route('/preview', methods=['POST'])
+@app.route('/preview', methods=['GET', 'POST'])
 def preview():
+    if request.method == 'GET':
+        response = make_response(STATIC_FILES['preview.html'])
+        response.mimetype = 'text/html'
+        response.headers['Content-Type'] = "text/html; charset=utf-8"
+        return response
+
     parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
         app.logger.info('no file')

@@ -71,7 +71,7 @@ var vm_upload = new Vue({
                 }
             };
 
-            request.open('POST', 'http://localhost:5000/upload');
+            request.open('POST', '__BASE_URL__/upload');
             request.send(formData);
         },
         saveDataInSession: function () {
@@ -82,7 +82,7 @@ var vm_upload = new Vue({
             }
         },
         redirectToPreview: function () {
-            window.location.href = 'preview.html';
+            window.location.href = '__BASE_URL__/preview';
         },
         clearAll: function () {
             sessionStorage.clear();

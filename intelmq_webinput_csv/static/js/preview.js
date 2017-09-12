@@ -79,10 +79,10 @@ var vm_preview = new Vue({
             this.completeRequest('fields');
         },
         getClassificationTypes: function () {
-            this.dispatchRequest('http://localhost:5000/classification/types', this.loadClassificationTypes, 'types');
+            this.dispatchRequest('__BASE_URL__/classification/types', this.loadClassificationTypes, 'types');
         },
         getServedDhoFields: function () {
-            this.dispatchRequest('http://localhost:5000/harmonization/event/fields', this.loadServedDhoFields, 'fields');
+            this.dispatchRequest('__BASE_URL__/harmonization/event/fields', this.loadServedDhoFields, 'fields');
         },
         dispatchRequest: function (url, callback, key) {
             this.loadFile(url, callback);
@@ -159,7 +159,7 @@ var vm_preview = new Vue({
                 }
             };
 
-            request.open('POST', 'http://localhost:5000/submit');
+            request.open('POST', '__BASE_URL__/submit');
             request.send(formData);
         },
         refreshButtonClicked: function () {
@@ -211,7 +211,7 @@ var vm_preview = new Vue({
                 }
             };
 
-            request.open('POST', 'http://localhost:5000/preview');
+            request.open('POST', '__BASE_URL__/preview');
             request.send(formData);
         },
         saveDataInSession: function () {

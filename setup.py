@@ -30,6 +30,7 @@ setup(
     packages=find_packages(),
     package_data={'intelmq_webinput_csv': [
         'etc/webinput.conf',
+        'static/',
     ]
     },
     include_package_data=True,
