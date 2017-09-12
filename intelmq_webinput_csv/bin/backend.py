@@ -40,15 +40,22 @@ STATIC_FILES = {
     'plugins/bulma/css/bulma.css.map': None,
     'plugins/jquery-3.2.1.js': None,
     'plugins/vue-2.4.2.js': None,
-    'plugins/font-awesome-4.7.0.min.css': None,
+    'plugins/font-awesome-4.7.0/css/font-awesome.min.css': None,
+    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.eot': None,
+    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.svg': None,
+    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.ttf': None,
+    'plugins/font-awesome-4.7.0/fonts/fontawesome-webfont.woff2': None,
     'preview.html': None,
     'index.html': None,
     }
 
 for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    with open(filename) as handle:
-        STATIC_FILES[static_file] = handle.read().replace('__BASE_URL__', CONFIG.get('base_url', ''))
+    mode = 'r' if static_file.startswith('js/') else 'rb'
+    with open(filename, mode) as handle:
+        STATIC_FILES[static_file] = handle.read()
+        if static_file.startswith('js/'):
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', CONFIG.get('base_url', ''))
 
 
 app = Flask('intelmq_webinput_csv')
@@ -71,14 +78,13 @@ def handle_parameters(form):
     if parameters['dryrun']:
         parameters['classification.type'] = 'test'
         parameters['classification.identifier'] = 'test'
-    if type(parameters['columns']) is not list:  # for debugging purpose only
+    if type(parameters['columns']) is not list:
         parameters['use_column'] = [json.loads(a.lower()) for a in
                                     parameters['use_column'].split(',')]
         parameters['columns'] = parameters['columns'].split(',')
     parameters['columns'] = [a if b else None for a, b in
                              zip(parameters['columns'],
                                  parameters['use_column'])]
-    # for debugging purpose only
     parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters

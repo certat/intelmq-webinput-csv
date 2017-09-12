@@ -15,11 +15,15 @@ Files: intelmq_webinput_csv/static/plugins/jquery-3.2.1.js
 Copyright: 2017 JS Foundation and other contributors
 License: MIT
 
-Files: intelmq_webinput_csv/static/plugins/font-awesome-4.7.0.min.css
+Files: intelmq_webinput_csv/static/plugins/font-awesome-4.7.0/*
 Copyright: 2016 @davegandy - http://fontawesome.io - @fontawesome
 License: MIT
 
-Files: intelmq_webinput_csv/static/plugins/bulma/
+Files: intelmq_webinput_csv/static/plugins/font-awesome-4.7.0/fonts/*
+Copyright: 2016 @davegandy - http://fontawesome.io - @fontawesome
+License: OFL-1.1
+
+Files: intelmq_webinput_csv/static/plugins/bulma/*
 Copyright:  2017 Jeremy Thomas
 License: MIT
 
