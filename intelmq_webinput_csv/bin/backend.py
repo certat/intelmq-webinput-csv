@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import atexit
 import codecs
 import csv
 import json
 import os
+import pickle
 import tempfile
 import urllib.parse
 
@@ -23,7 +23,6 @@ with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
         BASE_PATH = BASE_PATH[:-1]
 
 
-TEMPORARY_FILES = []
 PARAMETERS = {
     'timezone': '+00:00',
     'classification.type': 'test',
@@ -64,6 +63,16 @@ with open(HARMONIZATION_CONF_FILE) as handle:
 
 class Parameters(object):
     pass
+
+
+def write_temp_file(data):
+    with open('/opt/intelmq/var/lib/webinput_csv.temp', 'wb') as handle:
+        pickle.dump(data, handle)
+
+
+def get_temp_file():
+    with open('/opt/intelmq/var/lib/webinput_csv.temp', 'rb') as handle:
+        return pickle.load(handle)
 
 
 def handle_parameters(form):
@@ -138,9 +147,9 @@ def upload_file():
         total_lines = request.form['text'].count('\n')
     if not success and request.form.get('use_last_file', False):
         success = True
-        filedescriptor, filename, total_lines = TEMPORARY_FILES[-1]
+        filedescriptor, filename, total_lines = get_temp_file()
     elif success:
-        TEMPORARY_FILES.append((filedescriptor, filename, total_lines))
+        write_temp_file((filedescriptor, filename, total_lines))
     if not success:
         return create_response('no file or text')
 
@@ -185,13 +194,14 @@ def preview():
         return response
 
     parameters = handle_parameters(request.form)
-    if not TEMPORARY_FILES:
+    tmp_file = get_temp_file()
+    if not tmp_file:
         app.logger.info('no file')
         return create_response('No file')
     retval = []
     lines_valid = 0
     event = Event()
-    with open(TEMPORARY_FILES[-1][1]) as handle:
+    with open(tmp_file[1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -235,7 +245,8 @@ def harmonization_event_fields():
 @app.route(BASE_PATH+'/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
-    if not TEMPORARY_FILES:
+    temp_file = get_temp_file()
+    if not temp_file:
         return create_response('No file')
 
     pipelineparameters = Parameters
@@ -245,7 +256,7 @@ def submit():
 
     successful_lines = 0
 
-    with open(TEMPORARY_FILES[-1][1]) as handle:
+    with open(temp_file[1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -277,13 +288,7 @@ def submit():
     return create_response('Successfully processed %s lines.' % successful_lines)
 
 
-def delete_temporary_files():
-    for filedescriptor, filename, total_lines in TEMPORARY_FILES:
-        os.remove(filename)
-
-
 def main():
-    atexit.register(delete_temporary_files)
     app.run()
 
 
