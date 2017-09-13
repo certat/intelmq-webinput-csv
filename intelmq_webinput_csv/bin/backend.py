@@ -4,6 +4,7 @@ import csv
 import json
 import os
 import tempfile
+import urllib.parse
 
 import pkg_resources
 from flask import Flask, jsonify, make_response, request, send_from_directory
@@ -15,6 +16,10 @@ from intelmq.lib.pipeline import PipelineFactory
 
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
+    BASE_URL = CONFIG.get('base_url', '')
+    BASE_PATH = urllib.parse.urlsplit(BASE_URL).path
+    if BASE_PATH.endswith('/'):
+        BASE_PATH = BASE_PATH[:-1]
 
 
 TEMPORARY_FILES = []
@@ -46,7 +51,7 @@ for static_file in STATIC_FILES.keys():
     with open(filename) as handle:
         STATIC_FILES[static_file] = handle.read()
         if static_file.startswith('js/'):
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', CONFIG.get('base_url', ''))
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
 
 
 app = Flask('intelmq_webinput_csv')
@@ -94,7 +99,7 @@ def create_response(text):
     return response
 
 
-@app.route('/')
+@app.route(BASE_PATH+'/')
 def form():
     response = make_response(STATIC_FILES['index.html'])
     response.mimetype = 'text/html'
@@ -102,12 +107,12 @@ def form():
     return response
 
 
-@app.route('/plugins/<path:page>')
+@app.route(BASE_PATH+'/plugins/<path:page>')
 def plugins(page):
     return send_from_directory('static/plugins', page)
 
 
-@app.route('/js/<page>')
+@app.route(BASE_PATH+'/js/<page>')
 def js(page):
     response = make_response(STATIC_FILES['js/%s' % page])
     response.mimetype = 'application/x-javascript'
@@ -115,7 +120,7 @@ def js(page):
     return response
 
 
-@app.route('/upload', methods=['POST'])
+@app.route(BASE_PATH+'/upload', methods=['POST'])
 def upload_file():
     success = False
     if 'file' in request.files and request.files['file'].filename:
@@ -170,7 +175,7 @@ def upload_file():
                             })
 
 
-@app.route('/preview', methods=['GET', 'POST'])
+@app.route(BASE_PATH+'/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'GET':
         response = make_response(STATIC_FILES['preview.html'])
@@ -216,17 +221,17 @@ def preview():
     return create_response(retval)
 
 
-@app.route('/classification/types')
+@app.route(BASE_PATH+'/classification/types')
 def classification_types():
     return create_response(ClassificationType.allowed_values)
 
 
-@app.route('/harmonization/event/fields')
+@app.route(BASE_PATH+'/harmonization/event/fields')
 def harmonization_event_fields():
     return create_response(EVENT_FIELDS['event'])
 
 
-@app.route('/submit', methods=['POST'])
+@app.route(BASE_PATH+'/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
     if not TEMPORARY_FILES:
