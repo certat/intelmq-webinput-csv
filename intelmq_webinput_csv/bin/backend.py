@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import atexit
+import codecs
 import csv
 import json
 import os
@@ -48,7 +49,7 @@ STATIC_FILES = {
 
 for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    with open(filename) as handle:
+    with codecs.open(filename, encoding='utf8') as handle:
         STATIC_FILES[static_file] = handle.read()
         if static_file.startswith('js/'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
