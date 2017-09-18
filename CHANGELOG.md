@@ -12,3 +12,4 @@ CHANGELOG
 - submit pushes the data into the destination pipeline
 - timezone is added to data if not given explicitly
 - add classification.{type,identifier} if not already existent
+- add file bin/application.wsgi for running the application as wsgi
