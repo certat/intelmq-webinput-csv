@@ -165,10 +165,12 @@ def upload_file():
             if parameters['skipInitialLines']:
                 if parameters['has_header'] and lineindex == 1:
                     for _ in range(parameters['skipInitialLines']):
-                        next(reader)
+                        line = next(reader)
+                        lineindex += 1
                 elif not parameters['has_header'] and lineindex == 0:
                     for _ in range(parameters['skipInitialLines']):
-                        next(reader)
+                        line = next(reader)
+                        lineindex += 1
             if lineindex >= parameters['loadLinesMax']:
                 break
             if valid_ip_addresses is None:
