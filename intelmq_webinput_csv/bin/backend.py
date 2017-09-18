@@ -18,9 +18,8 @@ from intelmq.lib.pipeline import PipelineFactory
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
     BASE_URL = CONFIG.get('base_url', '')
-    BASE_PATH = urllib.parse.urlsplit(BASE_URL).path
-    if BASE_PATH.endswith('/'):
-        BASE_PATH = BASE_PATH[:-1]
+    if BASE_URL.endswith('/'):
+        BASE_URL = BASE_URL[:-1]
 
 
 PARAMETERS = {
@@ -109,7 +108,7 @@ def create_response(text):
     return response
 
 
-@app.route(BASE_PATH+'/')
+@app.route('/')
 def form():
     response = make_response(STATIC_FILES['index.html'])
     response.mimetype = 'text/html'
@@ -117,12 +116,12 @@ def form():
     return response
 
 
-@app.route(BASE_PATH+'/plugins/<path:page>')
+@app.route('/plugins/<path:page>')
 def plugins(page):
     return send_from_directory('static/plugins', page)
 
 
-@app.route(BASE_PATH+'/js/<page>')
+@app.route('/js/<page>')
 def js(page):
     response = make_response(STATIC_FILES['js/%s' % page])
     response.mimetype = 'application/x-javascript'
@@ -130,7 +129,7 @@ def js(page):
     return response
 
 
-@app.route(BASE_PATH+'/upload', methods=['POST'])
+@app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
     if 'file' in request.files and request.files['file'].filename:
@@ -185,7 +184,7 @@ def upload_file():
                             })
 
 
-@app.route(BASE_PATH+'/preview', methods=['GET', 'POST'])
+@app.route('/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'GET':
         response = make_response(STATIC_FILES['preview.html'])
@@ -232,17 +231,17 @@ def preview():
     return create_response(retval)
 
 
-@app.route(BASE_PATH+'/classification/types')
+@app.route('/classification/types')
 def classification_types():
     return create_response(ClassificationType.allowed_values)
 
 
-@app.route(BASE_PATH+'/harmonization/event/fields')
+@app.route('/harmonization/event/fields')
 def harmonization_event_fields():
     return create_response(EVENT_FIELDS['event'])
 
 
-@app.route(BASE_PATH+'/submit', methods=['POST'])
+@app.route('/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
     temp_file = get_temp_file()
