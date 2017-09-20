@@ -91,6 +91,7 @@ def handle_parameters(form):
                              zip(parameters['columns'],
                                  parameters['use_column'])]
     parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
+    parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
 
@@ -166,12 +167,10 @@ def upload_file():
                 if parameters['has_header'] and lineindex == 1:
                     for _ in range(parameters['skipInitialLines']):
                         line = next(reader)
-                        lineindex += 1
                 elif not parameters['has_header'] and lineindex == 0:
                     for _ in range(parameters['skipInitialLines']):
                         line = next(reader)
-                        lineindex += 1
-            if lineindex >= parameters['loadLinesMax']:
+            if lineindex >= parameters['loadLinesMax'] + parameters['has_header']:
                 break
             if valid_ip_addresses is None:
                 valid_ip_addresses = [0] * len(line)
