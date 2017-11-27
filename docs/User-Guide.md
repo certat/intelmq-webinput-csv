@@ -23,4 +23,27 @@ Usage
 
 Empty lines and empty values (columns) are always ignored.
 
-The timezone will only be added if there is no plus sign in the value.
+### Parameters
+
+#### Upload
+
+* delimiter
+* quotechar
+* escapechar
+* skip initial space: ignore whitespace after delimiter
+* has header: If checked, the first line of the file will be shown in the preview, but will not be used for submission.
+* skip initial N lines: number of lines (*after* the header) which should be ignored for preview and submission.
+* load N lines maximum: number of lines for the preview, plus the header.
+
+#### Preview
+
+* timezone: The timezone will only be added if there is no plus sign in the existing value. Used for both time.source and time.observation.
+* classification type and identifier: default values to be added to rows which do not already have these values
+* text: reserved for future use
+* dry run: sets classification type and identifier to `test`
+
+### Upload
+
+To submit the data to intelmq click *Submit*. All lines not failing will be submitted.
+
+After submission, the total number of submitted lines is given. It should be the same as the counter in the left top corner.
