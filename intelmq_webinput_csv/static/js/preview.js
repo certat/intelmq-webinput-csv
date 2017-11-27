@@ -268,6 +268,7 @@ var vm_preview = new Vue({
         },
         highlightErrors: function (data) {
             this.resetTableColor();
+            var rows = $('#dataTable > tbody')[0].rows.length;
 
             if (data.errors.length === 0) {
                 this.paragraphStyle.color = '#00cc00'
@@ -276,6 +277,9 @@ var vm_preview = new Vue({
             }
 
             for (var i = 0; i < data.errors.length; i++) {
+                if (data.errors[i][0] > rows) {
+                    continue;
+                }
                 $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
             }
         },
