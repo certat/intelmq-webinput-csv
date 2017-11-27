@@ -5,7 +5,6 @@ import json
 import os
 import pickle
 import tempfile
-import urllib.parse
 
 import pkg_resources
 from flask import Flask, jsonify, make_response, request, send_from_directory
@@ -78,8 +77,9 @@ def handle_parameters(form):
     parameters = {}
     for key, default_value in CONFIG.items():
         parameters[key] = form.get(key, default_value)
-    for key, default_value in PARAMETERS.items():
-        parameters[key] = form.get(key, default_value)
+    for key, value in PARAMETERS.items():
+        parameters[key] = form.get(key, value)
+    parameters['dryrun'] = json.loads(parameters['dryrun'])
     if parameters['dryrun']:
         parameters['classification.type'] = 'test'
         parameters['classification.identifier'] = 'test'
