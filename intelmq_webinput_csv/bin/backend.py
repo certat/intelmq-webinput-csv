@@ -27,13 +27,13 @@ PARAMETERS = {
     'classification.identifier': 'test',
     'text': 'default',
     'delimiter': ',',
-    'has_header': False,
+    'has_header': '"false"',
     'quotechar': '\"',
     'escapechar': '\\',
     'columns': [],
     'use_column': [],
-    'dryrun': True,
-    'skipInitialSpace': False,
+    'dryrun': '"true"',
+    'skipInitialSpace': '"false"',
     'skipInitialLines': 0,
     'loadLinesMax': 100,
     }
@@ -91,6 +91,7 @@ def handle_parameters(form):
                              zip(parameters['columns'],
                                  parameters['use_column'])]
     parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
+    parameters['skipInitialSpace'] = json.loads(parameters['skipInitialSpace'])
     parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
