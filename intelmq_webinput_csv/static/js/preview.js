@@ -262,7 +262,9 @@ var vm_preview = new Vue({
 
             for (var i = 0; i < columns; i++) {
                 for (var j = 0; j < rows; j++) {
-                    $('#dataTable > tbody')[0].rows[j].cells[i].removeAttribute('style')
+                    try {
+                        $('#dataTable > tbody')[0].rows[j].cells[i].removeAttribute('style')
+                    } catch (err) {}  // Cell may not exist
                 }
             }
         },
@@ -277,8 +279,8 @@ var vm_preview = new Vue({
             }
 
             for (var i = 0; i < data.errors.length; i++) {
-                if (data.errors[i][0] > rows) {
-                    continue;
+                if (data.errors[i][0] >= rows) {
+                    continue;  // Row is not shown in preview
                 }
                 $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
             }
