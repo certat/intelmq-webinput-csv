@@ -7,7 +7,7 @@ Configuration
 There are three levels of parameters:
  * internal defaults
  * the configuration file
- * parmeters set explicitly by the webinterface
+ * parameters set explicitly by the webinterface
 
 The only parameter you should really care of is `destination_pipeline` which is
 needed to submit data to IntelMQ. There is no internal default.
