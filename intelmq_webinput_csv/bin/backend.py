@@ -25,6 +25,7 @@ PARAMETERS = {
     'timezone': '+00:00',
     'classification.type': 'test',
     'classification.identifier': 'test',
+    'feed.code': 'custom',
     'text': 'default',
     'delimiter': ',',
     'has_header': '"false"',
@@ -283,6 +284,8 @@ def submit():
                 event.add('classification.type', parameters['classification.type'])
             if 'classification.identifier' not in event:
                 event.add('classification.identifier', parameters['classification.identifier'])
+            if 'feed.code' not in event:
+                event.add('feed.code', parameters['feed.code'])
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1

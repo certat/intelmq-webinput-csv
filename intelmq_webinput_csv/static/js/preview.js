@@ -18,6 +18,7 @@ var vm_preview = new Vue({
             timezone: '+00:00',
             classificationType: 'test',
             classificationId: 'test',
+            feedCode: 'custom',
             boilerPlateText: 'default',
             dryRun: true,
             useColumn: 0,
@@ -129,6 +130,7 @@ var vm_preview = new Vue({
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('classification.identifier', this.previewFormData.classificationId);
+            formData.append('feed.code', this.previewFormData.feedCode);
             formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
@@ -174,6 +176,7 @@ var vm_preview = new Vue({
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('classification.identifier', this.previewFormData.classificationId);
+            formData.append('feed.code', this.previewFormData.feedCode);
             formData.append('text', this.previewFormData.boilerPlateText);
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);

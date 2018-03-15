@@ -6,6 +6,10 @@ CHANGELOG
 
 ### Backend
 - Fix count of total lines in case of missing newline at end of input
+- Handle constant field `feed.code`.
+
+### Frontend
+- Add input field for `feed.code`.
 
 0.1.0.alpha1
 ------------
