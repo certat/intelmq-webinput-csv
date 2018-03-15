@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.1.0.alpha2
+------------
+
+### Backend
+- Fix count of total lines in case of missing newline at end of input
+
 0.1.0.alpha1
 ------------
 

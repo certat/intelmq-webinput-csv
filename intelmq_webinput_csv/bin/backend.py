@@ -145,7 +145,7 @@ def upload_file():
         with os.fdopen(filedescriptor, mode='w') as handle:
             handle.write(request.form['text'])
         success = True
-        total_lines = request.form['text'].count('\n')
+        total_lines = len(request.form['text'].splitlines())
     if not success and request.form.get('use_last_file', False):
         success = True
         filedescriptor, filename, total_lines = get_temp_file()
