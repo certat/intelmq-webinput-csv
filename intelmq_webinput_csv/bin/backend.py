@@ -10,7 +10,7 @@ import pkg_resources
 from flask import Flask, jsonify, make_response, request, send_from_directory
 
 from intelmq import HARMONIZATION_CONF_FILE
-from intelmq.lib.harmonization import ClassificationType, IPAddress
+from intelmq.lib.harmonization import ClassificationType, DateTime, IPAddress
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 
@@ -256,6 +256,8 @@ def submit():
     destination_pipeline.set_queues(CONFIG['destination_pipeline'], "destination")
     destination_pipeline.connect()
 
+    time_observation = DateTime().generate_datetime_now()
+
     successful_lines = 0
 
     with open(temp_file[1]) as handle:
@@ -286,6 +288,8 @@ def submit():
                 event.add('classification.identifier', parameters['classification.identifier'])
             if 'feed.code' not in event:
                 event.add('feed.code', parameters['feed.code'])
+            if 'time.observation' not in event:
+                event.add('time.observation', time_observation, sanitize=False)
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1

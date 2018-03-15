@@ -7,6 +7,7 @@ CHANGELOG
 ### Backend
 - Fix count of total lines in case of missing newline at end of input
 - Handle constant field `feed.code`.
+- Use submission time as `time.observation` if not given in data.
 
 ### Frontend
 - Add input field for `feed.code`.
