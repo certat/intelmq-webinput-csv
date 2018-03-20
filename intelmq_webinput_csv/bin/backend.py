@@ -7,7 +7,7 @@ import pickle
 import tempfile
 
 import pkg_resources
-from flask import Flask, jsonify, make_response, request, send_from_directory
+from flask import Flask, jsonify, make_response, request
 
 from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.harmonization import ClassificationType, DateTime, IPAddress
@@ -121,7 +121,16 @@ def form():
 
 @app.route('/plugins/<path:page>')
 def plugins(page):
-    return send_from_directory('static/plugins', page)
+    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/plugins/%s' % page)
+    with open(filename, mode='rb') as handle:
+        response = make_response(handle.read())
+    if page.endswith('.js'):
+        response.mimetype = 'application/x-javascript'
+        response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
+    elif page.endswith('.css'):
+        response.mimetype = 'text/css'
+        response.headers['Content-Type'] = "text/css; charset=utf-8"
+    return response
 
 
 @app.route('/js/<page>')
