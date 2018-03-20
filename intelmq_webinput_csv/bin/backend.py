@@ -10,7 +10,8 @@ import pkg_resources
 from flask import Flask, jsonify, make_response, request
 
 from intelmq import HARMONIZATION_CONF_FILE
-from intelmq.lib.harmonization import ClassificationType, DateTime, IPAddress
+from intelmq.lib.harmonization import DateTime, IPAddress
+from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 
@@ -100,7 +101,7 @@ def handle_parameters(form):
 
 def create_response(text):
     is_json = False
-    if type(text) is not str:
+    if not isinstance(text, str):
         text = jsonify(text)
         is_json = True
     response = make_response(text)
@@ -245,7 +246,7 @@ def preview():
 
 @app.route('/classification/types')
 def classification_types():
-    return create_response(ClassificationType.allowed_values)
+    return create_response(TAXONOMY)
 
 
 @app.route('/harmonization/event/fields')

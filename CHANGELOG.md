@@ -9,6 +9,7 @@ CHANGELOG
 - Handle constant field `feed.code`.
 - Use submission time as `time.observation` if not given in data.
 - plugins (css and js) is now served by directly reading the files, more robust.
+- classification/types now serves types along with taxonomy.
 
 ### Frontend
 - Add input field for `feed.code`.
