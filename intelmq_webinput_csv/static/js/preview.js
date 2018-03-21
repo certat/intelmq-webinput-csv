@@ -72,7 +72,7 @@ var vm_preview = new Vue({
                 });
         },
         loadClassificationTypes: function (classificationTypes) {
-            this.classificationTypes = classificationTypes;
+            this.classificationTypes = Object.keys(classificationTypes);
             this.completeRequest('types');
         },
         loadServedDhoFields: function (servedDhoFields) {
