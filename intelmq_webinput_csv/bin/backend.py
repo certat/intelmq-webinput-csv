@@ -231,6 +231,8 @@ def preview():
                     continue
                 if column.startswith('time.') and '+' not in value:
                     value += parameters['timezone']
+                if column == 'extra':
+                    value = {'data': value}
                 sanitized = event._Message__sanitize_value(column, value)
                 valid = event._Message__is_valid_value(column, sanitized)
                 if not valid[0]:
@@ -283,13 +285,19 @@ def submit():
         for lineindex, line in enumerate(reader):
             event = Event()
             try:
+                extras = []
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
                     if not column or not value:
                         continue
                     if column.startswith('time.') and '+' not in value:
                         value += parameters['timezone']
+                    if column == 'extra':
+                        extras.append(value)
+                        continue
                     event.add(column, value)
+                if extras:
+                    event.add('extra', {'data%d'%index: data for index, data in enumerate(extras)})
             except Exception:
                 continue
             if 'classification.type' not in event:

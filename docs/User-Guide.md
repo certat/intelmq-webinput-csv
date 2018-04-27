@@ -47,3 +47,10 @@ Empty lines and empty values (columns) are always ignored.
 To submit the data to intelmq click *Submit*. All lines not failing will be submitted.
 
 After submission, the total number of submitted lines is given. It should be the same as the counter in the left top corner.
+
+#### extra fields
+
+A column assigned to the extra field will get a numbered key `data%d` with `%d` as index. For example, if you have two `extra` columns with the data 'foo' and 'bar' this will result in:
+`{"data0": "foo", "data1": "bar"}`
+
+Currently it is not possible to set the key name.

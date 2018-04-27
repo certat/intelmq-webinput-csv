@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.1.0.alpha3
+------------
+
+### Backend
+- Data in the columns assigned to the `extra` field will be saved as `{"data0": ..., "data1": ..., ...}` (#35).
+
 0.1.0.alpha2
 ------------
 
