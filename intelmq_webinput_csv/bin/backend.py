@@ -241,6 +241,8 @@ def preview():
                 if not valid[0]:
                     retval.append((lineindex, columnindex, value, valid[1]))
                     line_valid = False
+            for key, value in parameters.get('constant_fields', {}).items():
+                event.add(key, value)
             if line_valid:
                 lines_valid += 1
     retval = {"total": lineindex+1,
@@ -301,6 +303,8 @@ def submit():
                     event.add(column, value)
                 if extras:
                     event.add('extra', {'data%d'%index: data for index, data in enumerate(extras)})
+                for key, value in parameters.get('constant_fields', {}).items():
+                    event.add(key, value)
             except Exception:
                 continue
             if 'classification.type' not in event:

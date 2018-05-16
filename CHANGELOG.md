@@ -6,6 +6,7 @@ CHANGELOG
 
 ### Backend
 - Data in the columns assigned to the `extra` field will be saved as `{"data0": ..., "data1": ..., ...}` (#35).
+- Constant fields can be configured with the configuration parameter `"constant_fields"` (#38).
 
 ### Frontend
 - Show version including link to upstream in footer (#49).
