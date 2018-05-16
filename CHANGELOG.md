@@ -9,7 +9,10 @@ CHANGELOG
 
 ### Frontend
 - Show version including link to upstream in footer (#49).
+
+#### Preview
 - Remove inout field text, does not work anyway.
+- Order and group input fields (#46).
 
 0.1.0.alpha2
 ------------

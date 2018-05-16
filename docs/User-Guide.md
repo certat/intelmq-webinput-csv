@@ -38,8 +38,12 @@ Empty lines and empty values (columns) are always ignored.
 #### Preview
 
 * timezone: The timezone will only be added if there is no plus sign in the existing value. Used for both time.source and time.observation.
-* classification type and identifier: default values to be added to rows which do not already have these values
 * dry run: sets classification type and identifier to `test`
+
+##### Constant fields
+The contstant fields are added to all individual events if not present already.
+
+* classification type and identifier: default values to be added to rows which do not already have these values
 
 ### Upload
 
