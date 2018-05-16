@@ -39,7 +39,6 @@ Empty lines and empty values (columns) are always ignored.
 
 * timezone: The timezone will only be added if there is no plus sign in the existing value. Used for both time.source and time.observation.
 * classification type and identifier: default values to be added to rows which do not already have these values
-* text: reserved for future use
 * dry run: sets classification type and identifier to `test`
 
 ### Upload

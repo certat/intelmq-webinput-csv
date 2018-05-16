@@ -29,7 +29,6 @@ PARAMETERS = {
     'classification.type': 'test',
     'classification.identifier': 'test',
     'feed.code': 'custom',
-    'text': 'default',
     'delimiter': ',',
     'has_header': '"false"',
     'quotechar': '\"',
