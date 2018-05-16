@@ -45,6 +45,8 @@ The contstant fields are added to all individual events if not present already.
 
 * classification type and identifier: default values to be added to rows which do not already have these values
 
+Additional fields with default values are configurable.
+
 ### Upload
 
 To submit the data to intelmq click *Submit*. All lines not failing will be submitted.

@@ -17,9 +17,7 @@ var vm_preview = new Vue({
         previewFormData: {
             timezone: '+00:00',
             classificationType: 'test',
-            classificationId: 'test',
-            feedCode: 'custom',
-            boilerPlateText: 'default',
+            __CUSTOM_FIELDS_JS_DEFAULT__
             dryRun: true,
             useColumn: 0,
             columns: 'source.ip',
@@ -129,9 +127,7 @@ var vm_preview = new Vue({
 
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
-            formData.append('classification.identifier', this.previewFormData.classificationId);
-            formData.append('feed.code', this.previewFormData.feedCode);
-            formData.append('text', this.previewFormData.boilerPlateText);
+            __CUSTOM_FIELDS_JS_FORM__
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
@@ -175,9 +171,7 @@ var vm_preview = new Vue({
 
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
-            formData.append('classification.identifier', this.previewFormData.classificationId);
-            formData.append('feed.code', this.previewFormData.feedCode);
-            formData.append('text', this.previewFormData.boilerPlateText);
+            __CUSTOM_FIELDS_JS_FORM__
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);

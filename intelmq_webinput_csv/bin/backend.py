@@ -18,11 +18,31 @@ from intelmq.lib.exceptions import InvalidValue
 
 from intelmq_webinput_csv.version import __version__
 
+
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
     BASE_URL = CONFIG.get('base_url', '')
     if BASE_URL.endswith('/'):
         BASE_URL = BASE_URL[:-1]
+
+
+CUSTOM_FIELDS_HTML_TEMPLATE = """
+<div class="field">
+    <div class="control">
+        <label class="label">{name}</label>
+        <input class="input" type="text" placeholder="{name}" v-model="previewFormData.{jsname}">
+    </div>
+</div>"""
+CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE = "{jsname}: '{default}',"
+CUSTOM_FIELDS_JS_FORM_TEMPLATE = "formData.append('custom_{name}', this.previewFormData.{jsname});"
+custom_fields_html = []
+custom_fields_js_default = []
+custom_fields_js_form = []
+for key, value in CONFIG.get('custom_input_fields', {}).items():
+    jskey = 'custom' + key.title().replace('.', '')
+    custom_fields_html.append(CUSTOM_FIELDS_HTML_TEMPLATE.format(name=key, jsname=jskey))
+    custom_fields_js_default.append(CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE.format(jsname=jskey, default=value))
+    custom_fields_js_form.append(CUSTOM_FIELDS_JS_FORM_TEMPLATE.format(name=key, jsname=jskey))
 
 
 PARAMETERS = {
@@ -56,6 +76,14 @@ for static_file in STATIC_FILES.keys():
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
         if static_file.endswith('.html'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__VERSION__', __version__)
+        if static_file == 'preview.html':
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_HTML__',
+                                                                          '\n'.join(custom_fields_html))
+        if static_file == 'js/preview.js':
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_DEFAULT__',
+                                                                          '\n'.join(custom_fields_js_default))
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_FORM__',
+                                                                          '\n'.join(custom_fields_js_form))
 
 
 app = Flask('intelmq_webinput_csv')
@@ -249,6 +277,16 @@ def preview():
                     except InvalidValue as exc:
                         retval.append((lineindex, -1, value, str(exc)))
                         line_valid = False
+            for key, value in request.form.items():
+                if not key.startswith('custom_'):
+                    continue
+                key = key[7:]
+                if key not in event:
+                    try:
+                        event.add(key, value)
+                    except InvalidValue as exc:
+                        retval.append((lineindex, -1, value, str(exc)))
+                        line_valid = False
             if line_valid:
                 lines_valid += 1
     retval = {"total": lineindex+1,
@@ -310,6 +348,12 @@ def submit():
                 if extras:
                     event.add('extra', {'data%d'%index: data for index, data in enumerate(extras)})
                 for key, value in parameters.get('constant_fields', {}).items():
+                    if key not in event:
+                        event.add(key, value)
+                for key, value in request.form.items():
+                    if not key.startswith('custom_'):
+                        continue
+                    key = key[7:]
                     if key not in event:
                         event.add(key, value)
             except Exception:
