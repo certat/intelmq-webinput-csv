@@ -14,6 +14,7 @@ from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
+from intelmq.lib.exceptions import InvalidValue
 
 from intelmq_webinput_csv.version import __version__
 
@@ -215,7 +216,6 @@ def preview():
         return create_response('No file')
     retval = []
     lines_valid = 0
-    event = Event()
     with open(tmp_file[1]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
@@ -227,6 +227,7 @@ def preview():
         for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
+            event = Event()
             line_valid = True
             for columnindex, (column, value) in \
                     enumerate(zip(parameters['columns'], line)):
@@ -236,13 +237,18 @@ def preview():
                     value += parameters['timezone']
                 if column == 'extra':
                     value = {'data': value}
-                sanitized = event._Message__sanitize_value(column, value)
-                valid = event._Message__is_valid_value(column, sanitized)
-                if not valid[0]:
-                    retval.append((lineindex, columnindex, value, valid[1]))
+                try:
+                    event.add(column, value)
+                except InvalidValue as exc:
+                    retval.append((lineindex, columnindex, value, str(exc)))
                     line_valid = False
             for key, value in parameters.get('constant_fields', {}).items():
-                event.add(key, value)
+                if key not in event:
+                    try:
+                        event.add(key, value)
+                    except InvalidValue as exc:
+                        retval.append((lineindex, -1, value, str(exc)))
+                        line_valid = False
             if line_valid:
                 lines_valid += 1
     retval = {"total": lineindex+1,
@@ -304,7 +310,8 @@ def submit():
                 if extras:
                     event.add('extra', {'data%d'%index: data for index, data in enumerate(extras)})
                 for key, value in parameters.get('constant_fields', {}).items():
-                    event.add(key, value)
+                    if key not in event:
+                        event.add(key, value)
             except Exception:
                 continue
             if 'classification.type' not in event:
