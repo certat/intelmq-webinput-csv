@@ -15,6 +15,8 @@ from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 
+from intelmq_webinput_csv.version import __version__
+
 with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
     CONFIG = json.load(handle)
     BASE_URL = CONFIG.get('base_url', '')
@@ -52,6 +54,8 @@ for static_file in STATIC_FILES.keys():
         STATIC_FILES[static_file] = handle.read()
         if static_file.startswith('js/'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
+        if static_file.endswith('.html'):
+            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__VERSION__', __version__)
 
 
 app = Flask('intelmq_webinput_csv')

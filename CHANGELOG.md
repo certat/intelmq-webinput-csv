@@ -7,6 +7,9 @@ CHANGELOG
 ### Backend
 - Data in the columns assigned to the `extra` field will be saved as `{"data0": ..., "data1": ..., ...}` (#35).
 
+### Frontend
+- Show version including link to upstream in footer (#49).
+
 0.1.0.alpha2
 ------------
 
