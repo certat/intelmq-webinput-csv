@@ -1,8 +1,8 @@
 CHANGELOG
 =========
 
-0.1.0.alpha3
-------------
+0.1.0 (unreleased)
+------------------
 
 ### Backend
 - Data in the columns assigned to the `extra` field will be saved as `{"data0": ..., "data1": ..., ...}` (#35).
@@ -16,8 +16,8 @@ CHANGELOG
 - Remove inout field text, does not work anyway.
 - Order and group input fields (#46).
 
-0.1.0.alpha2
-------------
+0.1.0.alpha2 (2018-03-15)
+-------------------------
 
 ### Backend
 - Fix count of total lines in case of missing newline at end of input
@@ -29,8 +29,8 @@ CHANGELOG
 ### Frontend
 - Add input field for `feed.code`.
 
-0.1.0.alpha1
-------------
+0.1.0.alpha1 (2017-08-29)
+-------------------------
 
 ### Backend
 - Uploading of files and text, saves data in temporary files
