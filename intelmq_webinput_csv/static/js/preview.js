@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
+ * SPDX-License-Identifier: AGPL-3.0
+ */
 var vm_preview = new Vue({
     el: '#previewApp',
 

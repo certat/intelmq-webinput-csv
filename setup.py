@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
+# SPDX-License-Identifier: AGPL-3.0
 import os
 
 from setuptools import find_packages, setup

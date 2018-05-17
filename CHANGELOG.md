@@ -4,6 +4,8 @@ CHANGELOG
 0.1.0 (unreleased)
 ------------------
 
+- Copyright and license header for each source code file.
+
 ### Backend
 - Data in the columns assigned to the `extra` field will be saved as `{"data0": ..., "data1": ..., ...}` (#35).
 - Constant fields can be configured with the configuration parameter `"constant_fields"` (#38).

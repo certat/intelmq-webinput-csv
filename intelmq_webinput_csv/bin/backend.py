@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
+# SPDX-License-Identifier: AGPL-3.0
 import codecs
 import csv
 import json
