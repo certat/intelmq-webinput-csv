@@ -8,8 +8,8 @@ Table of Contents
 =================
 
 1. `How to Install <#how-to-install>`__
-1. `User Guide <#user-guide>`__
-7. `Licence <#licence>`__
+2. `User Guide <#user-guide>`__
+3. `Licence <#licence>`__
 
 How to Install
 ==============
