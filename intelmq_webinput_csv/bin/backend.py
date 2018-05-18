@@ -74,9 +74,8 @@ for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
     with codecs.open(filename, encoding='utf8') as handle:
         STATIC_FILES[static_file] = handle.read()
-        if static_file.startswith('js/'):
+        if static_file.startswith('js/') or static_file.endswith('.html'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
-        if static_file.endswith('.html'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__VERSION__', __version__)
         if static_file == 'preview.html':
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_HTML__',
@@ -133,7 +132,7 @@ def handle_parameters(form):
     return parameters
 
 
-def create_response(text):
+def create_response(text, content_type=None):
     is_json = False
     if not isinstance(text, str):
         text = jsonify(text)
@@ -142,6 +141,8 @@ def create_response(text):
     if is_json:
         response.mimetype = 'application/json'
         response.headers['Content-Type'] = "text/json; charset=utf-8"
+    if content_type:
+        response.headers['Content-Type'] = content_type
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
 
@@ -373,6 +374,13 @@ def submit():
             successful_lines += 1
     return create_response('Successfully processed %s lines.' % successful_lines)
 
+
+@app.route('/uploads/current')
+def get_current_upload():
+    _, filename, _ = get_temp_file()
+    with open(filename) as handle:
+        resp = create_response(handle.read(), content_type='text/csv')
+    return resp
 
 def main():
     app.run()
