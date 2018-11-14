@@ -11,6 +11,7 @@ CHANGELOG
 - Constant fields can be configured with the configuration parameter `"constant_fields"` (#38).
 - Additional custom input fields can be added with the configuration parameter `"custom_input_fields"` (#48).
 - New endpoint to download current file (#51).
+- Error handling for reading the temp file.
 
 ### Frontend
 - Show version including link to upstream in footer (#49).

@@ -99,13 +99,27 @@ class Parameters(object):
 
 
 def write_temp_file(data):
+    """
+    Write metadata about the current active file.
+    filedescriptor, filename, total_lines
+    """
     with open('/opt/intelmq/var/lib/webinput_csv.temp', 'wb') as handle:
         pickle.dump(data, handle)
 
 
 def get_temp_file():
-    with open('/opt/intelmq/var/lib/webinput_csv.temp', 'rb') as handle:
-        return pickle.load(handle)
+    """
+    Opposite of write_temp_file
+    """
+    try:
+        with open('/opt/intelmq/var/lib/webinput_csv.temp', 'rb') as handle:
+            data = pickle.load(handle)
+            if len(data) == 3:
+                return data
+    except TypeError:  # TypeError: returned value has no len()
+        return False
+    return False
+
 
 
 def handle_parameters(form):
