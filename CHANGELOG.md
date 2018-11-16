@@ -12,6 +12,7 @@ CHANGELOG
 - Additional custom input fields can be added with the configuration parameter `"custom_input_fields"` (#48).
 - New endpoint to download current file (#51).
 - Error handling for reading the temp file.
+- Handle non-existent `use_column` parameter.
 
 ### Frontend
 - Show version including link to upstream in footer (#49).

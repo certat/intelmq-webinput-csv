@@ -132,7 +132,7 @@ def handle_parameters(form):
     if parameters['dryrun']:
         parameters['classification.type'] = 'test'
         parameters['classification.identifier'] = 'test'
-    if type(parameters['columns']) is not list:
+    if type(parameters['columns']) is not list and parameters['use_column']:
         parameters['use_column'] = [json.loads(a.lower()) for a in
                                     parameters['use_column'].split(',')]
         parameters['columns'] = parameters['columns'].split(',')
