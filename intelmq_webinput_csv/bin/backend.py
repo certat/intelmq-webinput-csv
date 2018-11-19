@@ -163,6 +163,35 @@ def create_response(text, content_type=None):
     return response
 
 
+def handle_extra(value: str) -> dict:
+    """
+    >>> handle_extra('foobar')
+    {'data': 'foobar'}
+    >>> handle_extra('{"data": "foobar"}')
+    {'data': 'foobar'}
+    >>> handle_extra('')
+    >>> handle_extra('["1", 2]')
+    {'data': ['1', 2]}
+
+    Parameters:
+        value: any string
+
+    Returns:
+        dictionary
+    """
+
+    try:
+        value = json.loads(value)
+    except ValueError:
+        if not value:
+            return
+        value = {'data': value}
+    else:
+        if not isinstance(value, dict):
+            value = {'data': value}
+    return value
+
+
 @app.route('/')
 def form():
     response = make_response(STATIC_FILES['index.html'])
@@ -283,7 +312,7 @@ def preview():
                 if column.startswith('time.') and '+' not in value:
                     value += parameters['timezone']
                 if column == 'extra':
-                    value = {'data': value}
+                    value = handle_extra(value)
                 try:
                     event.add(column, value)
                 except (InvalidValue, KeyExists) as exc:
@@ -352,7 +381,6 @@ def submit():
         for lineindex, line in enumerate(reader):
             event = Event()
             try:
-                extras = []
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
                     if not column or not value:
@@ -360,11 +388,8 @@ def submit():
                     if column.startswith('time.') and '+' not in value:
                         value += parameters['timezone']
                     if column == 'extra':
-                        extras.append(value)
-                        continue
+                        value = handle_extra(value)
                     event.add(column, value)
-                if extras:
-                    event.add('extra', {'data%d'%index: data for index, data in enumerate(extras)})
                 for key, value in parameters.get('constant_fields', {}).items():
                     if key not in event:
                         event.add(key, value)

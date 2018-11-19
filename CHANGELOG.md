@@ -14,6 +14,7 @@ CHANGELOG
 - Error handling for reading the temp file.
 - Handle non-existent `use_column` parameter.
 - Handle `KeyExists` errors.
+- Extra handling: Only create dictionary if it is not already one (#55).
 
 ### Configuration
 - Change `destination_pipeline` configuration, see NEWS file for a full example.
