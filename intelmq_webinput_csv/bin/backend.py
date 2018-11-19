@@ -94,8 +94,10 @@ with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
 
 
-class Parameters(object):
-    pass
+class PipelineParameters(object):
+    def __init__(self):
+        for key, value in CONFIG['intelmq'].items():
+            setattr(self, key, value)
 
 
 def write_temp_file(data):
@@ -329,9 +331,8 @@ def submit():
     if not temp_file:
         return create_response('No file')
 
-    pipelineparameters = Parameters
-    destination_pipeline = PipelineFactory.create(pipelineparameters)
-    destination_pipeline.set_queues(CONFIG['destination_pipeline'], "destination")
+    destination_pipeline = PipelineFactory.create(PipelineParameters())
+    destination_pipeline.set_queues(CONFIG['intelmq']['destination_pipeline_queue'], "destination")
     destination_pipeline.connect()
 
     time_observation = DateTime().generate_datetime_now()

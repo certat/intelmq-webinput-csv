@@ -14,6 +14,9 @@ CHANGELOG
 - Error handling for reading the temp file.
 - Handle non-existent `use_column` parameter.
 
+### Configuration
+- Change `destination_pipeline` configuration, see NEWS file for a full example.
+
 ### Frontend
 - Show version including link to upstream in footer (#49).
 - Use Vue-Select for chosing the columns' fields (#50).
