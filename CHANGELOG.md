@@ -13,6 +13,7 @@ CHANGELOG
 - New endpoint to download current file (#51).
 - Error handling for reading the temp file.
 - Handle non-existent `use_column` parameter.
+- Handle `KeyExists` errors.
 
 ### Configuration
 - Change `destination_pipeline` configuration, see NEWS file for a full example.

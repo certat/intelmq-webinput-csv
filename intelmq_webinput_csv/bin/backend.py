@@ -16,7 +16,7 @@ from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.exceptions import InvalidValue
+from intelmq.lib.exceptions import InvalidValue, KeyExists
 
 from intelmq_webinput_csv.version import __version__
 
@@ -286,7 +286,7 @@ def preview():
                     value = {'data': value}
                 try:
                     event.add(column, value)
-                except InvalidValue as exc:
+                except (InvalidValue, KeyExists) as exc:
                     retval.append((lineindex, columnindex, value, str(exc)))
                     line_valid = False
             for key, value in parameters.get('constant_fields', {}).items():
