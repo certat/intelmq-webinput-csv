@@ -19,6 +19,9 @@ CHANGELOG
 ### Configuration
 - Change `destination_pipeline` configuration, see NEWS file for a full example.
 
+### Documentation
+- Add a Developers Guide.
+
 ### Frontend
 - Show version including link to upstream in footer (#49).
 - Use Vue-Select for chosing the columns' fields (#50).
