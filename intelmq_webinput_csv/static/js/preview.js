@@ -15,6 +15,7 @@ var vm_preview = new Vue({
             color: 'black',
         },
         classificationTypes: [],
+        classificationMapping: {},
         servedDhoFields: [],
         customDhoFields: [],
         customUseColumns: [],
@@ -75,6 +76,7 @@ var vm_preview = new Vue({
                 });
         },
         loadClassificationTypes: function (classificationTypes) {
+            this.classificationMapping = classificationTypes
             this.classificationTypes = Object.keys(classificationTypes);
             this.completeRequest('types');
         },
@@ -333,6 +335,11 @@ var vm_preview = new Vue({
                 }
             }
             return dhoList;
+        },
+        classificationTypeChange: function (event) {
+            console.log(event.target.value);
+            console.log(this.classificationMapping[event.target.value]);
+            $("#resulting-taxonomy")[0].innerText = this.classificationMapping[event.target.value]
         }
     },
     beforeMount() {

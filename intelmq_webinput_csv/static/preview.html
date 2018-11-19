@@ -65,11 +65,12 @@ SPDX-License-Identifier: AGPL-3.0
                                 <div class="control">
                                     <label class="label">classification type</label>
                                     <div class="select">
-                                        <select v-model="previewFormData.classificationType">
+                                        <select v-model="previewFormData.classificationType" v-on:change="classificationTypeChange">
                                             <option disabled value="">select ...</option>
                                             <option v-for="type in classificationTypes" :value="type">{{type}}</option>
                                         </select>
                                     </div>
+                                    <div><p>Taxonomy: <span id="resulting-taxonomy">select type</span></p></div>
                                 </div>
                             </div>
                             __CUSTOM_FIELDS_HTML__

@@ -25,6 +25,7 @@ CHANGELOG
 ### Frontend
 - Show version including link to upstream in footer (#49).
 - Use Vue-Select for chosing the columns' fields (#50).
+- Show the taxonomy resulting from the selected type (#45).
 
 #### Preview
 - Remove inout field text, does not work anyway.
