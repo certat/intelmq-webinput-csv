@@ -27,6 +27,10 @@ Files: intelmq_webinput_csv/static/plugins/bulma/*
 Copyright:  2017 Jeremy Thomas
 License: MIT
 
+Files: intelmq_webinput_csv/static/plugins/vue-select-1.3.3.js
+Copyright: 2016 Jeff Sagal & vue-select contributors
+License: MIT
+
 License: AGPL-3+
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU Affero General Public License as published

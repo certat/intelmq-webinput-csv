@@ -2,6 +2,7 @@
  * Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
  * SPDX-License-Identifier: AGPL-3.0
  */
+Vue.component('v-select', VueSelect.VueSelect)
 var vm_preview = new Vue({
     el: '#previewApp',
 
@@ -240,7 +241,13 @@ var vm_preview = new Vue({
 
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[0].cells[i];
-                this.previewFormData.columns.push($('select', cell)[0].value);
+                selectedValue = cell.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild;
+                if (null === selectedValue) {
+                    value = null;
+                } else {
+                    value = selectedValue.data.trim()
+                }
+                this.previewFormData.columns.push(value);
             }
         },
         getUseColumn: function () {
@@ -305,7 +312,7 @@ var vm_preview = new Vue({
         fillCustomDhoFields: function () {
             for (index in this.servedColumnTypes) {
                 if (this.servedColumnTypes[index] === null) {
-                    this.customDhoFields.push(this.servedDhoFields);
+                    this.customDhoFields.push(Object.keys(this.servedDhoFields));
                 } else {
                     this.customDhoFields.push(this.getDhoListOfType(this.servedColumnTypes[index]));
                 }

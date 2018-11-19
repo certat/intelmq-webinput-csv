@@ -55,7 +55,7 @@ After submission, the total number of submitted lines is given. It should be the
 
 #### extra fields
 
-A column assigned to the extra field will get a numbered key `data%d` with `%d` as index. For example, if you have two `extra` columns with the data 'foo' and 'bar' this will result in:
-`{"data0": "foo", "data1": "bar"}`
+To use a column as an extra field simply write `extra.whateveryouwant` into the column header's dropdown. If you have data that is already a JSON-encoded dictionary, you can set `extra` directly.
 
-Currently it is not possible to set the key name.
+
+
