@@ -337,8 +337,6 @@ var vm_preview = new Vue({
             return dhoList;
         },
         classificationTypeChange: function (event) {
-            console.log(event.target.value);
-            console.log(this.classificationMapping[event.target.value]);
             $("#resulting-taxonomy")[0].innerText = this.classificationMapping[event.target.value]
         }
     },

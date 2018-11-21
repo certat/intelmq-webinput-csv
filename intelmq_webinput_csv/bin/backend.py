@@ -250,6 +250,7 @@ def upload_file():
         total_lines -= 1
     preview = []
     valid_ip_addresses = None
+    valid_date_times = None
     with open(filename) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
@@ -266,13 +267,17 @@ def upload_file():
                         line = next(reader)
             if lineindex >= parameters['loadLinesMax'] + parameters['has_header']:
                 break
-            if valid_ip_addresses is None:
+            if valid_ip_addresses is None:  # first data line
                 valid_ip_addresses = [0] * len(line)
+                valid_date_times = [0] * len(line)
             for columnindex, value in enumerate(line):
                 if IPAddress.is_valid(value, sanitize=True):
                     valid_ip_addresses[columnindex] += 1
+                if DateTime.is_valid(value, sanitize=True):
+                    valid_date_times[columnindex] += 1
             preview.append(line)
     column_types = ["IPAddress" if x/(total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
+    column_types = ["DateTime" if valid_date_times[i]/(total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
     return create_response({"column_types": column_types,
                             "use_column": [bool(x) for x in column_types],
                             "preview": preview,
