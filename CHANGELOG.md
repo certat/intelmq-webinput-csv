@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+
+0.2.0 (unreleased)
+------------------
+
+### Backend
+
+### Configuration
+
+### Documentation
+
+### Frontend
+
+#### Preview
+
+
 0.1.0 (2018-11-21)
 ------------------
 
