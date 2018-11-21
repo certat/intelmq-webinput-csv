@@ -316,7 +316,7 @@ var vm_preview = new Vue({
                 if (this.servedColumnTypes[index] === null) {
                     this.customDhoFields.push(Object.keys(this.servedDhoFields));
                 } else {
-                    this.customDhoFields.push(this.getDhoListOfType(this.servedColumnTypes[index]));
+                    this.customDhoFields.push(Object.keys(this.getDhoListOfType(this.servedColumnTypes[index])));
                 }
             }
         },
