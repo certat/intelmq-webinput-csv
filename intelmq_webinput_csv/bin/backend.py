@@ -103,7 +103,7 @@ class PipelineParameters(object):
 def write_temp_file(data):
     """
     Write metadata about the current active file.
-    filedescriptor, filename, total_lines
+    filename, total_lines
     """
     with open('/opt/intelmq/var/lib/webinput_csv.temp', 'wb') as handle:
         pickle.dump(data, handle)
@@ -116,7 +116,7 @@ def get_temp_file():
     try:
         with open('/opt/intelmq/var/lib/webinput_csv.temp', 'rb') as handle:
             data = pickle.load(handle)
-            if len(data) == 3:
+            if len(data) == 2:
                 return data
     except TypeError:  # TypeError: returned value has no len()
         return False
@@ -225,23 +225,22 @@ def js(page):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
+    filename = '/opt/intelmq/var/lib/webinput_csv.csv'
     if 'file' in request.files and request.files['file'].filename:
-        filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
         request.files['file'].save(filename)
         request.files['file'].stream.seek(0)
         total_lines = request.files['file'].stream.read().count(b'\n')  # we don't care about headers here
         success = True
     elif 'text' in request.form and request.form['text']:
-        filedescriptor, filename = tempfile.mkstemp(suffix=".csv", text=True)
-        with os.fdopen(filedescriptor, mode='w') as handle:
+        with open(filename, mode='w') as handle:
             handle.write(request.form['text'])
         success = True
         total_lines = len(request.form['text'].splitlines())
     if not success and request.form.get('use_last_file', False):
         success = True
-        filedescriptor, filename, total_lines = get_temp_file()
+        filename, total_lines = get_temp_file()
     elif success:
-        write_temp_file((filedescriptor, filename, total_lines))
+        write_temp_file((filename, total_lines))
     if not success:
         return create_response('no file or text')
 
@@ -299,7 +298,7 @@ def preview():
         return create_response('No file')
     retval = []
     lines_valid = 0
-    with open(tmp_file[1]) as handle:
+    with open(tmp_file[0]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -375,7 +374,7 @@ def submit():
 
     successful_lines = 0
 
-    with open(temp_file[1]) as handle:
+    with open(temp_file[0]) as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -424,7 +423,7 @@ def submit():
 
 @app.route('/uploads/current')
 def get_current_upload():
-    _, filename, _ = get_temp_file()
+    filename, _ = get_temp_file()
     with open(filename) as handle:
         resp = create_response(handle.read(), content_type='text/csv')
     return resp
