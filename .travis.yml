@@ -1,0 +1,32 @@
+language: python
+env:
+  - requirements=true
+  - requirements=false
+matrix:
+  include:
+  - python: 3.4
+    env: mode=debian
+  - python: 3.6
+    env: mode=codestyle
+install:
+  - set -e
+  - if [[ $mode == debian ]]; then sudo apt-get install dpkg-dev dh-python python-setuptools python3-setuptools python3-all debhelper quilt fakeroot dh-systemd safe-rm; fi
+  - if [[ $TRAVIS_PYTHON_VERSION < '3.5' ]]; then sudo pip install typing; fi
+  - if [[ $mode == codestyle ]]; then pip install pycodestyle; fi
+before_script:
+  - if [[ $mode == debian ]]; then regex="\(([a-z0-9.~-]+)\)" && [[ $(head -n 1 debian/changelog) =~ $regex ]] && debversion=${BASH_REMATCH[1]} && version=${debversion%-?}; fi
+  - if [[ $mode == debian ]]; then git archive --format=tar.gz HEAD > ../intelmq_$version.orig.tar.gz; fi
+  - if [[ $mode == debian ]]; then git archive --format=tar.gz --prefix=debian/ HEAD:debian/ > ../intelmq_$debversion.debian.tar.gz; fi
+  - if [[ $mode == debian ]]; then pushd ..; fi
+  - if [[ $mode == debian ]]; then mkdir build; fi
+  - if [[ $mode == debian ]]; then cd build; fi
+  - if [[ $mode == debian ]]; then tar -xzf ../intelmq_$version.orig.tar.gz; fi
+  - if [[ $mode == debian ]]; then tar -xzf ../intelmq_$debversion.debian.tar.gz; fi
+  - if [[ $mode == debian ]]; then popd; fi
+script:
+  - if [[ $mode == codestyle ]]; then pycodestyle intelmq_webinput_csv/; fi
+  - if [[ $mode == debian ]]; then pushd ../build; fi
+  - if [[ $mode == debian ]]; then DEB_BUILD_OPTIONS='nocheck' dpkg-buildpackage -us -uc -d; fi
+  - if [[ $mode == debian ]]; then popd; fi
+after_success:
+  - if [[ -v requirements ]]; then codecov; fi
