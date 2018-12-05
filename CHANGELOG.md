@@ -9,6 +9,7 @@ CHANGELOG
 - Ignore header in total lines count. Also fixes the detection of IP-fields if only 2 lines are given and one line is the header.
 - Auto-detect time-data, so frontend offers only time-related fields.
 - Use static filename for uploaded data (#30).
+- Basic parser error handling: In case of parse errors show the error message as preview table.
 
 ### Configuration
 
