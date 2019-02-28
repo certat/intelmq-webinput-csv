@@ -201,7 +201,7 @@ def form():
 @app.route('/plugins/<path:page>')
 def plugins(page):
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/plugins/%s' % page)
-    with open(filename, mode='rb', encoding='utf8') as handle:
+    with open(filename, mode='rb') as handle:
         response = make_response(handle.read())
     if page.endswith('.js'):
         response.mimetype = 'application/x-javascript'
