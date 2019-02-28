@@ -17,6 +17,7 @@ CHANGELOG
 ### Documentation
 
 ### Frontend
+- Better wording for maximum lines load/show (#59).
 
 #### Preview
 
