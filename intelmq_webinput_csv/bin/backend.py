@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
 # SPDX-License-Identifier: AGPL-3.0
-import codecs
 import csv
 import json
 import pickle
@@ -71,7 +70,7 @@ STATIC_FILES = {
 
 for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    with codecs.open(filename, encoding='utf8') as handle:
+    with open(filename, encoding='utf8') as handle:
         STATIC_FILES[static_file] = handle.read()
         if static_file.startswith('js/') or static_file.endswith('.html'):
             STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
@@ -202,7 +201,7 @@ def form():
 @app.route('/plugins/<path:page>')
 def plugins(page):
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/plugins/%s' % page)
-    with open(filename, mode='rb') as handle:
+    with open(filename, mode='rb', encoding='utf8') as handle:
         response = make_response(handle.read())
     if page.endswith('.js'):
         response.mimetype = 'application/x-javascript'
@@ -231,7 +230,7 @@ def upload_file():
         total_lines = request.files['file'].stream.read().count(b'\n')  # we don't care about headers here
         success = True
     elif 'text' in request.form and request.form['text']:
-        with open(filename, mode='w') as handle:
+        with open(filename, mode='w', encoding='utf8') as handle:
             handle.write(request.form['text'])
         success = True
         total_lines = len(request.form['text'].splitlines())
@@ -250,7 +249,7 @@ def upload_file():
     valid_ip_addresses = None
     valid_date_times = None
     try:
-        with open(filename) as handle:
+        with open(filename, encoding='utf8') as handle:
             reader = csv.reader(handle, delimiter=parameters['delimiter'],
                                 quotechar=parameters['quotechar'],
                                 skipinitialspace=parameters['skipInitialSpace'],
@@ -302,7 +301,7 @@ def preview():
         return create_response('No file')
     retval = []
     lines_valid = 0
-    with open(tmp_file[0]) as handle:
+    with open(tmp_file[0], encoding='utf8') as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -378,7 +377,7 @@ def submit():
 
     successful_lines = 0
 
-    with open(temp_file[0]) as handle:
+    with open(temp_file[0], encoding='utf8') as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -428,7 +427,7 @@ def submit():
 @app.route('/uploads/current')
 def get_current_upload():
     filename, _ = get_temp_file()
-    with open(filename) as handle:
+    with open(filename, encoding='utf8') as handle:
         resp = create_response(handle.read(), content_type='text/csv')
     return resp
 

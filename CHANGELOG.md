@@ -10,6 +10,7 @@ CHANGELOG
 - Auto-detect time-data, so frontend offers only time-related fields.
 - Use static filename for uploaded data (#30).
 - Basic parser error handling: In case of parse errors show the error message as preview table.
+- Handle non-ASCII characters by using UTF-8 for all data (file) handling.
 
 ### Configuration
 
