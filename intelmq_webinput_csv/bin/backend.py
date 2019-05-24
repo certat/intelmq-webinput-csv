@@ -369,7 +369,7 @@ def submit():
     if not temp_file:
         return create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(PipelineParameters())
+    destination_pipeline = PipelineFactory.create(PipelineParameters(), logger=app.logger)
     destination_pipeline.set_queues(CONFIG['intelmq']['destination_pipeline_queue'], "destination")
     destination_pipeline.connect()
 

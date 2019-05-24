@@ -11,6 +11,7 @@ CHANGELOG
 - Use static filename for uploaded data (#30).
 - Basic parser error handling: In case of parse errors show the error message as preview table.
 - Handle non-ASCII characters by using UTF-8 for all data (file) handling.
+- Provide logger to the pipeline, supporting IntelMQ 2.0.
 
 ### Configuration
 
