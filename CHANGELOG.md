@@ -22,6 +22,9 @@ CHANGELOG
 
 #### Preview
 
+### Packaging
+- setup: Fix path to example configuration file (#52).
+
 
 0.1.0 (2018-11-21)
 ------------------

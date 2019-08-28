@@ -8,7 +8,7 @@ from setuptools import find_packages, setup
 
 DATA = [
     ('/opt/intelmq/etc/examples',
-     ['intelmq_webinput/etc/webinput_csv.conf',
+     ['intelmq_webinput_csv/etc/webinput_csv.conf',
       ],
      ),
 ]
