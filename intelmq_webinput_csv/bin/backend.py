@@ -5,11 +5,12 @@ import csv
 import json
 import pickle
 import traceback
+import os
 
 import pkg_resources
 from flask import Flask, jsonify, make_response, request
 
-from intelmq import HARMONIZATION_CONF_FILE
+from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
@@ -19,7 +20,7 @@ from intelmq.lib.exceptions import InvalidValue, KeyExists
 from intelmq_webinput_csv.version import __version__
 
 
-with open('/opt/intelmq/etc/webinput_csv.conf') as handle:
+with open(os.path.join(CONFIG_DIR, 'webinput_csv.conf')) as handle:
     CONFIG = json.load(handle)
     BASE_URL = CONFIG.get('base_url', '')
     if BASE_URL.endswith('/'):
