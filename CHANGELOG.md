@@ -15,6 +15,7 @@ CHANGELOG
 - Fix detection if a time value already has a timezone (did not work for negative postfixes like '-03:00').
 
 ### Configuration
+- Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
 
 ### Documentation
 
