@@ -4,9 +4,10 @@
 import csv
 import json
 import pickle
+import pkg_resources
 import traceback
 
-import pkg_resources
+import dateutil.parser
 from flask import Flask, jsonify, make_response, request
 
 from intelmq import HARMONIZATION_CONF_FILE
@@ -318,8 +319,12 @@ def preview():
                     enumerate(zip(parameters['columns'], line)):
                 if not column or not value:
                     continue
-                if column.startswith('time.') and '+' not in value:
-                    value += parameters['timezone']
+                if column.startswith('time.'):
+                    parsed = dateutil.parser.parse(value)
+                    if not parsed.tzinfo:
+                        value += parameters['timezone']
+                        parsed = dateutil.parser.parse(value)
+                    value = parsed.isoformat()
                 if column == 'extra':
                     value = handle_extra(value)
                 try:
@@ -394,8 +399,12 @@ def submit():
                         enumerate(zip(parameters['columns'], line)):
                     if not column or not value:
                         continue
-                    if column.startswith('time.') and '+' not in value:
-                        value += parameters['timezone']
+                    if column.startswith('time.'):
+                        parsed = dateutil.parser.parse(value)
+                        if not parsed.tzinfo:
+                            value += parameters['timezone']
+                            parsed = dateutil.parser.parse(value)
+                        value = parsed.isoformat()
                     if column == 'extra':
                         value = handle_extra(value)
                     event.add(column, value)
