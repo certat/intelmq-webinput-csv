@@ -26,6 +26,7 @@ CHANGELOG
 
 ### Packaging
 - setup: Fix path to example configuration file (#52).
+- Add Manifest file (#62?)
 
 
 0.1.0 (2018-11-21)

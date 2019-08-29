@@ -1,0 +1,11 @@
+graft docs
+graft intelmq_webinput_csv
+graft LICENSES
+include CHANGELOG.md
+include NEWS.md
+include README.rst
+exclude .*
+global-exclude *~
+global-exclude *.py[co]
+global-exclude __pycache__
+
