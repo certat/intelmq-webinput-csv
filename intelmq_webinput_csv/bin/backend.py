@@ -226,7 +226,7 @@ def js(page):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
-    filename = os.path.join(VAR_STATE_PATH, 'webinput_csv.csv')
+    filename = os.path.join(VAR_STATE_PATH, '../webinput_csv.csv')
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(filename)
         request.files['file'].stream.seek(0)
