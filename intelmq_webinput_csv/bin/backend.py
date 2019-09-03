@@ -26,6 +26,7 @@ with open(os.path.join(CONFIG_DIR, 'webinput_csv.conf')) as handle:
     BASE_URL = CONFIG.get('base_url', '')
     if BASE_URL.endswith('/'):
         BASE_URL = BASE_URL[:-1]
+TEMP_FILE = os.path.join(VAR_STATE_PATH, '../webinput_csv.temp')
 
 
 CUSTOM_FIELDS_HTML_TEMPLATE = """
@@ -99,7 +100,6 @@ class PipelineParameters(object):
         for key, value in CONFIG['intelmq'].items():
             setattr(self, key, value)
 
-TEMP_FILE = os.path.join(VAR_STATE_PATH, '../webinput_csv.temp')
 
 def write_temp_file(data):
     """
@@ -109,7 +109,7 @@ def write_temp_file(data):
     with open(TEMP_FILE, 'wb') as handle:
         pickle.dump(data, handle)
 
-        
+
 def get_temp_file():
     """
     Opposite of write_temp_file
@@ -122,7 +122,6 @@ def get_temp_file():
     except TypeError:  # TypeError: returned value has no len()
         return False
     return False
-
 
 
 def handle_parameters(form):
@@ -441,6 +440,7 @@ def get_current_upload():
     with open(filename, encoding='utf8') as handle:
         resp = create_response(handle.read(), content_type='text/csv')
     return resp
+
 
 def main():
     app.run()
