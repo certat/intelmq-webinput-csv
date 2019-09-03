@@ -11,7 +11,7 @@ import os
 import dateutil.parser
 from flask import Flask, jsonify, make_response, request
 
-from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR
+from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR, VAR_STATE_PATH
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
@@ -99,22 +99,23 @@ class PipelineParameters(object):
         for key, value in CONFIG['intelmq'].items():
             setattr(self, key, value)
 
+TEMP_FILE = os.path.join(VAR_STATE_PATH, '../webinput_csv.temp')
 
 def write_temp_file(data):
     """
     Write metadata about the current active file.
     filename, total_lines
     """
-    with open('/opt/intelmq/var/lib/webinput_csv.temp', 'wb') as handle:
+    with open(TEMP_FILE, 'wb') as handle:
         pickle.dump(data, handle)
 
-
+        
 def get_temp_file():
     """
     Opposite of write_temp_file
     """
     try:
-        with open('/opt/intelmq/var/lib/webinput_csv.temp', 'rb') as handle:
+        with open(TEMP_FILE, 'rb') as handle:
             data = pickle.load(handle)
             if len(data) == 2:
                 return data
@@ -225,7 +226,7 @@ def js(page):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
-    filename = '/opt/intelmq/var/lib/webinput_csv.csv'
+    filename = os.path.join(VAR_STATE_PATH, '../webinput_csv.csv')
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(filename)
         request.files['file'].stream.seek(0)
