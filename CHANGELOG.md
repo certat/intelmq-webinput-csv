@@ -14,6 +14,7 @@ CHANGELOG
 - Provide logger to the pipeline, supporting IntelMQ 2.0.
 - Fix detection if a time value already has a timezone (did not work for negative postfixes like '-03:00').
 - Do not throw errors on badly formatted time fields (#65).
+- Allow setting the destination queue in the webinterface with a custom input field. Needed forn6 integration.
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
