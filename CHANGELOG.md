@@ -18,6 +18,7 @@ CHANGELOG
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
 
 ### Documentation
+- More details and explanation on the configuration.
 
 ### Frontend
 - Better wording for maximum lines load/show (#59).

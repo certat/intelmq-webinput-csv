@@ -16,7 +16,10 @@ needed to submit data to IntelMQ. There is no internal default.
 
 * `base_url`: can be a full URL (optionally with ports) or only a path.
   Needed if the program is run not in `/` but a sub-path.
-* `destination_pipeline`: the pipeline to put the messages in.
+* `intelmq`: these parameters are used to set-up the intelmq pipeline. `destination_pipeline_*` can be used to configure the pipeline, see the user-guide of intelmq for details.
+  * `destination_pipeline_queue`: And additional parameter not present by intelmq code. It is the queue to push the messages into.
+* `custom_input_fields`: These fields are shown in the interface with the given default values, see also below.
+* `constant_fields`: Similar to above, but not shown to the user and added to all processed events.
 
 Usage
 -----
@@ -40,8 +43,8 @@ Empty lines and empty values (columns) are always ignored.
 * timezone: The timezone will only be added if there is no plus sign in the existing value. Used for both time.source and time.observation.
 * dry run: sets classification type and identifier to `test`
 
-##### Constant fields
-The contstant fields are added to all individual events if not present already.
+##### Custom Input fields
+The Custom Input fields are added to all individual events if not present already.
 
 * classification type and identifier: default values to be added to rows which do not already have these values
 
