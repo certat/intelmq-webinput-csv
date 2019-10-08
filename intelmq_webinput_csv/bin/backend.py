@@ -321,11 +321,14 @@ def preview():
                 if not column or not value:
                     continue
                 if column.startswith('time.'):
-                    parsed = dateutil.parser.parse(value)
-                    if not parsed.tzinfo:
-                        value += parameters['timezone']
-                        parsed = dateutil.parser.parse(value)
-                    value = parsed.isoformat()
+                    try:
+                        parsed = dateutil.parser.parse(value, fuzzy=True)
+                        if not parsed.tzinfo:
+                            value += parameters['timezone']
+                            parsed = dateutil.parser.parse(value)
+                        value = parsed.isoformat()
+                    except ValueError:
+                        line_valid = False
                 if column == 'extra':
                     value = handle_extra(value)
                 try:

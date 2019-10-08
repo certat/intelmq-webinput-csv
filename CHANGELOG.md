@@ -13,6 +13,7 @@ CHANGELOG
 - Handle non-ASCII characters by using UTF-8 for all data (file) handling.
 - Provide logger to the pipeline, supporting IntelMQ 2.0.
 - Fix detection if a time value already has a timezone (did not work for negative postfixes like '-03:00').
+- Do not throw errors on badly formatted time fields (#65).
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
