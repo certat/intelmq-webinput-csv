@@ -19,9 +19,6 @@ needed to submit data to IntelMQ. There is no internal default.
 * `intelmq`: these parameters are used to set-up the intelmq pipeline. `destination_pipeline_*` can be used to configure the pipeline, see the user-guide of intelmq for details.
   * `destination_pipeline_queue`: And additional parameter not present by intelmq code. It is the queue to push the messages into.
 * `custom_input_fields`: These fields are shown in the interface with the given default values, see also below.
-  * To make the destination queue / routing key (im AMQP) configurable, you can use a custom input field `destination_queue` (with default value).
-    If the field is provided, the value will be used to send the data to this queue.
-    This value will not be added to the data itself.
 * `constant_fields`: Similar to above, but not shown to the user and added to all processed events.
 
 Usage

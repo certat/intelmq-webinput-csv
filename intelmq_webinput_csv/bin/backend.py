@@ -145,9 +145,6 @@ def handle_parameters(form):
     parameters['skipInitialSpace'] = json.loads(parameters['skipInitialSpace'])
     parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
-
-    parameters['destination_pipeline_queue'] = form.get('custom_destination_queue',
-                                                        CONFIG['intelmq']['destination_pipeline_queue'])
     return parameters
 
 
@@ -347,7 +344,7 @@ def preview():
                         retval.append((lineindex, -1, value, str(exc)))
                         line_valid = False
             for key, value in request.form.items():
-                if not key.startswith('custom_') or key == 'custom_destination_queue':
+                if not key.startswith('custom_'):
                     continue
                 key = key[7:]
                 if key not in event:
@@ -381,10 +378,8 @@ def submit():
     if not temp_file:
         return create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(PipelineParameters(),
-                                                  logger=app.logger,
-                                                  direction='destination')
-    destination_pipeline.set_queues(parameters['destination_pipeline_queue'], "destination")
+    destination_pipeline = PipelineFactory.create(PipelineParameters(), logger=app.logger)
+    destination_pipeline.set_queues(CONFIG['intelmq']['destination_pipeline_queue'], "destination")
     destination_pipeline.connect()
 
     time_observation = DateTime().generate_datetime_now()
@@ -421,7 +416,7 @@ def submit():
                     if key not in event:
                         event.add(key, value)
                 for key, value in request.form.items():
-                    if not key.startswith('custom_') or key == 'custom_destination_queue':
+                    if not key.startswith('custom_'):
                         continue
                     key = key[7:]
                     if key not in event:
