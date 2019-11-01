@@ -41,7 +41,7 @@ Empty lines and empty values (columns) are always ignored.
 
 #### Preview
 
-* timezone: The timezone will only be added if there is no plus sign in the existing value. Used for both time.source and time.observation.
+* timezone: The timezone will only be added if there is no timezone detected in the existing value. Used for both time.source and time.observation.
 * dry run: sets classification type and identifier to `test`
 
 ##### Custom Input fields
