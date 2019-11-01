@@ -1,15 +1,12 @@
 **Table of Contents**
 
 1. [Requirements](#requirements)
-2. [Install Dependencies](#install-dependencies)
-   * [Ubuntu / Debian 8](#ubuntu---debian)
-   * [openSUSE Leap 42.2](#opensuse-leap-422--423)
-3. [Installation](#installation)
+2. [Installation](#installation)
    * [Native packages](#native-packages)
    * [With pip](#with-pip)
      * [From PyPi](#from-pypi)
      * [From the repository](#from-the-repository)
-4. [Afterwards](#afterwards)
+3. [Afterwards](#afterwards)
 
 
 Please report any errors you encounter at https://github.com/certat/intelmq-webinput-csv/issues
