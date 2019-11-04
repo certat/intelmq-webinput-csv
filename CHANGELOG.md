@@ -15,6 +15,7 @@ CHANGELOG
 - Fix detection if a time value already has a timezone (did not work for negative postfixes like '-03:00').
 - Do not throw errors on badly formatted time fields (#65).
 - Add optional parameter `destination_pipeline_queue_formatted` and allow formatting of `destination_pipeline_queue`.
+- Log exception if sending data to the pipeline did not work.
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).

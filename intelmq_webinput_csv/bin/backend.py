@@ -436,6 +436,7 @@ def submit():
                     destination_pipeline.set_queues(queue_name, "destination")
                     destination_pipeline.connect()
             except Exception:
+                app.logger.exception('Failure')
                 continue
             if 'classification.type' not in event:
                 event.add('classification.type', parameters['classification.type'])
