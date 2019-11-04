@@ -381,8 +381,8 @@ def harmonization_event_fields():
 @app.route('/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
-    temp_file = get_temp_file()
-    if not temp_file:
+    tmp_file = get_temp_file()
+    if not tmp_file:
         return create_response('No file')
 
     destination_pipeline = PipelineFactory.create(PipelineParameters(),
@@ -396,7 +396,7 @@ def submit():
 
     successful_lines = 0
 
-    with open(temp_file[0], encoding='utf8') as handle:
+    with open(tmp_file[0], encoding='utf8') as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
