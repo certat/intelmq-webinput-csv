@@ -26,7 +26,7 @@ setup(
     maintainer_email='wagner@cert.at',
     install_requires=[
         'Flask',
-        'intelmq',
+        'intelmq>=1.1.0',
         ],
     test_suite='intelmq_webinput_csv.tests',
     packages=find_packages(),
