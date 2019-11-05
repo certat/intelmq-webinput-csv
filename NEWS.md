@@ -6,7 +6,25 @@ NEWS
 ------------------
 
 ### Configuration
+The parameter `destination_pipeline_queue` is expected on the top level, not anymore in the `intelmq` array.
+Previously:
+```json
+    "intelmq": {
+        "destination_pipeline_queue": "test",
+        "destination_pipeline_db": 2,
+        "destination_pipeline_host": "127.0.0.1",
+        "destination_pipeline_port": 6379
+    },
 
+```
+Now:
+```json
+    "intelmq": {
+        ...
+    },
+    "destination_pipeline_queue": "test",
+```
+The reason is that now all the parameters in the `intelmq` array are used like in intelmq itself and `destination_pipeline_queue` is intelmq-webinput-csv specific.
 
 0.1.0 (2018-11-21)
 ------------------
