@@ -23,7 +23,7 @@ User Guide
 
 See `User Guide <docs/User-Guide.md>`__.
 
-.. figure:: docs/screenshot.png
+.. figure:: docs/images/screenshot.png
    :alt: Screenshot
 
 Licence

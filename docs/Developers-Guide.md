@@ -5,4 +5,4 @@
 ```bash
 PYTHONPATH=. FLASK_APP=intelmq_webinput_csv/bin/backend.py flask run
 ```
-All dependencies need to be installed.
+All dependencies need to be installed (intelmq, flask).

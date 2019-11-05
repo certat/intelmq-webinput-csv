@@ -321,11 +321,14 @@ def preview():
                 if not column or not value:
                     continue
                 if column.startswith('time.'):
-                    parsed = dateutil.parser.parse(value)
-                    if not parsed.tzinfo:
-                        value += parameters['timezone']
-                        parsed = dateutil.parser.parse(value)
-                    value = parsed.isoformat()
+                    try:
+                        parsed = dateutil.parser.parse(value, fuzzy=True)
+                        if not parsed.tzinfo:
+                            value += parameters['timezone']
+                            parsed = dateutil.parser.parse(value)
+                        value = parsed.isoformat()
+                    except ValueError:
+                        line_valid = False
                 if column == 'extra':
                     value = handle_extra(value)
                 try:
@@ -350,6 +353,13 @@ def preview():
                     except InvalidValue as exc:
                         retval.append((lineindex, -1, value, str(exc)))
                         line_valid = False
+            try:
+                if CONFIG.get('destination_pipeline_queue_formatted', False):
+                    CONFIG['destination_pipeline_queue'].format(ev=event)
+            except Exception as exc:
+                retval.append((lineindex, -1,
+                               CONFIG['destination_pipeline_queue'], repr(exc)))
+                line_valid = False
             if line_valid:
                 lines_valid += 1
     retval = {"total": lineindex+1,
@@ -371,19 +381,22 @@ def harmonization_event_fields():
 @app.route('/submit', methods=['POST'])
 def submit():
     parameters = handle_parameters(request.form)
-    temp_file = get_temp_file()
-    if not temp_file:
+    tmp_file = get_temp_file()
+    if not tmp_file:
         return create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(PipelineParameters(), logger=app.logger)
-    destination_pipeline.set_queues(CONFIG['intelmq']['destination_pipeline_queue'], "destination")
-    destination_pipeline.connect()
+    destination_pipeline = PipelineFactory.create(PipelineParameters(),
+                                                  logger=app.logger,
+                                                  direction='destination')
+    if not CONFIG.get('destination_pipeline_queue_formatted', False):
+        destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
+        destination_pipeline.connect()
 
     time_observation = DateTime().generate_datetime_now()
 
     successful_lines = 0
 
-    with open(temp_file[0], encoding='utf8') as handle:
+    with open(tmp_file[0], encoding='utf8') as handle:
         reader = csv.reader(handle, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
@@ -418,7 +431,12 @@ def submit():
                     key = key[7:]
                     if key not in event:
                         event.add(key, value)
+                if CONFIG.get('destination_pipeline_queue_formatted', False):
+                    queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
+                    destination_pipeline.set_queues(queue_name, "destination")
+                    destination_pipeline.connect()
             except Exception:
+                app.logger.exception('Failure')
                 continue
             if 'classification.type' not in event:
                 event.add('classification.type', parameters['classification.type'])
