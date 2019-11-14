@@ -16,10 +16,11 @@ CHANGELOG
 - Do not throw errors on badly formatted time fields (#65).
 - Add optional parameter `destination_pipeline_queue_formatted` and allow formatting of `destination_pipeline_queue`.
 - Log exception if sending data to the pipeline did not work.
-- The parameter `destination_pipeline_queue` is expected on the top level, not anymore in the `intelmq` array.
+- For type-detection do not apply sanitiation as this results in strange detections some times (#69).
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
+- The parameter `destination_pipeline_queue` is expected on the top level, not anymore in the `intelmq` array.
 
 ### Documentation
 - More details and explanation on the configuration.

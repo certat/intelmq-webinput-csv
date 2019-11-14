@@ -272,9 +272,9 @@ def upload_file():
                     valid_ip_addresses = [0] * len(line)
                     valid_date_times = [0] * len(line)
                 for columnindex, value in enumerate(line):
-                    if IPAddress.is_valid(value, sanitize=True):
+                    if IPAddress.is_valid(value):
                         valid_ip_addresses[columnindex] += 1
-                    if DateTime.is_valid(value, sanitize=True):
+                    if DateTime.is_valid(value):
                         valid_date_times[columnindex] += 1
                 preview.append(line)
     except Exception as exc:
