@@ -17,6 +17,7 @@ from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.exceptions import InvalidValue, KeyExists
+from intelmq.lib.utils import RewindableFileHandle
 
 from intelmq_webinput_csv.version import __version__
 
@@ -396,14 +397,17 @@ def submit():
 
     successful_lines = 0
 
+    raw_header = []
     with open(tmp_file[0], encoding='utf8') as handle:
-        reader = csv.reader(handle, delimiter=parameters['delimiter'],
+        handle_rewindable = RewindableFileHandle(handle)
+        reader = csv.reader(handle_rewindable, delimiter=parameters['delimiter'],
                             quotechar=parameters['quotechar'],
                             skipinitialspace=parameters['skipInitialSpace'],
                             escapechar=parameters['escapechar'],
                             )
         if parameters['has_header']:
             next(reader)
+            raw_header.append(handle_rewindable.current_line)
         for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
@@ -446,6 +450,8 @@ def submit():
                 event.add('feed.code', parameters['feed.code'])
             if 'time.observation' not in event:
                 event.add('time.observation', time_observation, sanitize=False)
+            if 'raw' not in event:
+                event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1

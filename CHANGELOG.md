@@ -17,6 +17,7 @@ CHANGELOG
 - Add optional parameter `destination_pipeline_queue_formatted` and allow formatting of `destination_pipeline_queue`.
 - Log exception if sending data to the pipeline did not work.
 - For type-detection do not apply sanitiation as this results in strange detections some times (#69).
+- Save `raw` field including header for each event (#66).
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).
