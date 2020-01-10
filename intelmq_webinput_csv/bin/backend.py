@@ -414,7 +414,7 @@ def submit():
                     if not column or not value:
                         continue
                     if column.startswith('time.'):
-                        parsed = dateutil.parser.parse(value)
+                        parsed = dateutil.parser.parse(value, fuzzy=True)
                         if not parsed.tzinfo:
                             value += parameters['timezone']
                             parsed = dateutil.parser.parse(value)
