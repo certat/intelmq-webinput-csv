@@ -27,6 +27,7 @@ CHANGELOG
 - Example apache configuration:
   - use intelmq user and group by default.
   - fix syntax and use own line for comments.
+- Installation documentation: Add required wsgi package name.
 
 ### Frontend
 - Better wording for maximum lines load/show (#59).

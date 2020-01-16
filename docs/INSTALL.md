@@ -46,7 +46,7 @@ pip3 install .
 
 ### Webserver configuration and permissions
 
-Configure your server to use the intelmq_webinput_csv executable as WSGI script. A configuration snippet for Apache can be found in `contrib/apache/002_intelmq_webinput_csv.conf`. Adapt the WSGIScriptAlias URL and path to your needs.
+Configure your server to use the intelmq_webinput_csv executable as WSGI script. A configuration snippet for Apache can be found in `contrib/apache/002_intelmq_webinput_csv.conf`. Adapt the WSGIScriptAlias URL and path to your needs. On Debian systems the required wsgi package is called `libapache2-mod-wsgi-py3`
 
 The backend needs to write `/var/lib/intelmq/webinput_csv.csv` and `/var/lib/intelmq/webinput_csv.temp` to save it's state. Both files need to be writeable by the used process.
 
