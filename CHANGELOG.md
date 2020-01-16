@@ -24,6 +24,9 @@ CHANGELOG
 
 ### Documentation
 - More details and explanation on the configuration.
+- Example apache configuration:
+  - use intelmq user and group by default.
+  - fix syntax and use own line for comments.
 
 ### Frontend
 - Better wording for maximum lines load/show (#59).
