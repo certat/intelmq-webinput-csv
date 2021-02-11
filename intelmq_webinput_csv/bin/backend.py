@@ -251,6 +251,7 @@ def upload_file():
     preview = []
     valid_ip_addresses = None
     valid_date_times = None
+    lineindex = line = None
     try:
         with open(filename, encoding='utf8') as handle:
             reader = csv.reader(handle, delimiter=parameters['delimiter'],
@@ -280,7 +281,9 @@ def upload_file():
                 preview.append(line)
     except Exception as exc:
         preview = [['Parse Error'], ['Is the number of columns consistent?']] + \
-            [[x] for x in traceback.format_exc().splitlines()]
+            [[x] for x in traceback.format_exc().splitlines()] + \
+            [['Current line (%d):' % lineindex]] + \
+            [line]
     column_types = ["IPAddress" if x/(total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
     column_types = ["DateTime" if valid_date_times[i]/(total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
     return create_response({"column_types": column_types,
