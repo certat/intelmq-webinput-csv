@@ -19,6 +19,7 @@ CHANGELOG
 - For type-detection do not apply sanitiation as this results in strange detections some times (#69).
 - Save `raw` field including header for each event (#66).
 - For errors during parsing, also show the affected line after the traceback.
+- Log which configuration file is read.
 
 ### Configuration
 - Do not use hardcoded `/opt/intelmq/` as base path, but intelmq's `CONFIG_DIR` (#61).

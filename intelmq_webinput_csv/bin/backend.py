@@ -6,6 +6,7 @@ import json
 import pickle
 import pkg_resources
 import traceback
+import logging
 import os
 
 import dateutil.parser
@@ -22,7 +23,9 @@ from intelmq.lib.utils import RewindableFileHandle
 from intelmq_webinput_csv.version import __version__
 
 
-with open(os.path.join(CONFIG_DIR, 'webinput_csv.conf')) as handle:
+CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
+logging.info('Reading configuration from %r.', CONFIG_FILE)
+with open(CONFIG_FILE) as handle:
     CONFIG = json.load(handle)
     BASE_URL = CONFIG.get('base_url', '')
     if BASE_URL.endswith('/'):
