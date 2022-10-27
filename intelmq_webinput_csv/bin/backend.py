@@ -18,7 +18,7 @@ from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.exceptions import InvalidValue, KeyExists
-from intelmq.lib.utils import RewindableFileHandle
+from intelmq.lib.utils import RewindableFileHandle, load_configuration
 
 from intelmq_webinput_csv.version import __version__
 
@@ -406,8 +406,7 @@ def submit():
     raw_header = []
 
     # Ensure Harmonization config is only loaded once
-    harmonization_config = dict()
-    harmonization_config['event'] = Event().harmonization_config
+    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
 
     with open(tmp_file[0], encoding='utf8') as handle:
         handle_rewindable = RewindableFileHandle(handle)
@@ -422,7 +421,7 @@ def submit():
         for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
-            event = Event(harmonization=harmonization_config)
+            event = Event(harmonization=harmonization)
             try:
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
