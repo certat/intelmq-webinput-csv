@@ -404,6 +404,11 @@ def submit():
     successful_lines = 0
 
     raw_header = []
+
+    # Ensure Harmonization config is only loaded once
+    harmonization_config = dict()
+    harmonization_config['event'] = Event().harmonization_config
+
     with open(tmp_file[0], encoding='utf8') as handle:
         handle_rewindable = RewindableFileHandle(handle)
         reader = csv.reader(handle_rewindable, delimiter=parameters['delimiter'],
@@ -417,7 +422,7 @@ def submit():
         for _ in range(parameters['skipInitialLines']):
             next(reader)
         for lineindex, line in enumerate(reader):
-            event = Event()
+            event = Event(harmonization=harmonization_config)
             try:
                 for columnindex, (column, value) in \
                         enumerate(zip(parameters['columns'], line)):
