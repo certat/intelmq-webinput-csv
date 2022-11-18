@@ -2,23 +2,15 @@ CHANGELOG
 =========
 
 
-0.3.0 (unreleased)
+0.2.1
 ------------------
 
-## Backend
+### Backend
 - For errors during parsing, also show the affected line after the traceback.
 - Log which configuration file is read.
 
-### Configuration
-
-### Documentation
-
-### Frontend
-
-#### Preview
-
-### Packaging
-
+### Fixes
+- Unnecessary loading of harmonization config file.
 
 0.2.0 (2020-01-17)
 ------------------
