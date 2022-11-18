@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.3.0
+------------------
+### Dependencies
+- Support has been added for IntelMQ version >= 3.0.0.
+- IntelMQ version < 3.0.0 are no longer supported.
 
 0.2.1
 ------------------

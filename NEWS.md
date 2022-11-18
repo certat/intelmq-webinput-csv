@@ -1,6 +1,12 @@
 NEWS
 ====
 
+0.3.0 (2022-11-18)
+------------------
+
+### Dependencies
+Support has been added for intelmq-webinput-csv to run on IntelMQ version 3. However, older versions of IntelMQ can no longer be used with version 0.3.0.
+
 
 0.2.0 (2020-01-17)
 ------------------
