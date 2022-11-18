@@ -22,6 +22,8 @@ from intelmq.lib.utils import RewindableFileHandle, load_configuration
 
 from intelmq_webinput_csv.version import __version__
 
+from ..lib.csv import CSV
+
 
 CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
 logging.info('Reading configuration from %r.', CONFIG_FILE)
@@ -250,23 +252,9 @@ def upload_file():
     valid_date_times = None
     lineindex = line = None
     try:
-        with open(filename, encoding='utf8') as handle:
-            reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                                quotechar=parameters['quotechar'],
-                                skipinitialspace=parameters['skipInitialSpace'],
-                                escapechar=parameters['escapechar'],
-                                )
-            for lineindex, line in enumerate(reader):
-                line = [col.replace(parameters['escapechar']*2, parameters['escapechar']) for col in line]
-                if parameters['skipInitialLines']:
-                    if parameters['has_header'] and lineindex == 1:
-                        for _ in range(parameters['skipInitialLines']):
-                            line = next(reader)
-                    elif not parameters['has_header'] and lineindex == 0:
-                        for _ in range(parameters['skipInitialLines']):
-                            line = next(reader)
-                if lineindex >= parameters['loadLinesMax'] + parameters['has_header']:
-                    break
+        with CSV.create(**parameters) as reader:
+            for lineindex, line in reader:
+
                 if valid_ip_addresses is None:  # first data line
                     valid_ip_addresses = [0] * len(line)
                     valid_date_times = [0] * len(line)
@@ -304,17 +292,8 @@ def preview():
         return create_response('No file')
     retval = []
     lines_valid = 0
-    with open(tmp_file[0], encoding='utf8') as handle:
-        reader = csv.reader(handle, delimiter=parameters['delimiter'],
-                            quotechar=parameters['quotechar'],
-                            skipinitialspace=parameters['skipInitialSpace'],
-                            escapechar=parameters['escapechar'],
-                            )
-        if parameters['has_header']:
-            next(reader)
-        for _ in range(parameters['skipInitialLines']):
-            next(reader)
-        for lineindex, line in enumerate(reader):
+    with CSV.create(**parameters) as reader:
+        for lineindex, line in reader:
             event = Event()
             line_valid = True
             for columnindex, (column, value) in \
@@ -402,19 +381,8 @@ def submit():
     # Ensure Harmonization config is only loaded once
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
 
-    with open(tmp_file[0], encoding='utf8') as handle:
-        handle_rewindable = RewindableFileHandle(handle)
-        reader = csv.reader(handle_rewindable, delimiter=parameters['delimiter'],
-                            quotechar=parameters['quotechar'],
-                            skipinitialspace=parameters['skipInitialSpace'],
-                            escapechar=parameters['escapechar'],
-                            )
-        if parameters['has_header']:
-            next(reader)
-            raw_header.append(handle_rewindable.current_line)
-        for _ in range(parameters['skipInitialLines']):
-            next(reader)
-        for lineindex, line in enumerate(reader):
+    with CSV.create(**parameters) as reader:
+        for _, line in reader:
             event = Event(harmonization=harmonization)
             try:
                 for columnindex, (column, value) in \
