@@ -3,6 +3,7 @@
 *.pyc
 *.log
 *.*~
+*.venv
 *.mmdb
 *.profile
 .profile
