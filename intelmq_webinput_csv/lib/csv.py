@@ -1,7 +1,11 @@
 import csv
+import collections
 
-from typing import Union
 from pathlib import Path
+from typing import Union, Iterable, Tuple
+
+from intelmq.lib.message import Event
+from .lib import util
 
 class CSV:
     """ CSV reader helper class
@@ -79,3 +83,81 @@ class CSV:
     @staticmethod
     def create(*args, **kwargs):
         return CSV(*args, **kwargs)
+
+class CSVLine():
+
+    def __init__(self, cells: Union[None, list], columns: Union[None, dict],
+                    harmonization_config: Union[None, dict], **kwargs):
+        self.cells = cells
+        self.columns = columns
+        self.event = Event(harmonization=harmonization_config)
+        self.parameters = kwargs
+
+    def __iter__(self):
+        return self
+
+    def __next__(self) -> Iterable[Tuple[str, str]]:
+        for column, value in zip(self.columns, self.cells):
+            yield (column, value)
+
+    def event_add(self, key: str, value: str, overwrite: bool=False):
+        """ Add field to IntelMQ Event
+
+        Parameters
+            key: field key for setting value
+            value: value to set
+            overwrite: overwrite any existing value
+        """
+        if overwrite or key not in self.event:
+            self.event.add(key, value)
+
+    def parse_cell(self, value: str, column: str):
+        """ Parse a single cell
+
+        Parameters:
+            value: value of cell
+            column: column name
+        """
+
+        if column.startswith('time.'):
+            value = util.parse_time(value)
+        elif column == 'extra':
+            value = util.handle_extra(value)
+        
+        self.event_add(column, value)
+
+    def parse(self) -> Union[None, Event]:
+        """ Parse all cells in current line
+
+        Returns:
+            Event: filled IntelMQ Event or None if exception occured
+        """
+        try:
+            # Parse all cells in row
+            for column, value in self:
+                # Skip empty columns or cells
+                if not column or not value:
+                    continue
+
+                self.parse_cell(value, column)
+
+            self.custom = {}
+
+            # Set any custom fields
+            fields = collections.ChainMap(
+                self.parameters.get('constant_fields', {}),
+                {k[7:]: v for k, v in self.custom.items() if k.startswith('custom_')}
+            )
+
+            for key, value in fields.items():
+                self.event_add(key, value)
+
+            # set any required fields
+            required = ['classification.type', 'classification.identifier', 'feed.code'
+                        'time.observation']
+            for key in required:
+                if self.parameters.get(key):
+                    self.event_add(key, self.parameters[key])
+        except Exception 
+
+        return self.event
