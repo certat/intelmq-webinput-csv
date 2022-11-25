@@ -22,6 +22,7 @@ from intelmq.lib.utils import RewindableFileHandle, load_configuration
 
 from intelmq_webinput_csv.version import __version__
 
+from ..lib import util
 from ..lib.csv import CSV
 
 
@@ -100,98 +101,6 @@ app = Flask('intelmq_webinput_csv')
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
 
-
-def write_temp_file(data):
-    """
-    Write metadata about the current active file.
-    filename, total_lines
-    """
-    with open(TEMP_FILE, 'wb') as handle:
-        pickle.dump(data, handle)
-
-
-def get_temp_file():
-    """
-    Opposite of write_temp_file
-    """
-    try:
-        with open(TEMP_FILE, 'rb') as handle:
-            data = pickle.load(handle)
-            if len(data) == 2:
-                return data
-    except TypeError:  # TypeError: returned value has no len()
-        return False
-    return False
-
-
-def handle_parameters(form):
-    parameters = {}
-    for key, default_value in CONFIG.items():
-        parameters[key] = form.get(key, default_value)
-    for key, value in PARAMETERS.items():
-        parameters[key] = form.get(key, value)
-    parameters['dryrun'] = json.loads(parameters['dryrun'])
-    if parameters['dryrun']:
-        parameters['classification.type'] = 'test'
-        parameters['classification.identifier'] = 'test'
-    if type(parameters['columns']) is not list and parameters['use_column']:
-        parameters['use_column'] = [json.loads(a.lower()) for a in
-                                    parameters['use_column'].split(',')]
-        parameters['columns'] = parameters['columns'].split(',')
-    parameters['columns'] = [a if b else None for a, b in
-                             zip(parameters['columns'],
-                                 parameters['use_column'])]
-    parameters['skipInitialLines'] = int(parameters['skipInitialLines'])
-    parameters['skipInitialSpace'] = json.loads(parameters['skipInitialSpace'])
-    parameters['has_header'] = json.loads(parameters['has_header'])
-    parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
-    return parameters
-
-
-def create_response(text, content_type=None):
-    is_json = False
-    if not isinstance(text, str):
-        text = jsonify(text)
-        is_json = True
-    response = make_response(text)
-    if is_json:
-        response.mimetype = 'application/json'
-        response.headers['Content-Type'] = "text/json; charset=utf-8"
-    if content_type:
-        response.headers['Content-Type'] = content_type
-    response.headers['Access-Control-Allow-Origin'] = "*"
-    return response
-
-
-def handle_extra(value: str) -> dict:
-    """
-    >>> handle_extra('foobar')
-    {'data': 'foobar'}
-    >>> handle_extra('{"data": "foobar"}')
-    {'data': 'foobar'}
-    >>> handle_extra('')
-    >>> handle_extra('["1", 2]')
-    {'data': ['1', 2]}
-
-    Parameters:
-        value: any string
-
-    Returns:
-        dictionary
-    """
-
-    try:
-        value = json.loads(value)
-    except ValueError:
-        if not value:
-            return
-        value = {'data': value}
-    else:
-        if not isinstance(value, dict):
-            value = {'data': value}
-    return value
-
-
 @app.route('/')
 def form():
     response = make_response(STATIC_FILES['index.html'])
@@ -238,13 +147,13 @@ def upload_file():
         total_lines = len(request.form['text'].splitlines())
     if not success and request.form.get('use_last_file', False):
         success = True
-        filename, total_lines = get_temp_file()
+        filename, total_lines = util.get_temp_file()
     elif success:
-        write_temp_file((filename, total_lines))
+        util.write_temp_file((filename, total_lines))
     if not success:
-        return create_response('no file or text')
+        return util.create_response('no file or text')
 
-    parameters = handle_parameters(request.form)
+    parameters = util.handle_parameters(request.form)
     if parameters['has_header']:
         total_lines -= 1
     preview = []
@@ -271,7 +180,7 @@ def upload_file():
             [line]
     column_types = ["IPAddress" if x/(total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
     column_types = ["DateTime" if valid_date_times[i]/(total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
-    return create_response({"column_types": column_types,
+    return util.create_response({"column_types": column_types,
                             "use_column": [bool(x) for x in column_types],
                             "preview": preview,
                             })
@@ -285,13 +194,14 @@ def preview():
         response.headers['Content-Type'] = "text/html; charset=utf-8"
         return response
 
-    parameters = handle_parameters(request.form)
-    tmp_file = get_temp_file()
+    parameters = util.handle_parameters(request.form)
+    tmp_file = util.get_temp_file()
     if not tmp_file:
         app.logger.info('no file')
-        return create_response('No file')
+        return util.create_response('No file')
     retval = []
     lines_valid = 0
+
     with CSV.create(**parameters) as reader:
         for lineindex, line in reader:
             event = Event()
@@ -345,25 +255,25 @@ def preview():
     retval = {"total": lineindex+1,
               "lines_invalid": lineindex+1-lines_valid,
               "errors": retval}
-    return create_response(retval)
+    return util.create_response(retval)
 
 
 @app.route('/classification/types')
 def classification_types():
-    return create_response(TAXONOMY)
+    return util.create_response(TAXONOMY)
 
 
 @app.route('/harmonization/event/fields')
 def harmonization_event_fields():
-    return create_response(EVENT_FIELDS['event'])
+    return util.create_response(EVENT_FIELDS['event'])
 
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    parameters = handle_parameters(request.form)
-    tmp_file = get_temp_file()
+    parameters = util.handle_parameters(request.form)
+    tmp_file = util.get_temp_file()
     if not tmp_file:
-        return create_response('No file')
+        return util.create_response('No file')
 
     destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
                                                   logger=app.logger,
@@ -427,14 +337,15 @@ def submit():
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1
-    return create_response('Successfully processed %s lines.' % successful_lines)
+
+    return util.create_response('Successfully processed %s lines.' % successful_lines)
 
 
 @app.route('/uploads/current')
 def get_current_upload():
-    filename, _ = get_temp_file()
+    filename, _ = util.get_temp_file()
     with open(filename, encoding='utf8') as handle:
-        resp = create_response(handle.read(), content_type='text/csv')
+        resp = util.create_response(handle.read(), content_type='text/csv')
     return resp
 
 
