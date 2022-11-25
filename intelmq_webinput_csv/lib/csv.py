@@ -86,21 +86,26 @@ class CSV:
 
 class CSVLine():
 
-    def __init__(self, cells: Union[None, list], columns: Union[None, dict],
-                    harmonization_config: Union[None, dict], **kwargs):
+    def __init__(self, cells: list = [], columns: Union[None, dict] = {}, index: int = -1, raw: str = None,
+                **kwargs):
+        self.raw = raw
         self.cells = cells
+        self.index = index
         self.columns = columns
-        self.event = Event(harmonization=harmonization_config)
+
         self.parameters = kwargs
+        self.event = Event(harmonization=kwargs.get('harmonization'))
+
+    def __str__(self):
+        if self.raw:
+            return self.raw
+        else:
+            return ','.join(self.cells)
 
     def __iter__(self):
-        return self
+        return zip(self.columns, self.cells)
 
-    def __next__(self) -> Iterable[Tuple[str, str]]:
-        for column, value in zip(self.columns, self.cells):
-            yield (column, value)
-
-    def event_add(self, key: str, value: str, overwrite: bool=False):
+    def _event_add(self, key: str, value: str, overwrite: bool=False):
         """ Add field to IntelMQ Event
 
         Parameters
@@ -110,6 +115,15 @@ class CSVLine():
         """
         if overwrite or key not in self.event:
             self.event.add(key, value)
+
+    def _verify_columns(self):
+        """ Ensure that columns have been defined
+        
+        Raises:
+            IntelMQException if no columns has been specified
+        """
+        if not self.columns:
+            raise IntelMQException("Columns have not been specified")
 
     def parse_cell(self, value: str, column: str):
         """ Parse a single cell
@@ -124,7 +138,21 @@ class CSVLine():
         elif column == 'extra':
             value = util.handle_extra(value)
         
-        self.event_add(column, value)
+        self._event_add(column, value)
+
+    def validate(self) -> bool:
+        """ Validates current CSV line
+
+        Returns:
+            True or False whether is valid CSV line
+        """
+        try:
+            self._verify_columns()
+            self.parse()
+
+            return True
+        except Exception as e:
+            return False
 
     def parse(self) -> Union[None, Event]:
         """ Parse all cells in current line
@@ -132,32 +160,33 @@ class CSVLine():
         Returns:
             Event: filled IntelMQ Event or None if exception occured
         """
-        try:
-            # Parse all cells in row
-            for column, value in self:
-                # Skip empty columns or cells
-                if not column or not value:
-                    continue
+        self._verify_columns()
 
-                self.parse_cell(value, column)
+        # Parse all cells in row
+        for (column, value) in self:
+            # Skip empty columns or cells
+            if not column or not value:
+                continue
 
-            self.custom = {}
+            self.parse_cell(value, column)
 
-            # Set any custom fields
-            fields = collections.ChainMap(
-                self.parameters.get('constant_fields', {}),
-                {k[7:]: v for k, v in self.custom.items() if k.startswith('custom_')}
-            )
+        # Set any custom fields
+        fields = collections.ChainMap(
+            self.parameters.get('constant_fields', {}),
+            {k[7:]: v for k, v in self.parameters.items() if k.startswith('custom_')}
+        )
 
-            for key, value in fields.items():
-                self.event_add(key, value)
+        for key, value in fields.items():
+            self._event_add(key, value)
 
-            # set any required fields
-            required = ['classification.type', 'classification.identifier', 'feed.code'
-                        'time.observation']
-            for key in required:
-                if self.parameters.get(key):
-                    self.event_add(key, self.parameters[key])
-        except Exception 
+        # Save raw field
+        self._event_add('raw', self.raw)
+
+        # set any required fields
+        required = ['classification.type', 'classification.identifier', 'feed.code'
+                    'time.observation']
+        for key in required:
+            if self.parameters.get(key):
+                self._event_add(key, self.parameters[key])
 
         return self.event
