@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Union, Iterable, Tuple
 
 from intelmq.lib.message import Event
-from .lib import util
+from . import util
 
 class CSV:
     """ CSV reader helper class
@@ -36,13 +36,14 @@ class CSV:
             self.num_lines -= 1
 
         self.line_index = 0
+        self.parameters = kwargs
 
     def __enter__(self):
-        self.handle = self.file.open('r', encoding='utf-8')
+        self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
         self.reader = csv.reader(self.handle, delimiter=self.delimeter,
                             quotechar=self.quotechar,
                             skipinitialspace=self.skipInitialSpace,
-                            escapechar=self.escapechar
+                            escapechar=self.escapechar, **kwargs
                             )
 
         # Skip header if present
@@ -72,7 +73,13 @@ class CSV:
         self.line_index += 1
 
         # Escape any escapechar
-        line = [cell.replace(self.escapechar*2, self.escapechar) for cell in line]
+        line = CSVLine(
+            cells=line,
+            columns=self.columns, 
+            index=line_index,
+            raw=self.handle.current_line,
+            **self.parameters
+        )
 
         # if max lines read, stop!
         if self.max_lines and self.line_index > self.max_lines:
