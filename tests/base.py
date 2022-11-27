@@ -1,8 +1,8 @@
 import os
-import pytest
 
 from pathlib import Path
 from intelmq.lib.utils import load_configuration
+
 
 class BaseTest:
 

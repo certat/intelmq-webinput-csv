@@ -2,7 +2,10 @@ import pytest
 
 from intelmq_webinput_csv.lib.csv import CSV
 
-class TestCSV:
+from ..base import BaseTest
+
+
+class TestCSV(BaseTest):
 
     @pytest.fixture
     def file1(self, tmp_path):
@@ -27,7 +30,8 @@ line3.1,line3.2,line3.3
             'escapechar': '/',
             'skipInitialSpace': 0,
             'loadLinesMax': 0,
-            'has_header': True
+            'has_header': True,
+            'harmonization': super().get_harmonization_config()
         }
 
     def test_CSV_creation(self, file1, parameters):
@@ -38,9 +42,9 @@ line3.1,line3.2,line3.3
             counter = 0
             for index, line in csv:
                 counter += 1
-                assert index+1 == counter  # Validate index
+                assert index + 1 == counter  # Validate index
                 assert len(line) == 3  # Validate all cells are returned
-                assert all(f"{counter}." in cell for cell in line)  # Validate correct cells are returned
+                assert all(f"{counter}." in cell for (index, cell) in line)  # Validate correct cells are returned
 
             # Ensure all three lines are read
             assert counter == 3
@@ -56,7 +60,7 @@ line3.1,line3.2,line3.3
 
             for index, (line_index, line) in enumerate(csv):
                 if line_index == 0:
-                    assert line == columns
+                    assert line.cells == columns
 
             assert index == 3
 
@@ -82,7 +86,7 @@ line3.1,line3.2,line3.3
             with CSV.create(file1, **parameters) as csv:
                 counter = 2
                 for line_index, line in csv:
-                    assert all(f"{counter}." in cell for cell in line)  # Validate correct cells are returned
+                    assert all(f"{counter}." in cell for (index, cell) in line)  # Validate correct cells are returned
                     counter += 1
 
                 assert line_index == 1
