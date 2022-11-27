@@ -1,27 +1,32 @@
 import csv
+import itertools
 import collections
 
 from pathlib import Path
-from typing import Union, Iterable, Tuple
+from typing import Union
 
 from intelmq.lib.message import Event
+from intelmq.lib.utils import RewindableFileHandle
+from intelmq.lib.exceptions import IntelMQException
 from . import util
+
 
 class CSV:
     """ CSV reader helper class
-    
+
     Contains encapsulating functions for easily reading the CSV files
     """
 
-    def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str, 
-                    skipInitialSpace: int, loadLinesMax: int, has_header: bool, **kwargs):
+    def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
+                 skipInitialSpace: int, loadLinesMax: int, has_header: bool, 
+                 columns: Union[None, list], **kwargs):
         self.delimeter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace
         self.max_lines = loadLinesMax
         self.has_header = has_header
-        self.columns = None
+        self.columns = columns
 
         # Ensure file is Path obj
         if isinstance(file, str):
@@ -41,10 +46,10 @@ class CSV:
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
         self.reader = csv.reader(self.handle, delimiter=self.delimeter,
-                            quotechar=self.quotechar,
-                            skipinitialspace=self.skipInitialSpace,
-                            escapechar=self.escapechar, **kwargs
-                            )
+                                 quotechar=self.quotechar,
+                                 skipinitialspace=self.skipInitialSpace,
+                                 escapechar=self.escapechar
+                      )
 
         # Skip header if present
         if self.has_header:
@@ -75,7 +80,7 @@ class CSV:
         # Escape any escapechar
         line = CSVLine(
             cells=line,
-            columns=self.columns, 
+            columns=self.columns,
             index=line_index,
             raw=self.handle.current_line,
             **self.parameters
@@ -91,10 +96,11 @@ class CSV:
     def create(*args, **kwargs):
         return CSV(*args, **kwargs)
 
+
 class CSVLine():
 
     def __init__(self, cells: list = [], columns: Union[None, dict] = {}, index: int = -1, raw: str = None,
-                **kwargs):
+                 **kwargs):
         self.raw = raw
         self.cells = cells
         self.index = index
@@ -110,9 +116,11 @@ class CSVLine():
             return ','.join(self.cells)
 
     def __iter__(self):
-        return zip(self.columns, self.cells)
+        # Use Tuple columns, cell or None,cell
+        columns = self.columns if self.columns else itertools.repeat(None)
+        return zip(columns, self.cells)
 
-    def _event_add(self, key: str, value: str, overwrite: bool=False):
+    def _event_add(self, key: str, value: str, overwrite: bool = False):
         """ Add field to IntelMQ Event
 
         Parameters
@@ -125,12 +133,15 @@ class CSVLine():
 
     def _verify_columns(self):
         """ Ensure that columns have been defined
-        
+
         Raises:
             IntelMQException if no columns has been specified
         """
         if not self.columns:
             raise IntelMQException("Columns have not been specified")
+
+    def __len__(self):
+        return len(self.cells)
 
     def parse_cell(self, value: str, column: str):
         """ Parse a single cell
@@ -144,7 +155,7 @@ class CSVLine():
             value = util.parse_time(value)
         elif column == 'extra':
             value = util.handle_extra(value)
-        
+
         self._event_add(column, value)
 
     def validate(self) -> bool:
@@ -158,7 +169,7 @@ class CSVLine():
             self.parse()
 
             return True
-        except Exception as e:
+        except Exception:
             return False
 
     def parse(self) -> Union[None, Event]:
