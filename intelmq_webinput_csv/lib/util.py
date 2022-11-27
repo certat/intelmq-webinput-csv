@@ -1,7 +1,40 @@
+import os
+import json
+import pickle
+
 from typing import Union
 from datetime import date
 
 import dateutil.parser
+
+from flask import jsonify, make_response
+from intelmq import VAR_STATE_PATH
+
+TEMP_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.temp')
+PARAMETERS = {
+    'timezone': '+00:00',
+    'classification.type': 'test',
+    'classification.identifier': 'test',
+    'feed.code': 'custom',
+    'delimiter': ',',
+    'has_header': '"false"',
+    'quotechar': '\"',
+    'escapechar': '\\',
+    'columns': [],
+    'use_column': [],
+    'dryrun': '"true"',
+    'skipInitialSpace': '"false"',
+    'skipInitialLines': 0,
+    'loadLinesMax': 100,
+}
+
+CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
+with open(CONFIG_FILE) as handle:
+    CONFIG = json.load(handle)
+    BASE_URL = CONFIG.get('base_url', '')
+    if BASE_URL.endswith('/'):
+        BASE_URL = BASE_URL[:-1]
+
 
 def parse_time(value: str, timezone: Union[str, None]) -> date:
     """ Parse date string
@@ -20,6 +53,7 @@ def parse_time(value: str, timezone: Union[str, None]) -> date:
         parsed = dateutil.parser.parse(value)
 
     return parsed.isoformat()
+
 
 def handle_extra(value: str) -> dict:
     """ Handle extras
@@ -48,6 +82,7 @@ def handle_extra(value: str) -> dict:
         if not isinstance(value, dict):
             value = {'data': value}
     return value
+
 
 def write_temp_file(data):
     """

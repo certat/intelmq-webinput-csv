@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
 # SPDX-License-Identifier: AGPL-3.0
-import csv
 import json
-import pickle
 import pkg_resources
 import traceback
 import logging
@@ -33,8 +31,6 @@ with open(CONFIG_FILE) as handle:
     BASE_URL = CONFIG.get('base_url', '')
     if BASE_URL.endswith('/'):
         BASE_URL = BASE_URL[:-1]
-TEMP_FILE = os.path.join(VAR_STATE_PATH, '../webinput_csv.temp')
-
 
 CUSTOM_FIELDS_HTML_TEMPLATE = """
 <div class="field">
@@ -54,29 +50,12 @@ for key, value in CONFIG.get('custom_input_fields', {}).items():
     custom_fields_js_default.append(CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE.format(jsname=jskey, default=value))
     custom_fields_js_form.append(CUSTOM_FIELDS_JS_FORM_TEMPLATE.format(name=key, jsname=jskey))
 
-
-PARAMETERS = {
-    'timezone': '+00:00',
-    'classification.type': 'test',
-    'classification.identifier': 'test',
-    'feed.code': 'custom',
-    'delimiter': ',',
-    'has_header': '"false"',
-    'quotechar': '\"',
-    'escapechar': '\\',
-    'columns': [],
-    'use_column': [],
-    'dryrun': '"true"',
-    'skipInitialSpace': '"false"',
-    'skipInitialLines': 0,
-    'loadLinesMax': 100,
-    }
 STATIC_FILES = {
     'js/preview.js': None,
     'js/upload.js': None,
     'preview.html': None,
     'index.html': None,
-    }
+}
 
 for static_file in STATIC_FILES.keys():
     filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
