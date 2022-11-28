@@ -7,7 +7,9 @@ from typing import Union
 
 from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
-from intelmq.lib.exceptions import IntelMQException
+from intelmq.lib.exceptions import IntelMQException, IntelMQHarmonizationException
+
+from .exceptions import InvalidCSVLineException
 from . import util
 
 
@@ -161,19 +163,19 @@ class CSVLine():
 
         self._event_add(column, value)
 
-    def validate(self) -> bool:
+    def validate(self) -> Event:
         """ Validates current CSV line
 
         Returns:
-            True or False whether is valid CSV line
+            Parsed IntelMQ Event
+        Raises:
+            InvalidCSVLineException if invalid line or cell has been detected
         """
         try:
             self._verify_columns()
-            self.parse()
-
-            return True
-        except Exception:
-            return False
+            return self.parse()
+        except IntelMQHarmonizationException as invalid:
+            raise InvalidCSVLineException(invalid, self)
 
     def parse(self) -> Union[None, Event]:
         """ Parse all cells in current line
