@@ -18,7 +18,7 @@ class CSV:
     """
 
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
-                 skipInitialSpace: int, loadLinesMax: int, has_header: bool, 
+                 skipInitialSpace: int, loadLinesMax: int, has_header: bool,
                  columns: Union[None, list], **kwargs):
         self.delimeter = delimiter
         self.quotechar = quotechar
@@ -63,7 +63,7 @@ class CSV:
         return self
 
     def __exit__(self, _exc_type, _exc_value, _exc_traceback):
-        self.handle.close()
+        self.handle.f.close()
 
     def __contains__(self, other):
         result = (self.columns and other in self.columns)
@@ -71,6 +71,9 @@ class CSV:
 
     def __iter__(self):
         return self
+
+    def __len__(self):
+        return self.num_lines
 
     def __next__(self):
         line = next(self.reader)
@@ -107,7 +110,7 @@ class CSVLine():
         self.columns = columns
 
         self.parameters = kwargs
-        self.event = Event(harmonization=kwargs.get('harmonization'))
+        self.event = Event(harmonization=kwargs.pop('harmonization'))
 
     def __str__(self):
         if self.raw:
