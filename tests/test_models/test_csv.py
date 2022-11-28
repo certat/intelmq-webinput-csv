@@ -31,6 +31,7 @@ line3.1,line3.2,line3.3
             'skipInitialSpace': 0,
             'loadLinesMax': 0,
             'has_header': True,
+            'columns': None,
             'harmonization': super().get_harmonization_config()
         }
 
