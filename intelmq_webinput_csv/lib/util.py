@@ -1,6 +1,5 @@
 import os
 import json
-import pickle
 
 from typing import Union
 from datetime import date
@@ -82,29 +81,6 @@ def handle_extra(value: str) -> dict:
         if not isinstance(value, dict):
             value = {'data': value}
     return value
-
-
-def write_temp_file(data):
-    """
-    Write metadata about the current active file.
-    filename, total_lines
-    """
-    with open(TEMP_FILE, 'wb') as handle:
-        pickle.dump(data, handle)
-
-
-def get_temp_file():
-    """
-    Opposite of write_temp_file
-    """
-    try:
-        with open(TEMP_FILE, 'rb') as handle:
-            data = pickle.load(handle)
-            if len(data) == 2:
-                return data
-    except TypeError:  # TypeError: returned value has no len()
-        return False
-    return False
 
 
 def handle_parameters(form):

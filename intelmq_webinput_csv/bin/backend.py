@@ -7,6 +7,8 @@ import traceback
 import logging
 import os
 
+from pathlib import Path
+
 from flask import Flask, make_response, request
 
 from intelmq import HARMONIZATION_CONF_FILE
@@ -113,29 +115,17 @@ def js(page):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    success = False
-    filename = os.path.join('/config/configs/webinput', 'webinput_csv.csv')
+    csv_file = Path('/config/configs/webinput') / 'webinput_csv.csv'
+
     if 'file' in request.files and request.files['file'].filename:
-        request.files['file'].save(filename)
-        request.files['file'].stream.seek(0)
-        total_lines = request.files['file'].stream.read().count(b'\n')  # we don't care about headers here
-        success = True
+        request.files['file'].save(csv_file)
     elif 'text' in request.form and request.form['text']:
-        with open(filename, mode='w', encoding='utf8') as handle:
+        with csv_file.open(mode='w', encoding='utf8') as handle:
             handle.write(request.form['text'])
-        success = True
-        total_lines = len(request.form['text'].splitlines())
-    if not success and request.form.get('use_last_file', False):
-        success = True
-        filename, total_lines = util.get_temp_file()
-    elif success:
-        util.write_temp_file((filename, total_lines))
-    if not success:
+    else:
         return util.create_response('no file or text')
 
     parameters = util.handle_parameters(request.form)
-    if parameters['has_header']:
-        total_lines -= 1
     preview = []
     valid_ip_addresses = None
     valid_date_times = None
@@ -145,6 +135,7 @@ def upload_file():
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
         with CSV.create(file=filename, harmonization=harmonization, **parameters) as reader:
+            total_lines = len(reader)
             for lineindex, line in reader:
 
                 if valid_ip_addresses is None:  # first data line
@@ -178,8 +169,8 @@ def preview():
         return response
 
     parameters = util.handle_parameters(request.form)
-    tmp_file = util.get_temp_file()
-    if not tmp_file:
+    tmp_file = Path('/config/configs/webinput/') / 'webinput_csv.csv'
+    if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
     exceptions = []
@@ -232,9 +223,9 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
+    tmp_file = Path('/config/configs/webinput/') / 'webinput_csv.csv'
     parameters = util.handle_parameters(request.form)
-    tmp_file = util.get_temp_file()
-    if not tmp_file:
+    if not tmp_file.exists():
         return util.create_response('No file')
 
     destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
