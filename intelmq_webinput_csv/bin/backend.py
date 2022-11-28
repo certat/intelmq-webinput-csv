@@ -7,24 +7,24 @@ import traceback
 import logging
 import os
 
-import dateutil.parser
-from flask import Flask, jsonify, make_response, request
+from flask import Flask, make_response, request
 
-from intelmq import HARMONIZATION_CONF_FILE, CONFIG_DIR, VAR_STATE_PATH
+from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
-from intelmq.lib.message import Event, MessageFactory
+from intelmq.lib.message import MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.exceptions import InvalidValue, KeyExists
-from intelmq.lib.utils import RewindableFileHandle, load_configuration
+from intelmq.lib.utils import load_configuration
 
 from intelmq_webinput_csv.version import __version__
+from intelmq_webinput_csv.lib.exceptions import InvalidCSVLineException
 
-from ..lib import util
-from ..lib.csv import CSV
+from lib import util
+from lib.csv import CSV
 
+HARMONIZATION_CONF_FILE = '/config/configs/webinput/harmonization.conf'
 
-CONFIG_FILE = os.path.join(CONFIG_DIR, 'webinput_csv.conf')
+CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
 logging.info('Reading configuration from %r.', CONFIG_FILE)
 with open(CONFIG_FILE) as handle:
     CONFIG = json.load(handle)
@@ -80,6 +80,7 @@ app = Flask('intelmq_webinput_csv')
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
 
+
 @app.route('/')
 def form():
     response = make_response(STATIC_FILES['index.html'])
@@ -113,7 +114,7 @@ def js(page):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     success = False
-    filename = os.path.join(VAR_STATE_PATH, '../webinput_csv.csv')
+    filename = os.path.join('/config/configs/webinput', 'webinput_csv.csv')
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(filename)
         request.files['file'].stream.seek(0)
@@ -139,8 +140,11 @@ def upload_file():
     valid_ip_addresses = None
     valid_date_times = None
     lineindex = line = None
+
+    # Ensure Harmonization config is only loaded once
+    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
-        with CSV.create(**parameters) as reader:
+        with CSV.create(file=filename, harmonization=harmonization, **parameters) as reader:
             for lineindex, line in reader:
 
                 if valid_ip_addresses is None:  # first data line
@@ -151,18 +155,18 @@ def upload_file():
                         valid_ip_addresses[columnindex] += 1
                     if DateTime.is_valid(value):
                         valid_date_times[columnindex] += 1
-                preview.append(line)
-    except Exception as exc:
+                preview.append(line.cells)
+    except Exception:
         preview = [['Parse Error'], ['Is the number of columns consistent?']] + \
             [[x] for x in traceback.format_exc().splitlines()] + \
             [['Current line (%d):' % lineindex]] + \
             [line]
-    column_types = ["IPAddress" if x/(total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
-    column_types = ["DateTime" if valid_date_times[i]/(total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
+    column_types = ["IPAddress" if x / (total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
+    column_types = ["DateTime" if valid_date_times[i] / (total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
     return util.create_response({"column_types": column_types,
-                            "use_column": [bool(x) for x in column_types],
-                            "preview": preview,
-                            })
+                                 "use_column": [bool(x) for x in column_types],
+                                 "preview": preview,
+                                })
 
 
 @app.route('/preview', methods=['GET', 'POST'])
@@ -178,62 +182,41 @@ def preview():
     if not tmp_file:
         app.logger.info('no file')
         return util.create_response('No file')
-    retval = []
-    lines_valid = 0
+    exceptions = []
 
-    with CSV.create(**parameters) as reader:
+    # Ensure Harmonization config is only loaded once
+    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
+
+    with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
         for lineindex, line in reader:
-            event = Event()
-            line_valid = True
-            for columnindex, (column, value) in \
-                    enumerate(zip(parameters['columns'], line)):
-                if not column or not value:
-                    continue
-                if column.startswith('time.'):
-                    try:
-                        parsed = dateutil.parser.parse(value, fuzzy=True)
-                        if not parsed.tzinfo:
-                            value += parameters['timezone']
-                            parsed = dateutil.parser.parse(value)
-                        value = parsed.isoformat()
-                    except ValueError:
-                        line_valid = False
-                if column == 'extra':
-                    value = handle_extra(value)
-                try:
-                    event.add(column, value)
-                except (InvalidValue, KeyExists) as exc:
-                    retval.append((lineindex, columnindex, value, str(exc)))
-                    line_valid = False
-            for key, value in parameters.get('constant_fields', {}).items():
-                if key not in event:
-                    try:
-                        event.add(key, value)
-                    except InvalidValue as exc:
-                        retval.append((lineindex, -1, value, str(exc)))
-                        line_valid = False
-            for key, value in request.form.items():
-                if not key.startswith('custom_'):
-                    continue
-                key = key[7:]
-                if key not in event:
-                    try:
-                        event.add(key, value)
-                    except InvalidValue as exc:
-                        retval.append((lineindex, -1, value, str(exc)))
-                        line_valid = False
+
             try:
+                event = line.validate()
+
                 if CONFIG.get('destination_pipeline_queue_formatted', False):
                     CONFIG['destination_pipeline_queue'].format(ev=event)
+
+            except InvalidCSVLineException as icle:
+                exceptions.append((
+                    icle.line_index,
+                    icle.column_index,
+                    icle.key,
+                    repr(icle)
+                ))
+
             except Exception as exc:
-                retval.append((lineindex, -1,
-                               CONFIG['destination_pipeline_queue'], repr(exc)))
-                line_valid = False
-            if line_valid:
-                lines_valid += 1
-    retval = {"total": lineindex+1,
-              "lines_invalid": lineindex+1-lines_valid,
-              "errors": retval}
+                exceptions.append((
+                    lineindex,
+                    -1,
+                    CONFIG['destination_pipeline_queue'],
+                    repr(exc)
+                ))
+
+        retval = {
+            "total": len(reader),
+            "lines_invalid": len(exceptions),
+            "errors": exceptions
+        }
     return util.create_response(retval)
 
 
@@ -261,58 +244,21 @@ def submit():
         destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
         destination_pipeline.connect()
 
-    time_observation = DateTime().generate_datetime_now()
-
     successful_lines = 0
-
-    raw_header = []
+    parameters['time_observation'] = DateTime().generate_datetime_now()
 
     # Ensure Harmonization config is only loaded once
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
 
-    with CSV.create(**parameters) as reader:
+    with CSV.create(tmp_file[0], harmonization=harmonization, **parameters) as reader:
         for _, line in reader:
-            event = Event(harmonization=harmonization)
-            try:
-                for columnindex, (column, value) in \
-                        enumerate(zip(parameters['columns'], line)):
-                    if not column or not value:
-                        continue
-                    if column.startswith('time.'):
-                        parsed = dateutil.parser.parse(value, fuzzy=True)
-                        if not parsed.tzinfo:
-                            value += parameters['timezone']
-                            parsed = dateutil.parser.parse(value)
-                        value = parsed.isoformat()
-                    if column == 'extra':
-                        value = handle_extra(value)
-                    event.add(column, value)
-                for key, value in parameters.get('constant_fields', {}).items():
-                    if key not in event:
-                        event.add(key, value)
-                for key, value in request.form.items():
-                    if not key.startswith('custom_'):
-                        continue
-                    key = key[7:]
-                    if key not in event:
-                        event.add(key, value)
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
-                    destination_pipeline.set_queues(queue_name, "destination")
-                    destination_pipeline.connect()
-            except Exception:
-                app.logger.exception('Failure')
-                continue
-            if 'classification.type' not in event:
-                event.add('classification.type', parameters['classification.type'])
-            if 'classification.identifier' not in event:
-                event.add('classification.identifier', parameters['classification.identifier'])
-            if 'feed.code' not in event:
-                event.add('feed.code', parameters['feed.code'])
-            if 'time.observation' not in event:
-                event.add('time.observation', time_observation, sanitize=False)
-            if 'raw' not in event:
-                event.add('raw', ''.join(raw_header + [handle_rewindable.current_line]))
+            event = line.parse()
+
+            if CONFIG.get('destination_pipeline_queue_formatted', False):
+                queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
+                destination_pipeline.set_queues(queue_name, "destination")
+                destination_pipeline.connect()
+
             raw_message = MessageFactory.serialize(event)
             destination_pipeline.send(raw_message)
             successful_lines += 1
