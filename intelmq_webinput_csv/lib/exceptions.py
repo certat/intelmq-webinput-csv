@@ -34,4 +34,4 @@ class InvalidCellException(IntelMQException):
         self.line_index = line.index
         self.column_index = line.columns.index(self.key) if line.columns and hasattr(self, 'key') else -1
 
-        self.message = f"Invalid CSV line[{self.line_index} due: {self.invalid}"
+        self.message = f"Invalid CSV line[{self.line.index}:{self.line.real_index}] due: {self.invalid}"

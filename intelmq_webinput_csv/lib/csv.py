@@ -116,6 +116,13 @@ class CSVLine():
         self.validate = False
         self.event = Event(harmonization=kwargs.pop('harmonization'))
 
+        # Calculate real index in file
+        self.real_index = sum([
+            self.index,
+            self.parameters.get('skipInitialSpace', 0),
+            int(self.parameters.get('has_header', False))
+        ])
+
     def __str__(self):
         if self.raw:
             return self.raw
