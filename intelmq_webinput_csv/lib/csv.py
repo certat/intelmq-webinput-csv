@@ -3,7 +3,7 @@ import itertools
 import collections
 
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple, List
 
 from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
@@ -53,11 +53,13 @@ class CSV:
                                  escapechar=self.escapechar
                       )
 
-        # Skip header if present
         if self.has_header:
-            self.columns = next(self.reader)
+            first_line = next(self.reader)
 
-        # Skip initial lines
+            if not self.columns:
+                self.columns = first_line
+
+        # Skip initial n lines
         if self.skipInitialSpace:
             for _ in range(self.skipInitialSpace):
                 next(self.reader)
@@ -111,6 +113,7 @@ class CSVLine():
         self.columns = columns
 
         self.parameters = kwargs
+        self.validate = False
         self.event = Event(harmonization=kwargs.pop('harmonization'))
 
     def __str__(self):
@@ -208,7 +211,7 @@ class CSVLine():
         # Set any custom fields
         fields = collections.ChainMap(
             self.parameters.get('constant_fields', {}),
-            {k[7:]: v for k, v in self.parameters.items() if k.startswith('custom_')}
+            self.parameters.get('custom_input_fields', {})
         )
 
         for key, value in fields.items():

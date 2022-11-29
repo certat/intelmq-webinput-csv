@@ -18,7 +18,7 @@ class InvalidCellException(IntelMQException):
 
         # Determine value/key (column) from exception
         if isinstance(invalid, InvalidValue):
-            regex = r".*value '(?P<value>[\w]+)'.*for\skey\s'(?P<key>[\w\.]+)'.*"
+            regex = r".*value '(?P<value>[\w\.]+)'.*for\skey\s'(?P<key>[\w\.]+)'.*"
         else:
             regex = r".*key\s'(?P<key>[\w\.]+)'.*"
 
