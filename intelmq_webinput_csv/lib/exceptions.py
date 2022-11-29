@@ -1,14 +1,14 @@
 import re
 from typing import TYPE_CHECKING
 
-from intelmq.lib.exceptions import IntelMQHarmonizationException, InvalidValue
+from intelmq.lib.exceptions import IntelMQException, IntelMQHarmonizationException, InvalidValue
 
 # To prevent circular import
 if TYPE_CHECKING:
     from intelmq_webinput_csv.lib.csv import CSVLine
 
 
-class InvalidCSVLineException:
+class InvalidCellException(IntelMQException):
     """ General class for handling InvalidValue Exception in CSVLine
     """
 

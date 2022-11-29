@@ -9,7 +9,7 @@ from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
 from intelmq.lib.exceptions import IntelMQException, IntelMQHarmonizationException
 
-from .exceptions import InvalidCSVLineException
+from .exceptions import InvalidCellException
 from . import util
 
 

@@ -1,7 +1,7 @@
 import pytest
 
 from intelmq_webinput_csv.lib.csv import CSVLine
-from intelmq_webinput_csv.lib.exceptions import InvalidCSVLineException
+from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq.lib.exceptions import InvalidValue, InvalidKey, KeyExists, KeyNotExists
 
 from ..base import BaseTest
@@ -28,7 +28,7 @@ class TestExceptions(BaseTest):
         return line
 
     def test_invalid_csv_line_exception_in_invalid_value(self, invalid_value, csv_line):
-        exception = InvalidCSVLineException(invalid_value, csv_line)
+        exception = InvalidCellException(invalid_value, csv_line)
 
         assert exception.key == 'source.ip'
         assert exception.value == 'foobar'
@@ -44,7 +44,7 @@ class TestExceptions(BaseTest):
 
         for except_type in [InvalidKey, KeyExists, KeyNotExists]:
             invalid_value = except_type(key)
-            exception = InvalidCSVLineException(invalid_value, csv_line)
+            exception = InvalidCellException(invalid_value, csv_line)
 
             assert exception.key == key
             assert not hasattr(exception, 'value')
