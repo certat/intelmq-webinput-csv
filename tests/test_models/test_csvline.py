@@ -33,7 +33,7 @@ class TestCSVLine(BaseTest):
         event = line1.parse()
 
         assert isinstance(event, Event)
-        assert len(event) == 5
+        assert len(event) == 4
         assert all(column in event for column in self.columns)
 
     def test_CSVLine_no_columns(self):

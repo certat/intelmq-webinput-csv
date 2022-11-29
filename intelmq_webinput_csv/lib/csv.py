@@ -79,23 +79,22 @@ class CSV:
 
     def __next__(self):
         line = next(self.reader)
-        line_index = self.line_index
-        self.line_index += 1
 
         # Escape any escapechar
         line = CSVLine(
             cells=line,
             columns=self.columns,
-            index=line_index,
+            index=self.line_index,
             raw=self.handle.current_line,
             **self.parameters
         )
 
         # if max lines read, stop!
+        self.line_index += 1
         if self.max_lines and self.line_index > self.max_lines:
             raise StopIteration
 
-        return (line_index, line)
+        return line
 
     @staticmethod
     def create(*args, **kwargs):
