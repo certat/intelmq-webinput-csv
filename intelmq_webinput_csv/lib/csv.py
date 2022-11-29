@@ -133,8 +133,15 @@ class CSVLine():
             value: value to set
             overwrite: overwrite any existing value
         """
-        if overwrite or key not in self.event:
-            self.event.add(key, value)
+        try:
+            if overwrite or key not in self.event:
+                self.event.add(key, value)
+
+        except IntelMQHarmonizationException as ihe:
+            if self.validate:
+                self.invalid_cells.append(ihe)
+            else:
+                raise ihe
 
     def _verify_columns(self):
         """ Ensure that columns have been defined
@@ -163,19 +170,25 @@ class CSVLine():
 
         self._event_add(column, value)
 
-    def validate(self) -> Event:
+    def validate(self) -> Tuple[Event, List[InvalidCellException]]:
         """ Validates current CSV line
 
         Returns:
-            Parsed IntelMQ Event
+            (Event, Exceptions): Parsed IntelMQ Event and list of InvalidCSVLineExceptions
         Raises:
             InvalidCSVLineException if invalid line or cell has been detected
+
         """
-        try:
-            self._verify_columns()
-            return self.parse()
-        except IntelMQHarmonizationException as invalid:
-            raise InvalidCSVLineException(invalid, self)
+        self.validate = True
+        self.invalid_cells = []
+        self._verify_columns()
+
+        event = self.parse(validate=True)
+        exceptions = map(lambda x: InvalidCellException(x, self), self.invalid_cells)
+
+        self.validate = False
+
+        return (event, exceptions)
 
     def parse(self) -> Union[None, Event]:
         """ Parse all cells in current line
