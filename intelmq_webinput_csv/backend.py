@@ -21,6 +21,7 @@ from intelmq.lib.utils import load_configuration
 from intelmq_webinput_csv.version import __version__
 
 from lib import util
+from lib.exceptions import InvalidCellException
 from lib.csv import CSV
 
 HARMONIZATION_CONF_FILE = '/config/configs/webinput/harmonization.conf'
@@ -118,27 +119,24 @@ def upload_file():
 
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(csv_file)
-    elif request.form.get('text'):
+    elif 'text' in request.form and request.form['text']:
         with csv_file.open(mode='w', encoding='utf8') as handle:
             handle.write(request.form['text'])
-    elif request.form.get('use_last_file', False) and csv_file.exists():
-        print("Foobar")
-    else:
+    elif request.form.get('use_last_file') and not csv_file.exists():
         return util.create_response('no file or text')
 
     parameters = util.handle_parameters(request.form)
     preview = []
     valid_ip_addresses = None
     valid_date_times = None
-    lineindex = line = None
 
     # Ensure Harmonization config is only loaded once
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
         with CSV.create(file=csv_file, harmonization=harmonization, **parameters) as reader:
             total_lines = len(reader)
-
-            # Ensure that first line is columns
+            
+            # If has columns, set first line as column
             if parameters.get('has_header', False):
                 preview.append(reader.columns)
 

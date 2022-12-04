@@ -107,7 +107,7 @@ class CSVLine():
 
     def __init__(self, cells: list = [], columns: Union[None, dict] = {}, index: int = -1, raw: str = None,
                  **kwargs):
-        self.raw = raw
+        self.raw = raw.strip('\n')
         self.cells = cells
         self.index = index
         self.columns = columns

@@ -19,9 +19,9 @@ from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration
 
 from intelmq_webinput_csv.version import __version__
-from intelmq_webinput_csv.lib.exceptions import InvalidCSVLineException
 
 from lib import util
+from lib.exceptions import InvalidCSVLineException
 from lib.csv import CSV
 
 HARMONIZATION_CONF_FILE = '/config/configs/webinput/harmonization.conf'
