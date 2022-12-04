@@ -177,7 +177,9 @@ def preview():
     if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
+
     exceptions = []
+    invalid_lines = 0
 
     # Ensure Harmonization config is only loaded once
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
@@ -186,19 +188,23 @@ def preview():
         for line in reader:
 
             try:
-                event, invalid_cells = line.validate()
+                event, invalids = line.validate()
 
-                # Add all InvalidCellExceptions
-                for cell in invalid_cells:
-                    exceptions.append((
-                        line.index,
-                        cell.column_index,
-                        cell.key,
-                        cell.message
-                    ))
+                print(line)
+
+                if invalids:
+                    invalid_lines += 1
 
                 if CONFIG.get('destination_pipeline_queue_formatted', False):
                     CONFIG['destination_pipeline_queue'].format(ev=event)
+
+                for invalid in invalids:
+                    exceptions.append((
+                        invalid.line_index,
+                        invalid.column_index,
+                        invalid.key,
+                        repr(invalid)
+                    ))
 
             except Exception as exc:
                 exceptions.append((
@@ -208,11 +214,9 @@ def preview():
                     repr(exc)
                 ))
 
-        # Determine num. invalid lines
-        lines_invalid = len(set(ext[0] for ext in exceptions))
         retval = {
             "total": len(reader),
-            "lines_invalid": lines_invalid,
+            "lines_invalid": invalid_lines,
             "errors": exceptions
         }
     return util.create_response(retval)

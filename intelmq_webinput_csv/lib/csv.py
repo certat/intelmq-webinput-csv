@@ -113,7 +113,7 @@ class CSVLine():
         self.columns = columns
 
         self.parameters = kwargs
-        self.validate = False
+        self.validation = False
         self.event = Event(harmonization=kwargs.pop('harmonization'))
 
         # Calculate real index in file
@@ -147,10 +147,12 @@ class CSVLine():
                 self.event.add(key, value)
 
         except IntelMQHarmonizationException as ihe:
-            if self.validate:
-                self.invalid_cells.append(ihe)
+            ice = InvalidCellException(ihe, self)
+
+            if self.validation:
+                self.invalid_cells.append(ice)
             else:
-                raise ihe
+                raise ice
 
     def _verify_columns(self):
         """ Ensure that columns have been defined
@@ -188,16 +190,14 @@ class CSVLine():
             InvalidCSVLineException if invalid line or cell has been detected
 
         """
-        self.validate = True
+        self.validation = True
         self.invalid_cells = []
         self._verify_columns()
 
-        event = self.parse(validate=True)
-        exceptions = map(lambda x: InvalidCellException(x, self), self.invalid_cells)
+        event = self.parse()
 
-        self.validate = False
-
-        return (event, exceptions)
+        self.validation = False
+        return (event, self.invalid_cells)
 
     def parse(self) -> Union[None, Event]:
         """ Parse all cells in current line
