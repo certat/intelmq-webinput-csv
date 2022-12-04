@@ -17,7 +17,6 @@ from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration
 
 from intelmq_webinput_csv.version import __version__
-HARMONIZATION_CONF_FILE = '/config/configs/webinput/harmonization.conf'
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq_webinput_csv.lib.csv import CSV
@@ -73,7 +72,6 @@ for static_file in STATIC_FILES.keys():
 
 
 app = Flask('intelmq_webinput_csv')
-
 
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
