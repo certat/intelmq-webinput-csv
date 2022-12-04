@@ -17,12 +17,10 @@ from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration
 
 from intelmq_webinput_csv.version import __version__
-
-from lib import util
-from lib.exceptions import InvalidCellException
-from lib.csv import CSV
-
 HARMONIZATION_CONF_FILE = '/config/configs/webinput/harmonization.conf'
+from intelmq_webinput_csv.lib import util
+from intelmq_webinput_csv.lib.exceptions import InvalidCellException
+from intelmq_webinput_csv.lib.csv import CSV
 
 CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
 logging.info('Reading configuration from %r.', CONFIG_FILE)
