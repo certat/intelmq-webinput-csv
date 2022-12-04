@@ -140,7 +140,7 @@ def upload_file():
             if parameters.get('has_header', False):
                 preview.append(reader.columns)
 
-            for lineindex, line in reader:
+            for line in reader:
 
                 if valid_ip_addresses is None:  # first data line
                     valid_ip_addresses = [0] * len(line)
@@ -154,7 +154,7 @@ def upload_file():
     except Exception:
         preview = [['Parse Error'], ['Is the number of columns consistent?']] + \
             [[x] for x in traceback.format_exc().splitlines()] + \
-            [['Current line (%d):' % lineindex]] + \
+            [['Current line (%d):' % line.index]] + \
             [line]
     column_types = ["IPAddress" if x / (total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
     column_types = ["DateTime" if valid_date_times[i] / (total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
