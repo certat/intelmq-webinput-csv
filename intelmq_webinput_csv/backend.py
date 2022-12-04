@@ -7,8 +7,6 @@ import traceback
 import logging
 import os
 
-from pathlib import Path
-
 from flask import Flask, make_response, request
 
 from intelmq import HARMONIZATION_CONF_FILE
@@ -115,14 +113,14 @@ def js(page):
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    csv_file = Path('/config/configs/webinput') / 'webinput_csv.csv'
+    tmp_file = util.get_temp_file()
 
     if 'file' in request.files and request.files['file'].filename:
-        request.files['file'].save(csv_file)
+        request.files['file'].save(tmp_file)
     elif 'text' in request.form and request.form['text']:
-        with csv_file.open(mode='w', encoding='utf8') as handle:
+        with tmp_file.open(mode='w', encoding='utf8') as handle:
             handle.write(request.form['text'])
-    elif request.form.get('use_last_file') and not csv_file.exists():
+    elif request.form.get('use_last_file') and not tmp_file.exists():
         return util.create_response('no file or text')
 
     parameters = util.handle_parameters(request.form)
@@ -133,7 +131,7 @@ def upload_file():
     # Ensure Harmonization config is only loaded once
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
-        with CSV.create(file=csv_file, harmonization=harmonization, **parameters) as reader:
+        with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
             total_lines = len(reader)
             
             # If has columns, set first line as column
@@ -173,7 +171,7 @@ def preview():
         return response
 
     parameters = util.handle_parameters(request.form)
-    tmp_file = Path('/config/configs/webinput/') / 'webinput_csv.csv'
+    tmp_file = util.get_temp_file()
     if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
@@ -234,7 +232,7 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    tmp_file = Path('/config/configs/webinput/') / 'webinput_csv.csv'
+    tmp_file = util.get_temp_file()
     parameters = util.handle_parameters(request.form)
     if not tmp_file.exists():
         return util.create_response('No file')
@@ -277,7 +275,7 @@ def submit():
 
 @app.route('/uploads/current')
 def get_current_upload():
-    tmp_file = Path('/config/configs/webinput/') / 'webinput_csv.csv'
+    tmp_file = util.get_temp_file()
     with tmp_file.open(encoding='utf8') as handle:
         resp = util.create_response(handle.read(), content_type='text/csv')
     return resp

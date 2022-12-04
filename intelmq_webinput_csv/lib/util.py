@@ -3,6 +3,7 @@ import json
 
 from typing import Union
 from datetime import date
+from pathlib import Path
 
 import dateutil.parser
 
@@ -120,3 +121,7 @@ def create_response(text, content_type=None):
         response.headers['Content-Type'] = content_type
     response.headers['Access-Control-Allow-Origin'] = "*"
     return response
+
+
+def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
+    return Path(VAR_STATE_PATH) / filename
