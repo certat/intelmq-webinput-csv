@@ -253,17 +253,24 @@ def submit():
     harmonization = load_configuration(HARMONIZATION_CONF_FILE)
 
     with CSV.create(tmp_file, harmonization=harmonization, **parameters) as reader:
-        for _, line in reader:
-            event = line.parse()
+        for line in reader:
+            try:
+                event = line.parse()
 
-            if CONFIG.get('destination_pipeline_queue_formatted', False):
-                queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
-                destination_pipeline.set_queues(queue_name, "destination")
-                destination_pipeline.connect()
+                if CONFIG.get('destination_pipeline_queue_formatted', False):
+                    queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
+                    destination_pipeline.set_queues(queue_name, "destination")
+                    destination_pipeline.connect()
 
-            raw_message = MessageFactory.serialize(event)
-            destination_pipeline.send(raw_message)
-            successful_lines += 1
+                raw_message = MessageFactory.serialize(event)
+                destination_pipeline.send(raw_message)
+
+            except InvalidCellException as ice:
+                app.logger.warning(ice.message)
+            except Exception as e:
+                app.logger.error(f"Unknown error occured: {e}")
+            else:
+                successful_lines += 1
 
     return util.create_response('Successfully processed %s lines.' % successful_lines)
 
