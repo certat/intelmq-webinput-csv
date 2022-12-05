@@ -55,6 +55,7 @@ class CSV:
 
         if self.has_header:
             first_line = next(self.reader)
+            self.columns_raw = self.handle.current_line
 
             if not self.columns:
                 self.columns = first_line
@@ -107,7 +108,7 @@ class CSVLine():
 
     def __init__(self, cells: list = [], columns: Union[None, dict] = {}, index: int = -1, raw: str = None,
                  **kwargs):
-        self.raw = raw.strip('\n')
+        self.raw = raw.strip('\n') if raw else raw
         self.cells = cells
         self.index = index
         self.columns = columns
