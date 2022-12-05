@@ -115,10 +115,10 @@ SPDX-License-Identifier: AGPL-3.0
                 <div class="container">
                     <div class="field is-grouped">
                         <div class="control">
-                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked()">Refresh Table</button>
+                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Refresh Table</button>
                         </div>
                         <div class="control">
-                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
                         </div>
                     </div>
                 </div>

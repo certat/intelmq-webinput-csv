@@ -44,8 +44,10 @@ var vm_upload = new Vue({
             }
             return data;
         },
-        submitButtonClicked: function () {
+        submitButtonClicked: function (e) {
             var formData = new FormData();
+            var button = $(e.target);
+            button.addClass("is-loading");
 
             formData.append('text', this.uploadFormData.text);
             formData.append('file', this.uploadFormData.file);
