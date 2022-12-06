@@ -19,28 +19,22 @@ SPDX-License-Identifier: AGPL-3.0
 </head>
 
 <body style="overflow:auto">
-    <div class="container" id="previewApp">
-        <!--header-->
-        <section class="section">
-            <div class="container">
-                <h1 class="title is-spaced">
-                    Preview
-                </h1>
-                <p class="subtitle" v-bind:style="paragraphStyle">
-                    {{numberTotal}} lines in total
-                </p>
-                <p class="subtitle" v-bind:style="paragraphStyle">
-                    {{numberFailed}} lines failed
-                </p>
-            </div>
-        </section>
+    <section class="section" id="previewApp">
 
         <!--parameters-->
         <form id="form" @change="saveDataInSession()">
             <section class="section">
-                <div class="container">
                     <div class="columns">
-                        <div class="column is-one-quarter">
+                        <div class="column is-one-fifth">
+                            <h1 class="title is-spaced">
+                                Preview
+                            </h1>
+                            <p class="subtitle" v-bind:style="paragraphStyle">
+                                {{numberTotal}} lines in total
+                            </p>
+                            <p class="subtitle" v-bind:style="paragraphStyle">
+                                {{numberFailed}} lines failed
+                            </p>
                             <div class="field">
                                 <div class="control">
                                     <label class="label">timezone</label>
@@ -74,8 +68,19 @@ SPDX-License-Identifier: AGPL-3.0
                                 </div>
                             </div>
                             __CUSTOM_FIELDS_HTML__
+                            <section class="section">
+                                <div class="field is-grouped">
+                                    <div class="control">
+                                        <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Refresh Table</button>
+                                    </div>
+                                    <div class="control">
+                                        <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-                        <div class="column is-offset-1">
+                        <div class="column is-full">
+                            <div class="table-container">
                             <table class="table is-bordered is-striped" id="dataTable">
                                 <thead style="background-color:#e6ffff">
                                     <tr>
@@ -104,38 +109,28 @@ SPDX-License-Identifier: AGPL-3.0
                                     </tr>
                                 </tbody>
                             </table>
+                            </div>
                         </div>
                         <div class="column is-one-eighth">
                         </div>
                     </div>
-                </div>
             </section>
             <!--buttons-->
             <section class="section">
                 <div class="container">
-                    <div class="field is-grouped">
-                        <div class="control">
-                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Refresh Table</button>
-                        </div>
-                        <div class="control">
-                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
-                        </div>
-                    </div>
                 </div>
             </section>
 
             <!--Footer-->
             <section class="section">
-                <div class="container">
-                    <div class="field is-grouped">
-                        <div class="text">
-                            <p><a href="https://github.com/certat/intelmq-webinput-csv/">intelmq-webinput-csv</a> __VERSION__</p>
-                        </div>
+                <div class="field is-grouped">
+                    <div class="text">
+                        <p><a href="https://github.com/certat/intelmq-webinput-csv/">intelmq-webinput-csv</a> __VERSION__</p>
                     </div>
                 </div>
             </section>
         </form>
-    </div>
+    </section>
 
     <script src="plugins/jquery-3.2.1.js"></script>
     <script src="plugins/vue-2.4.2.js"></script>
