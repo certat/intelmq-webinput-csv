@@ -122,7 +122,10 @@ var vm_preview = new Vue({
             }
             return data;
         },
-        submitButtonClicked: function () {
+        submitButtonClicked: function (e) {
+            var button = $(e.target);
+            button.addClass("is-loading");
+
             $('body,html').animate({
                 scrollTop: 0
             }, 800);
@@ -160,13 +163,17 @@ var vm_preview = new Vue({
                 if (request.readyState == XMLHttpRequest.DONE) {
                     var submitResponse = self.readBody(request);
                     alert(submitResponse);
+                    button.removeClass("is-loading");
                 }
             };
 
             request.open('POST', '__BASE_URL__/submit');
             request.send(formData);
         },
-        refreshButtonClicked: function () {
+        refreshButtonClicked: function (e) {
+            var button = $(e.target);
+            button.addClass("is-loading");
+
             $('body,html').animate({
                 scrollTop: 0
             }, 800);
@@ -210,6 +217,7 @@ var vm_preview = new Vue({
                     self.numberTotal = previewResponse.total;
 
                     self.highlightErrors(previewResponse);
+                    button.removeClass("is-loading");
                 }
             };
 
