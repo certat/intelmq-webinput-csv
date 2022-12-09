@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<!--
+Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
+SPDX-License-Identifier: AGPL-3.0
+-->
+<html lang="en">
+
+<head>
+    {% block head %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>IntelMQ CSV Uploader</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='plugins/font-awesome-4.7.0/css/font-awesome.min.css') }}">
+        <link rel="stylesheet" href="{{ url_for('static', filename='plugins/bulma/css/bulma.css') }}">
+    {% endblock %}
+</head>
+
+<body>
+    <script>
+        const BASE_URL = '{{ url_for("form") }}';
+    </script>
+    <section class="section" id="CSVapp">
+        <!--header-->
+        <section class="section">
+            <div class="container">
+                <h1 class="title is-spaced">
+                    {% block title %}{% endblock %}
+                </h1>
+                <p class="subtitle">
+                    {% block subtitle %}{% endblock %}
+                </p>
+            </div>
+        </section>
+
+        {% block content %}{% endblock %}
+
+        <!--Footer-->
+        <section class="section">
+            <div class="container">
+                <div class="field is-grouped">
+                    <div class="text">
+                        <p><a href="https://github.com/certat/intelmq-webinput-csv/">intelmq-webinput-csv</a> {{ config['VERSION'] }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </section>
+
+    {% block js %}
+        <script src="{{ url_for('static', filename='plugins/jquery-3.2.1.js') }}"></script>
+        <script src="{{ url_for('static', filename='plugins/vue-2.4.2.js') }}"></script>
+    {% endblock %}
+</body>
+
+</html>

@@ -46,65 +46,24 @@ for key, value in CONFIG.get('custom_input_fields', {}).items():
     custom_fields_html.append(CUSTOM_FIELDS_HTML_TEMPLATE.format(name=key, jsname=jskey))
     custom_fields_js_default.append(CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE.format(jsname=jskey, default=value))
     custom_fields_js_form.append(CUSTOM_FIELDS_JS_FORM_TEMPLATE.format(name=key, jsname=jskey))
+"""
 
-STATIC_FILES = {
-    'js/preview.js': None,
-    'js/upload.js': None,
-    'preview.html': None,
-    'index.html': None,
-}
-
-for static_file in STATIC_FILES.keys():
-    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    with open(filename, encoding='utf8') as handle:
-        STATIC_FILES[static_file] = handle.read()
-        if static_file.startswith('js/') or static_file.endswith('.html'):
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__VERSION__', __version__)
-        if static_file == 'preview.html':
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_HTML__',
-                                                                          '\n'.join(custom_fields_html))
-        if static_file == 'js/preview.js':
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_DEFAULT__',
-                                                                          '\n'.join(custom_fields_js_default))
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_FORM__',
-                                                                          '\n'.join(custom_fields_js_form))
-
-
+CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
 app = Flask('intelmq_webinput_csv')
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
+app.config.from_file(CONFIG_FILE, load=util.load_config)
 
+
+HARMONIZATION_CONF_FILE = "/config/configs/webinput/harmonization.conf"
 with open(HARMONIZATION_CONF_FILE) as handle:
     EVENT_FIELDS = json.load(handle)
 
 
 @app.route('/')
 def form():
-    response = make_response(STATIC_FILES['index.html'])
-    response.mimetype = 'text/html'
-    response.headers['Content-Type'] = "text/html; charset=utf-8"
-    return response
-
-
-@app.route('/plugins/<path:page>')
-def plugins(page):
-    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/plugins/%s' % page)
-    with open(filename, mode='rb') as handle:
-        response = make_response(handle.read())
-    if page.endswith('.js'):
-        response.mimetype = 'application/x-javascript'
-        response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
-    elif page.endswith('.css'):
-        response.mimetype = 'text/css'
-        response.headers['Content-Type'] = "text/css; charset=utf-8"
-    return response
-
-
-@app.route('/js/<page>')
-def js(page):
-    response = make_response(STATIC_FILES['js/%s' % page])
-    response.mimetype = 'application/x-javascript'
-    response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
-    return response
+    return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
@@ -161,10 +120,7 @@ def upload_file():
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'GET':
-        response = make_response(STATIC_FILES['preview.html'])
-        response.mimetype = 'text/html'
-        response.headers['Content-Type'] = "text/html; charset=utf-8"
-        return response
+        return render_template('preview.html')
 
     parameters = util.handle_parameters(request.form)
     tmp_file = util.get_temp_file()
