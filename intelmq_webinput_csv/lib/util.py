@@ -7,6 +7,7 @@ from pathlib import Path
 
 import dateutil.parser
 
+from intelmq_webinput_csv.version import __version__
 from flask import jsonify, make_response
 from intelmq import VAR_STATE_PATH
 
@@ -29,11 +30,28 @@ PARAMETERS = {
 }
 
 CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
-with open(CONFIG_FILE) as handle:
-    CONFIG = json.load(handle)
-    BASE_URL = CONFIG.get('base_url', '')
-    if BASE_URL.endswith('/'):
-        BASE_URL = BASE_URL[:-1]
+
+def load_config(config_file):
+    """ Load config from file
+
+    Parameters:
+        config_file (Readable): read config file
+
+    Returns:
+        dict: with config with keys all in UPPER
+    """
+    config = json.load(config_file)
+    new_config = {k.upper(): v for k, v in config.items()}
+
+    # Ensure that BASE_URL is correctly translated to Flask Application Root
+    new_config['APPLICATION_ROOT'] = new_config.get('BASE_URL', '/')
+
+    if len(new_config['APPLICATION_ROOT']) > 1 and new_config['APPLICATION_ROOT'].endswith('/'):
+        new_config['APPLICATION_ROOT'] = new_config['APPLICATION_ROOT'][:-1]
+
+    new_config['VERSION'] = __version__
+
+    return new_config
 
 
 def parse_time(value: str, timezone: Union[str, None]) -> date:
@@ -84,9 +102,9 @@ def handle_extra(value: str) -> dict:
     return value
 
 
-def handle_parameters(form):
+def handle_parameters(app, form):
     parameters = {}
-    for key, default_value in CONFIG.items():
+    for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)
     for key, value in PARAMETERS.items():
         parameters[key] = form.get(key, value)
