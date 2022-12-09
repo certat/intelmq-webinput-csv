@@ -2,12 +2,11 @@
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
 # SPDX-License-Identifier: AGPL-3.0
 import json
-import pkg_resources
 import traceback
-import logging
 import os
 
-from flask import Flask, make_response, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, request, render_template
 
 from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.harmonization import DateTime, IPAddress
@@ -16,37 +15,9 @@ from intelmq.lib.message import MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
 from intelmq.lib.utils import load_configuration
 
-from intelmq_webinput_csv.version import __version__
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq_webinput_csv.lib.csv import CSV
-
-CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
-logging.info('Reading configuration from %r.', CONFIG_FILE)
-with open(CONFIG_FILE) as handle:
-    CONFIG = json.load(handle)
-    BASE_URL = CONFIG.get('base_url', '')
-    if BASE_URL.endswith('/'):
-        BASE_URL = BASE_URL[:-1]
-
-CUSTOM_FIELDS_HTML_TEMPLATE = """
-<div class="field">
-    <div class="control">
-        <label class="label">{name}</label>
-        <input class="input" type="text" placeholder="{name}" v-model="previewFormData.{jsname}">
-    </div>
-</div>"""
-CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE = "{jsname}: '{default}',"
-CUSTOM_FIELDS_JS_FORM_TEMPLATE = "formData.append('custom_{name}', this.previewFormData.{jsname});"
-custom_fields_html = []
-custom_fields_js_default = []
-custom_fields_js_form = []
-for key, value in CONFIG.get('custom_input_fields', {}).items():
-    jskey = 'custom' + key.title().replace('.', '')
-    custom_fields_html.append(CUSTOM_FIELDS_HTML_TEMPLATE.format(name=key, jsname=jskey))
-    custom_fields_js_default.append(CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE.format(jsname=jskey, default=value))
-    custom_fields_js_form.append(CUSTOM_FIELDS_JS_FORM_TEMPLATE.format(name=key, jsname=jskey))
-"""
 
 CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
 app = Flask('intelmq_webinput_csv')
@@ -145,8 +116,8 @@ def preview():
                 if invalids:
                     invalid_lines += 1
 
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    CONFIG['destination_pipeline_queue'].format(ev=event)
+                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+                    app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
 
                 for invalid in invalids:
                     exceptions.append((
@@ -160,7 +131,7 @@ def preview():
                 exceptions.append((
                     line.index,
                     -1,
-                    CONFIG['destination_pipeline_queue'],
+                    app.config['DESTINATION_PIPELINE_QUEUE'],
                     repr(exc)
                 ))
 
@@ -189,11 +160,11 @@ def submit():
     if not tmp_file.exists():
         return util.create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
+    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['intelmq'],
                                                   logger=app.logger,
                                                   direction='destination')
-    if not CONFIG.get('destination_pipeline_queue_formatted', False):
-        destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
+    if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+        destination_pipeline.set_queues(app.config['DESTINATION_PIPELINE_QUEUE'], "destination")
         destination_pipeline.connect()
 
     successful_lines = 0
@@ -207,8 +178,8 @@ def submit():
             try:
                 event = line.parse()
 
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
+                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+                    queue_name = app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
                     destination_pipeline.set_queues(queue_name, "destination")
                     destination_pipeline.connect()
 
