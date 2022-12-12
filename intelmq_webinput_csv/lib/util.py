@@ -6,12 +6,15 @@ from datetime import date
 from pathlib import Path
 
 import dateutil.parser
+from flask import current_app as app
 
 from intelmq_webinput_csv.version import __version__
 from flask import jsonify, make_response
 from intelmq import VAR_STATE_PATH
+from intelmq import HARMONIZATION_CONF_FILE
+from intelmq.lib.utils import load_configuration
 
-TEMP_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.temp')
+HARMONIZATION_CONF = None
 PARAMETERS = {
     'timezone': '+00:00',
     'classification.type': 'test',
@@ -52,6 +55,31 @@ def load_config(config_file):
     new_config['VERSION'] = __version__
 
     return new_config
+
+
+def load_harmonization_config(load_json: bool = False) -> dict:
+    """ Load Harmonization config
+
+    Implements Singleton functionality for loading config only once
+
+    Parameters:
+        load_json (bool): whether to load the config as JSON
+
+    Returns:
+        dict of Harmonization config
+    """
+    global HARMONIZATION_CONF
+
+    harmonization_file = app.config.get('HARMONIZATION_CONF_FILE', HARMONIZATION_CONF_FILE)
+
+    if not HARMONIZATION_CONF:
+        HARMONIZATION_CONF = load_configuration(harmonization_file)
+
+    if load_json:
+        with open(harmonization_file) as handle:
+            return json.load(handle)
+    else:
+        return HARMONIZATION_CONF
 
 
 def parse_time(value: str, timezone: Union[str, None]) -> date:

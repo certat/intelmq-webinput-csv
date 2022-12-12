@@ -45,6 +45,10 @@ class CSV:
         self.line_index = 0
         self.parameters = kwargs
 
+        # add harmonization to parameters
+        if 'harmonization' not in self.parameters:
+            self.parameters['harmonization'] = util.load_harmonization_config()
+
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
         self.reader = csv.reader(self.handle, delimiter=self.delimeter,

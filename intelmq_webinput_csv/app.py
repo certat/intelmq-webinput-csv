@@ -54,10 +54,8 @@ def upload_file():
     valid_ip_addresses = None
     valid_date_times = None
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
-        with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
+        with CSV.create(file=tmp_file, **parameters) as reader:
             total_lines = len(reader)
             
             # If has columns, set first line as column
@@ -102,10 +100,7 @@ def preview():
     exceptions = []
     invalid_lines = 0
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
-
-    with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
+    with CSV.create(file=tmp_file, **parameters) as reader:
         for line in reader:
 
             try:
@@ -170,10 +165,7 @@ def submit():
     successful_lines = 0
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
-
-    with CSV.create(tmp_file, harmonization=harmonization, **parameters) as reader:
+    with CSV.create(tmp_file, **parameters) as reader:
         for line in reader:
             try:
                 event = line.parse()
