@@ -4,7 +4,7 @@
  */
 Vue.component('v-select', VueSelect.VueSelect)
 var vm_preview = new Vue({
-    el: '#previewApp',
+    el: '#CSVapp',
 
     data: {
         numberTotal: 0,

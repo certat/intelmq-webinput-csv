@@ -2,6 +2,16 @@
 
 {% block js %}
     {{ super() }}
+
+    <script>
+        const custom_fields = {
+        {% for name, value in config['CUSTOM_INPUT_FIELDS'].items() %}
+            {% set jskey = 'custom' + name.title().replace('.', '') %}
+            '{{ name }}': '{{ jskey }}',
+        {% endfor %}
+        };
+    </script>
+
     <script src="{{ url_for('static', filename='plugins/vue-select-1.3.3.js') }}"></script>
     <script src="{{ url_for('static', filename='js/preview.js') }}"></script>
 {% endblock %}
@@ -10,16 +20,7 @@
 {% block subtitle %}{% endblock %}
 
 {% block content %}
-<script>
-    const custom_fields = {
-    {% for name, value in config['CUSTOM_INPUT_FIELDS'].items() %}
-        {% set jskey = 'custom' + name.title().replace('.', '') %}
-        '{{ name }}': '{{ jskey }}',
-    {% endfor %}
-    };
-</script>
-
-<div class="container" id="previewApp">
+<div class="container">
 
     <!--parameters-->
     <form id="form" @change="saveDataInSession()">
