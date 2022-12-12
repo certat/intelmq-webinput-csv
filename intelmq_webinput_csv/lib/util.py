@@ -1,6 +1,6 @@
 import json
 
-from typing import Union
+from typing import Union, List
 from datetime import date
 from pathlib import Path
 
@@ -11,6 +11,7 @@ from intelmq_webinput_csv.version import __version__
 from intelmq import VAR_STATE_PATH
 from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.utils import load_configuration
+from intelmq_webinput_csv.lib.csv import CSV, CSVLine
 
 HARMONIZATION_CONF = None
 PARAMETERS = {
@@ -162,3 +163,20 @@ def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
     """
     dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
     return Path(dir) / filename
+
+
+def save_failed_csv(reader: CSV, lines: List[CSVLine]):
+    """
+    Save all invalid lines to a seperate CSV file
+
+    Parameters:
+        reader(CSV): CSV object used to read the lines
+        lines (List[CSVLine]): list of invalid lines
+    """
+    invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
+
+    with invalid_file.open('w+', encoding='utf-8') as f:
+        f.write(f"{reader.columns_raw}\n")
+
+        for line in lines:
+            f.write(f"{line.raw}\n")

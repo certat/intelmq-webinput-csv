@@ -166,14 +166,29 @@ var vm_preview = new Vue({
 
             request.onreadystatechange = function () {
                 if (request.readyState == XMLHttpRequest.DONE) {
-                    submitResponse = JSON.parse(submitResponse);
-                    alert(submitResponse['message']);
-                    button.removeClass("is-loading")
+                    var previewResponse = self.readBody(request);
+                    previewResponse = JSON.parse(previewResponse);
+
+                    self.numberFailed = previewResponse.lines_invalid;
+                    self.numberTotal = previewResponse.succesful_lines;
+
+                    if (self.numberFailed > 0)
+                        $('button#failedButton').removeAttr('disabled')
+
+                    self.highlightErrors(previewResponse);
+                    button.removeClass("is-loading");
+
+                    var message = 'Successfully processed '+self.numberTotal+' lines.'
+                    alert(message);
                 }
             };
 
             request.open('POST', BASE_URL + '/submit');
             request.send(formData);
+        },
+        failedButtonClicked: function (e) {
+            var button = $(e.target);
+            window.open(BASE_URL + '/uploads/failed', '_blank');
         },
         refreshButtonClicked: function (e) {
             var button = $(e.target);
@@ -226,6 +241,9 @@ var vm_preview = new Vue({
                     previewResponse = JSON.parse(previewResponse);
                     self.numberFailed = previewResponse.lines_invalid;
                     self.numberTotal = previewResponse.total;
+
+                    if (self.numberFailed > 0)
+                        $('button#failedButton').removeAttr('disabled')
 
                     self.highlightErrors(previewResponse);
                     button.removeClass("is-loading");

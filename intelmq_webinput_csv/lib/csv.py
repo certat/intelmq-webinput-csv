@@ -60,7 +60,7 @@ class CSV:
 
         if self.has_header:
             first_line = next(self.reader)
-            self.columns_raw = self.handle.current_line
+            self.columns_raw = self.handle.current_line.strip('\n')
 
             if not self.columns:
                 self.columns = first_line
