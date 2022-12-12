@@ -153,7 +153,14 @@ def handle_parameters(app, form):
     return parameters
 
 
-
-
 def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
-    return Path(VAR_STATE_PATH) / filename
+    """ Get path to temporary file
+
+    Parameters:
+        filename (str): name of temporary file
+
+    Returns:
+        Path: object to temp file
+    """
+    dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
+    return Path(dir) / filename
