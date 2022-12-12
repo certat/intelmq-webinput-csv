@@ -80,10 +80,11 @@ def upload_file():
             [line]
     column_types = ["IPAddress" if x / (total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
     column_types = ["DateTime" if valid_date_times[i] / (total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
-    return util.create_response({"column_types": column_types,
-                                 "use_column": [bool(x) for x in column_types],
-                                 "preview": preview,
-                                })
+    return {
+        "column_types": column_types,
+        "use_column": [bool(x) for x in column_types],
+        "preview": preview,
+    }
 
 
 @app.route('/preview', methods=['GET', 'POST'])
@@ -135,17 +136,18 @@ def preview():
             "lines_invalid": invalid_lines,
             "errors": exceptions
         }
-    return util.create_response(retval)
+    return retval
 
 
 @app.route('/classification/types')
 def classification_types():
-    return util.create_response(TAXONOMY)
+    return TAXONOMY
 
 
 @app.route('/harmonization/event/fields')
 def harmonization_event_fields():
-    return util.create_response(EVENT_FIELDS['event'])
+    events = util.load_harmonization_config(load_json=True)
+    return events['event']
 
 
 @app.route('/submit', methods=['POST'])
@@ -185,7 +187,9 @@ def submit():
             else:
                 successful_lines += 1
 
-    return util.create_response('Successfully processed %s lines.' % successful_lines)
+    return {
+        'message': f'Successfully processed {successful_lines} lines.'
+    }
 
 
 @app.route('/uploads/current')

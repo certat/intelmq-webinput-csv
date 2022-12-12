@@ -9,7 +9,6 @@ import dateutil.parser
 from flask import current_app as app
 
 from intelmq_webinput_csv.version import __version__
-from flask import jsonify, make_response
 from intelmq import VAR_STATE_PATH
 from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.utils import load_configuration
@@ -154,19 +153,6 @@ def handle_parameters(app, form):
     return parameters
 
 
-def create_response(text, content_type=None):
-    is_json = False
-    if not isinstance(text, str):
-        text = jsonify(text)
-        is_json = True
-    response = make_response(text)
-    if is_json:
-        response.mimetype = 'application/json'
-        response.headers['Content-Type'] = "text/json; charset=utf-8"
-    if content_type:
-        response.headers['Content-Type'] = content_type
-    response.headers['Access-Control-Allow-Origin'] = "*"
-    return response
 
 
 def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:

@@ -164,7 +164,8 @@ var vm_preview = new Vue({
             request.onreadystatechange = function () {
                 if (request.readyState == XMLHttpRequest.DONE) {
                     var submitResponse = self.readBody(request);
-                    alert(submitResponse);
+                    submitResponse = JSON.parse(submitResponse);
+                    alert(submitResponse['message']);
                 }
             };
 
