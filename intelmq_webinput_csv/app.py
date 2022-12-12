@@ -1,110 +1,46 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
 # SPDX-License-Identifier: AGPL-3.0
-import json
-import pkg_resources
 import traceback
-import logging
 import os
 
-from flask import Flask, make_response, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, request, render_template
 
-from intelmq import HARMONIZATION_CONF_FILE
+from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.utils import load_configuration
 
-from intelmq_webinput_csv.version import __version__
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq_webinput_csv.lib.csv import CSV
 
-CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
-logging.info('Reading configuration from %r.', CONFIG_FILE)
-with open(CONFIG_FILE) as handle:
-    CONFIG = json.load(handle)
-    BASE_URL = CONFIG.get('base_url', '')
-    if BASE_URL.endswith('/'):
-        BASE_URL = BASE_URL[:-1]
 
-CUSTOM_FIELDS_HTML_TEMPLATE = """
-<div class="field">
-    <div class="control">
-        <label class="label">{name}</label>
-        <input class="input" type="text" placeholder="{name}" v-model="previewFormData.{jsname}">
-    </div>
-</div>"""
-CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE = "{jsname}: '{default}',"
-CUSTOM_FIELDS_JS_FORM_TEMPLATE = "formData.append('custom_{name}', this.previewFormData.{jsname});"
-custom_fields_html = []
-custom_fields_js_default = []
-custom_fields_js_form = []
-for key, value in CONFIG.get('custom_input_fields', {}).items():
-    jskey = 'custom' + key.title().replace('.', '')
-    custom_fields_html.append(CUSTOM_FIELDS_HTML_TEMPLATE.format(name=key, jsname=jskey))
-    custom_fields_js_default.append(CUSTOM_FIELDS_JS_DEFAULT_TEMPLATE.format(jsname=jskey, default=value))
-    custom_fields_js_form.append(CUSTOM_FIELDS_JS_FORM_TEMPLATE.format(name=key, jsname=jskey))
+def create_app():
+    """ Function for create Flask app object
 
-STATIC_FILES = {
-    'js/preview.js': None,
-    'js/upload.js': None,
-    'preview.html': None,
-    'index.html': None,
-}
+    Returns:
+        app: object
+    """
+    # Start Flask App
+    app = Flask('intelmq_webinput_csv')
+    app.config.from_prefixed_env()
 
-for static_file in STATIC_FILES.keys():
-    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/%s' % static_file)
-    with open(filename, encoding='utf8') as handle:
-        STATIC_FILES[static_file] = handle.read()
-        if static_file.startswith('js/') or static_file.endswith('.html'):
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__BASE_URL__', BASE_URL)
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__VERSION__', __version__)
-        if static_file == 'preview.html':
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_HTML__',
-                                                                          '\n'.join(custom_fields_html))
-        if static_file == 'js/preview.js':
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_DEFAULT__',
-                                                                          '\n'.join(custom_fields_js_default))
-            STATIC_FILES[static_file] = STATIC_FILES[static_file].replace('__CUSTOM_FIELDS_JS_FORM__',
-                                                                          '\n'.join(custom_fields_js_form))
+    # Load IntelMQ-Webinput-CSV specific config
+    config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
+    app.config.from_file(config_path, load=util.load_config)
+
+    return app
 
 
-app = Flask('intelmq_webinput_csv')
-
-with open(HARMONIZATION_CONF_FILE) as handle:
-    EVENT_FIELDS = json.load(handle)
+app = create_app()
 
 
 @app.route('/')
 def form():
-    response = make_response(STATIC_FILES['index.html'])
-    response.mimetype = 'text/html'
-    response.headers['Content-Type'] = "text/html; charset=utf-8"
-    return response
-
-
-@app.route('/plugins/<path:page>')
-def plugins(page):
-    filename = pkg_resources.resource_filename('intelmq_webinput_csv', 'static/plugins/%s' % page)
-    with open(filename, mode='rb') as handle:
-        response = make_response(handle.read())
-    if page.endswith('.js'):
-        response.mimetype = 'application/x-javascript'
-        response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
-    elif page.endswith('.css'):
-        response.mimetype = 'text/css'
-        response.headers['Content-Type'] = "text/css; charset=utf-8"
-    return response
-
-
-@app.route('/js/<page>')
-def js(page):
-    response = make_response(STATIC_FILES['js/%s' % page])
-    response.mimetype = 'application/x-javascript'
-    response.headers['Content-Type'] = "application/x-javascript; charset=utf-8"
-    return response
+    return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
@@ -124,12 +60,10 @@ def upload_file():
     valid_ip_addresses = None
     valid_date_times = None
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
     try:
-        with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
+        with CSV.create(file=tmp_file, **parameters) as reader:
             total_lines = len(reader)
-            
+
             # If has columns, set first line as column
             if parameters.get('has_header', False):
                 preview.append(reader.columns)
@@ -152,19 +86,17 @@ def upload_file():
             [line]
     column_types = ["IPAddress" if x / (total_lines if total_lines else 1) > 0.7 else None for x in valid_ip_addresses]
     column_types = ["DateTime" if valid_date_times[i] / (total_lines if total_lines else 1) > 0.7 else x for i, x in enumerate(column_types)]
-    return util.create_response({"column_types": column_types,
-                                 "use_column": [bool(x) for x in column_types],
-                                 "preview": preview,
-                                })
+    return {
+        "column_types": column_types,
+        "use_column": [bool(x) for x in column_types],
+        "preview": preview,
+    }
 
 
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
     if request.method == 'GET':
-        response = make_response(STATIC_FILES['preview.html'])
-        response.mimetype = 'text/html'
-        response.headers['Content-Type'] = "text/html; charset=utf-8"
-        return response
+        return render_template('preview.html')
 
     parameters = util.handle_parameters(request.form)
     tmp_file = util.get_temp_file()
@@ -175,22 +107,17 @@ def preview():
     exceptions = []
     invalid_lines = 0
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
-
-    with CSV.create(file=tmp_file, harmonization=harmonization, **parameters) as reader:
+    with CSV.create(file=tmp_file, **parameters) as reader:
         for line in reader:
 
             try:
                 event, invalids = line.validate()
 
-                print(line)
-
                 if invalids:
                     invalid_lines += 1
 
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    CONFIG['destination_pipeline_queue'].format(ev=event)
+                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+                    app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
 
                 for invalid in invalids:
                     exceptions.append((
@@ -204,26 +131,26 @@ def preview():
                 exceptions.append((
                     line.index,
                     -1,
-                    CONFIG['destination_pipeline_queue'],
+                    app.config['DESTINATION_PIPELINE_QUEUE'],
                     repr(exc)
                 ))
 
-        retval = {
-            "total": len(reader),
-            "lines_invalid": invalid_lines,
-            "errors": exceptions
-        }
-    return util.create_response(retval)
+    return {
+        "total": len(reader),
+        "lines_invalid": invalid_lines,
+        "errors": exceptions
+    }
 
 
 @app.route('/classification/types')
 def classification_types():
-    return util.create_response(TAXONOMY)
+    return TAXONOMY
 
 
 @app.route('/harmonization/event/fields')
 def harmonization_event_fields():
-    return util.create_response(EVENT_FIELDS['event'])
+    events = util.load_harmonization_config(load_json=True)
+    return events['event']
 
 
 @app.route('/submit', methods=['POST'])
@@ -233,26 +160,23 @@ def submit():
     if not tmp_file.exists():
         return util.create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(pipeline_args=CONFIG['intelmq'],
+    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
                                                   logger=app.logger,
                                                   direction='destination')
-    if not CONFIG.get('destination_pipeline_queue_formatted', False):
-        destination_pipeline.set_queues(CONFIG['destination_pipeline_queue'], "destination")
+    if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+        destination_pipeline.set_queues(app.config['DESTINATION_PIPELINE_QUEUE'], "destination")
         destination_pipeline.connect()
 
     successful_lines = 0
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
-    # Ensure Harmonization config is only loaded once
-    harmonization = load_configuration(HARMONIZATION_CONF_FILE)
-
-    with CSV.create(tmp_file, harmonization=harmonization, **parameters) as reader:
+    with CSV.create(tmp_file, **parameters) as reader:
         for line in reader:
             try:
                 event = line.parse()
 
-                if CONFIG.get('destination_pipeline_queue_formatted', False):
-                    queue_name = CONFIG['destination_pipeline_queue'].format(ev=event)
+                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+                    queue_name = app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
                     destination_pipeline.set_queues(queue_name, "destination")
                     destination_pipeline.connect()
 
@@ -266,7 +190,9 @@ def submit():
             else:
                 successful_lines += 1
 
-    return util.create_response('Successfully processed %s lines.' % successful_lines)
+    return {
+        'message': f'Successfully processed {successful_lines} lines.'
+    }
 
 
 @app.route('/uploads/current')

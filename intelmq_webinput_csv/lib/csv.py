@@ -36,14 +36,19 @@ class CSV:
         else:
             self.file = file
 
-        with self.file.open('rb') as handle:
-            self.num_lines = handle.read().count(b'\n')
+        # TODO: validate more efficient method
+        with self.file.open('r') as handle:
+            self.num_lines = len(handle.readlines())
 
         if self.has_header:
             self.num_lines -= 1
 
         self.line_index = 0
         self.parameters = kwargs
+
+        # add harmonization to parameters
+        if 'harmonization' not in self.parameters:
+            self.parameters['harmonization'] = util.load_harmonization_config()
 
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))

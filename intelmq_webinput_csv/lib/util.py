@@ -1,4 +1,3 @@
-import os
 import json
 
 from typing import Union
@@ -6,11 +5,14 @@ from datetime import date
 from pathlib import Path
 
 import dateutil.parser
+from flask import current_app as app
 
-from flask import jsonify, make_response
+from intelmq_webinput_csv.version import __version__
 from intelmq import VAR_STATE_PATH
+from intelmq import HARMONIZATION_CONF_FILE
+from intelmq.lib.utils import load_configuration
 
-TEMP_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.temp')
+HARMONIZATION_CONF = None
 PARAMETERS = {
     'timezone': '+00:00',
     'classification.type': 'test',
@@ -28,12 +30,53 @@ PARAMETERS = {
     'loadLinesMax': 100,
 }
 
-CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
-with open(CONFIG_FILE) as handle:
-    CONFIG = json.load(handle)
-    BASE_URL = CONFIG.get('base_url', '')
-    if BASE_URL.endswith('/'):
-        BASE_URL = BASE_URL[:-1]
+
+def load_config(config_file):
+    """ Load config from file
+
+    Parameters:
+        config_file (Readable): read config file
+
+    Returns:
+        dict: with config with keys all in UPPER
+    """
+    config = json.load(config_file)
+    new_config = {k.upper(): v for k, v in config.items()}
+
+    # Ensure that BASE_URL is correctly translated to Flask Application Root
+    new_config['APPLICATION_ROOT'] = new_config.get('BASE_URL', '/')
+
+    if len(new_config['APPLICATION_ROOT']) > 1 and new_config['APPLICATION_ROOT'].endswith('/'):
+        new_config['APPLICATION_ROOT'] = new_config['APPLICATION_ROOT'][:-1]
+
+    new_config['VERSION'] = __version__
+
+    return new_config
+
+
+def load_harmonization_config(load_json: bool = False) -> dict:
+    """ Load Harmonization config
+
+    Implements Singleton functionality for loading config only once
+
+    Parameters:
+        load_json (bool): whether to load the config as JSON
+
+    Returns:
+        dict of Harmonization config
+    """
+    global HARMONIZATION_CONF
+
+    harmonization_file = app.config.get('HARMONIZATION_CONF_FILE', HARMONIZATION_CONF_FILE)
+
+    if not HARMONIZATION_CONF:
+        HARMONIZATION_CONF = load_configuration(harmonization_file)
+
+    if load_json:
+        with open(harmonization_file) as handle:
+            return json.load(handle)
+    else:
+        return HARMONIZATION_CONF
 
 
 def parse_time(value: str, timezone: Union[str, None]) -> date:
@@ -86,7 +129,7 @@ def handle_extra(value: str) -> dict:
 
 def handle_parameters(form):
     parameters = {}
-    for key, default_value in CONFIG.items():
+    for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)
     for key, value in PARAMETERS.items():
         parameters[key] = form.get(key, value)
@@ -108,20 +151,14 @@ def handle_parameters(form):
     return parameters
 
 
-def create_response(text, content_type=None):
-    is_json = False
-    if not isinstance(text, str):
-        text = jsonify(text)
-        is_json = True
-    response = make_response(text)
-    if is_json:
-        response.mimetype = 'application/json'
-        response.headers['Content-Type'] = "text/json; charset=utf-8"
-    if content_type:
-        response.headers['Content-Type'] = content_type
-    response.headers['Access-Control-Allow-Origin'] = "*"
-    return response
-
-
 def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
-    return Path(VAR_STATE_PATH) / filename
+    """ Get path to temporary file
+
+    Parameters:
+        filename (str): name of temporary file
+
+    Returns:
+        Path: object to temp file
+    """
+    dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
+    return Path(dir) / filename

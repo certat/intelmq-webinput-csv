@@ -4,7 +4,7 @@
  */
 Vue.component('v-select', VueSelect.VueSelect)
 var vm_preview = new Vue({
-    el: '#previewApp',
+    el: '#CSVapp',
 
     data: {
         numberTotal: 0,
@@ -23,7 +23,6 @@ var vm_preview = new Vue({
         previewFormData: {
             timezone: '+00:00',
             classificationType: 'test',
-            __CUSTOM_FIELDS_JS_DEFAULT__
             dryRun: true,
             useColumn: 0,
             columns: 'source.ip',
@@ -85,10 +84,10 @@ var vm_preview = new Vue({
             this.completeRequest('fields');
         },
         getClassificationTypes: function () {
-            this.dispatchRequest('__BASE_URL__/classification/types', this.loadClassificationTypes, 'types');
+            this.dispatchRequest(BASE_URL + '/classification/types', this.loadClassificationTypes, 'types');
         },
         getServedDhoFields: function () {
-            this.dispatchRequest('__BASE_URL__/harmonization/event/fields', this.loadServedDhoFields, 'fields');
+            this.dispatchRequest(BASE_URL + '/harmonization/event/fields', this.loadServedDhoFields, 'fields');
         },
         dispatchRequest: function (url, callback, key) {
             this.loadFile(url, callback);
@@ -137,10 +136,16 @@ var vm_preview = new Vue({
 
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
-            __CUSTOM_FIELDS_JS_FORM__
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
+
+            // custom_fields defined in HTML
+            for (field_name in custom_fields) {
+                jskey = custom_fields[field_name];
+                formData.append('custom_'+field_name, this.previewFormData[jskey]);
+                this.previewFormData[jskey] = field_name;
+            }
 
             // obligatory data -> from upload form
             formData.append('delimiter', sessionStorage.delimiter);
@@ -161,13 +166,13 @@ var vm_preview = new Vue({
 
             request.onreadystatechange = function () {
                 if (request.readyState == XMLHttpRequest.DONE) {
-                    var submitResponse = self.readBody(request);
-                    alert(submitResponse);
-                    button.removeClass("is-loading");
+                    submitResponse = JSON.parse(submitResponse);
+                    alert(submitResponse['message']);
+                    button.removeClass("is-loading")
                 }
             };
 
-            request.open('POST', '__BASE_URL__/submit');
+            request.open('POST', BASE_URL + '/submit');
             request.send(formData);
         },
         refreshButtonClicked: function (e) {
@@ -185,10 +190,16 @@ var vm_preview = new Vue({
 
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
-            __CUSTOM_FIELDS_JS_FORM__
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
+
+            // custom_fields defined in HTML
+            for (field_name in custom_fields) {
+                jskey = custom_fields[field_name];
+                formData.append('custom_'+field_name, this.previewFormData[jskey]);
+                this.previewFormData[jskey] = field_name;
+            }
 
             // obligatory data -> from upload form
             formData.append('delimiter', sessionStorage.delimiter);
@@ -221,7 +232,7 @@ var vm_preview = new Vue({
                 }
             };
 
-            request.open('POST', '__BASE_URL__/preview');
+            request.open('POST', BASE_URL + '/preview');
             request.send(formData);
         },
         saveDataInSession: function () {
@@ -349,6 +360,12 @@ var vm_preview = new Vue({
         }
     },
     beforeMount() {
+        // custom_fields defined in HTML
+        for (field_name in custom_fields) {
+            jskey = custom_fields[field_name];
+            this.previewFormData[jskey] = field_name;
+        }
+
         this.getServedDhoFields();
         this.getClassificationTypes();
         this.loadDataFromSession();
