@@ -116,8 +116,6 @@ def preview():
             try:
                 event, invalids = line.validate()
 
-                print(line)
-
                 if invalids:
                     invalid_lines += 1
 
@@ -140,12 +138,11 @@ def preview():
                     repr(exc)
                 ))
 
-        retval = {
-            "total": len(reader),
-            "lines_invalid": invalid_lines,
-            "errors": exceptions
-        }
-    return retval
+    return {
+        "total": len(reader),
+        "lines_invalid": invalid_lines,
+        "errors": exceptions
+    }
 
 
 @app.route('/classification/types')
