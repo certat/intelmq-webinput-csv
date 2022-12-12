@@ -27,9 +27,6 @@ def create_app():
     # Start Flask App
     app = Flask('intelmq_webinput_csv')
     app.config.from_prefixed_env()
-    app.wsgi_app = ProxyFix(
-        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-    )
 
     # Load IntelMQ-Webinput-CSV specific config
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
