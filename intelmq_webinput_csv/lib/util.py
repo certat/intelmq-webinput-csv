@@ -1,4 +1,3 @@
-import os
 import json
 
 from typing import Union
@@ -31,7 +30,6 @@ PARAMETERS = {
     'loadLinesMax': 100,
 }
 
-CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
 
 def load_config(config_file):
     """ Load config from file
@@ -129,7 +127,7 @@ def handle_extra(value: str) -> dict:
     return value
 
 
-def handle_parameters(app, form):
+def handle_parameters(form):
     parameters = {}
     for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)

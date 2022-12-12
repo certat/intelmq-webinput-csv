@@ -58,7 +58,7 @@ def upload_file():
     elif request.form.get('use_last_file') and not tmp_file.exists():
         return util.create_response('no file or text')
 
-    parameters = util.handle_parameters(app, request.form)
+    parameters = util.handle_parameters(request.form)
     preview = []
     valid_ip_addresses = None
     valid_date_times = None
@@ -66,7 +66,7 @@ def upload_file():
     try:
         with CSV.create(file=tmp_file, **parameters) as reader:
             total_lines = len(reader)
-            
+
             # If has columns, set first line as column
             if parameters.get('has_header', False):
                 preview.append(reader.columns)
@@ -101,7 +101,7 @@ def preview():
     if request.method == 'GET':
         return render_template('preview.html')
 
-    parameters = util.handle_parameters(app, request.form)
+    parameters = util.handle_parameters(request.form)
     tmp_file = util.get_temp_file()
     if not tmp_file.exists():
         app.logger.info('no file')
@@ -162,7 +162,7 @@ def harmonization_event_fields():
 @app.route('/submit', methods=['POST'])
 def submit():
     tmp_file = util.get_temp_file()
-    parameters = util.handle_parameters(app, request.form)
+    parameters = util.handle_parameters(request.form)
     if not tmp_file.exists():
         return util.create_response('No file')
 

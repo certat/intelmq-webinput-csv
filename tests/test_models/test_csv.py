@@ -1,6 +1,6 @@
 import pytest
 
-from intelmq_webinput_csv.lib.csv import CSV, CSVLine
+from intelmq_webinput_csv.lib.csv import CSV
 
 from ..base import BaseTest
 
