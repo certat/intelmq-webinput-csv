@@ -1,35 +1,44 @@
 # -*- coding: utf-8 -*-
 # Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
 # SPDX-License-Identifier: AGPL-3.0
-import json
 import traceback
 import os
 
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, render_template
 
-from intelmq import HARMONIZATION_CONF_FILE
+from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
 from intelmq.lib.pipeline import PipelineFactory
-from intelmq.lib.utils import load_configuration
 
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq_webinput_csv.lib.csv import CSV
 
-CONFIG_FILE = os.path.join('/config/configs/webinput', 'webinput_csv.conf')
-app = Flask('intelmq_webinput_csv')
-app.wsgi_app = ProxyFix(
-    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
-)
-app.config.from_file(CONFIG_FILE, load=util.load_config)
+
+def create_app():
+    """ Function for create Flask app object
+
+    Returns:
+        app: object
+    """
+    # Start Flask App
+    app = Flask('intelmq_webinput_csv')
+    app.config.from_prefixed_env()
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+    )
+
+    # Load IntelMQ-Webinput-CSV specific config
+    config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
+    app.config.from_file(config_path, load=util.load_config)
+
+    return app
 
 
-HARMONIZATION_CONF_FILE = "/config/configs/webinput/harmonization.conf"
-with open(HARMONIZATION_CONF_FILE) as handle:
-    EVENT_FIELDS = json.load(handle)
+app = create_app()
 
 
 @app.route('/')
