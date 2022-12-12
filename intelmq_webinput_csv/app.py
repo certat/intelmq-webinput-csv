@@ -163,7 +163,7 @@ def submit():
     if not tmp_file.exists():
         return util.create_response('No file')
 
-    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['intelmq'],
+    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
                                                   logger=app.logger,
                                                   direction='destination')
     if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
