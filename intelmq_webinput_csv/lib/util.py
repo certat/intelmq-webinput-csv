@@ -1,3 +1,4 @@
+import csv
 import json
 
 from typing import Union, List
@@ -175,8 +176,20 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine]):
     """
     invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
 
-    with invalid_file.open('w+', encoding='utf-8') as f:
-        f.write(f"{reader.columns_raw}\n")
+    with invalid_file.open('w+') as f:
+        # Filter out all None columns
+        columns = [c for c in reader.columns if c]
+
+        writer = csv.DictWriter(
+            f,
+            fieldnames=columns,
+            delimiter=reader.delimiter,
+            quotechar=reader.quotechar,
+            escapechar=reader.escapechar
+        )
+
+        writer.writeheader()
 
         for line in lines:
-            f.write(f"{line.raw}\n")
+            result = dict(line.items())
+            writer.writerow(dict(line.items()))
