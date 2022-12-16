@@ -22,7 +22,7 @@ class CSV:
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
                  skipInitialSpace: int, loadLinesMax: int, has_header: bool,
                  columns: Union[None, list], **kwargs):
-        self.delimeter = delimiter
+        self.delimiter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace
@@ -52,7 +52,7 @@ class CSV:
 
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
-        self.reader = csv.reader(self.handle, delimiter=self.delimeter,
+        self.reader = csv.reader(self.handle, delimiter=self.delimiter,
                                  quotechar=self.quotechar,
                                  skipinitialspace=self.skipInitialSpace,
                                  escapechar=self.escapechar
