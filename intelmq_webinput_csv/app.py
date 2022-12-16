@@ -4,8 +4,7 @@
 import traceback
 import os
 
-from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, send_file
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
@@ -198,9 +197,11 @@ def submit():
 @app.route('/uploads/current')
 def get_current_upload():
     tmp_file = util.get_temp_file()
-    with tmp_file.open(encoding='utf8') as handle:
-        resp = util.create_response(handle.read(), content_type='text/csv')
-    return resp
+
+    if not tmp_file.exists():
+        return "File not found", 404
+
+    return send_file(tmp_file, mimetype='text/csv')
 
 
 def main():
