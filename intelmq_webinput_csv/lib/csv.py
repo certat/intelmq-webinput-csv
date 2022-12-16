@@ -140,6 +140,20 @@ class CSVLine():
         columns = self.columns if self.columns else itertools.repeat(None)
         return zip(columns, self.cells)
 
+    def items(self) -> dict:
+        """ Generate key:value pairs for all cells/columns
+
+        Returns:
+            dict: with column - value 
+        """
+        # Loop through all columns and cells
+        for (column, value) in self:
+            # Skip empty columns or cells
+            if not column or not value:
+                continue
+
+            yield (column, value)
+
     def _event_add(self, key: str, value: str, overwrite: bool = False):
         """ Add field to IntelMQ Event
 
@@ -214,11 +228,7 @@ class CSVLine():
         self._verify_columns()
 
         # Parse all cells in row
-        for (column, value) in self:
-            # Skip empty columns or cells
-            if not column or not value:
-                continue
-
+        for (column, value) in self.items():
             self.parse_cell(value, column)
 
         # Set any custom fields
