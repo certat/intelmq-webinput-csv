@@ -4,7 +4,6 @@
 import traceback
 import os
 
-from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, render_template, send_file
 
 from intelmq import CONFIG_DIR

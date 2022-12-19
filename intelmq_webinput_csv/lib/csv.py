@@ -195,7 +195,7 @@ class CSVLine():
         """
 
         if column.startswith('time.'):
-            value = util.parse_time(value)
+            value = util.parse_time(value, timezone=self.parameters['timezone'])
         elif column == 'extra':
             value = util.handle_extra(value)
 

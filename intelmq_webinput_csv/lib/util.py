@@ -81,7 +81,7 @@ def load_harmonization_config(load_json: bool = False) -> dict:
         return HARMONIZATION_CONF
 
 
-def parse_time(value: str, timezone: Union[str, None]) -> date:
+def parse_time(value: str, timezone: Union[str, None] = None) -> date:
     """ Parse date string
 
     Parameters:
