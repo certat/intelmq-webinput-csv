@@ -4,6 +4,7 @@ import collections
 
 from pathlib import Path
 from typing import Union, Tuple, List
+from flask import current_app as app
 
 from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
@@ -239,5 +240,10 @@ class CSVLine():
         for key in required:
             if self.parameters.get(key):
                 self._event_add(key, self.parameters[key])
+
+        # Configure UUID
+        field_uuid = app.config.get('GENERATE_UUID')
+        if field_uuid:
+            self._event_add(field_uuid, self.parameters['uuid'])
 
         return self.event

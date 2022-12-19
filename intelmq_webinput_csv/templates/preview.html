@@ -19,6 +19,8 @@
                 {% endfor %}
             {% endif %}
         };
+
+        const d_uuid = '{{ uuid }}';
     </script>
 
     <script src="{{ url_for('static', filename='plugins/vue-select-1.3.3.js') }}"></script>
@@ -53,6 +55,12 @@
                                         <option v-for="(key, value) in pipelines" :value="key">{% raw %}{{value}}{% endraw %}</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="field" v-if="previewFormData.uuid">
+                            <div class="control">
+                                <label class="label">UUID</label>
+                                <input class="input" type="text" placeholder="previewFormData.uuid" v-model="previewFormData.uuid" readonly>
                             </div>
                         </div>
                         <div class="field">

@@ -1,3 +1,4 @@
+import uuid
 import json
 
 from typing import Union
@@ -18,6 +19,7 @@ PIPELINE = None
 HARMONIZATION_CONF = None
 PARAMETERS = {
     'pipeline': '',
+    'uuid': '',
     'timezone': '+00:00',
     'classification.type': 'test',
     'classification.identifier': 'test',
@@ -203,3 +205,12 @@ def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipe
         PIPELINE.set_queues(pipeline, "destination")
 
     return PIPELINE
+
+
+def generate_uuid() -> str:
+    """ Generate a UUID
+
+    Returns:
+        str: random UUID
+    """
+    return uuid.uuid4()
