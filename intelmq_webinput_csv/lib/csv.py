@@ -23,7 +23,7 @@ class CSV:
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
                  skipInitialSpace: int, loadLinesMax: int, has_header: bool,
                  columns: Union[None, list], **kwargs):
-        self.delimeter = delimiter
+        self.delimiter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace
@@ -53,7 +53,7 @@ class CSV:
 
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
-        self.reader = csv.reader(self.handle, delimiter=self.delimeter,
+        self.reader = csv.reader(self.handle, delimiter=self.delimiter,
                                  quotechar=self.quotechar,
                                  skipinitialspace=self.skipInitialSpace,
                                  escapechar=self.escapechar
@@ -61,7 +61,7 @@ class CSV:
 
         if self.has_header:
             first_line = next(self.reader)
-            self.columns_raw = self.handle.current_line
+            self.columns_raw = self.handle.current_line.strip('\n')
 
             if not self.columns:
                 self.columns = first_line
@@ -141,6 +141,20 @@ class CSVLine():
         columns = self.columns if self.columns else itertools.repeat(None)
         return zip(columns, self.cells)
 
+    def items(self) -> dict:
+        """ Generate key:value pairs for all cells/columns
+
+        Returns:
+            dict: with column - value 
+        """
+        # Loop through all columns and cells
+        for (column, value) in self:
+            # Skip empty columns or cells
+            if not column or not value:
+                continue
+
+            yield (column, value)
+
     def _event_add(self, key: str, value: str, overwrite: bool = False):
         """ Add field to IntelMQ Event
 
@@ -215,11 +229,7 @@ class CSVLine():
         self._verify_columns()
 
         # Parse all cells in row
-        for (column, value) in self:
-            # Skip empty columns or cells
-            if not column or not value:
-                continue
-
+        for (column, value) in self.items():
             self.parse_cell(value, column)
 
         # Set any custom fields
