@@ -26,10 +26,12 @@ var vm_preview = new Vue({
             dryRun: true,
             useColumn: 0,
             columns: 'source.ip',
+            pipeline: ''
         },
         hasHeader: JSON.parse(sessionStorage.hasHeader),
         headerContent: [],
         bodyContent: [],
+        pipelines: d_pipelines
     },
     computed: {
         timezones: function () {
@@ -136,6 +138,7 @@ var vm_preview = new Vue({
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
+            formData.append('pipeline', this.previewFormData.pipeline);
 
             // custom_fields defined in HTML
             for (field_name in custom_fields) {
@@ -182,6 +185,7 @@ var vm_preview = new Vue({
 
             var formData = new FormData();
 
+            formData.append('pipeline', []);
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('dryrun', this.previewFormData.dryRun);

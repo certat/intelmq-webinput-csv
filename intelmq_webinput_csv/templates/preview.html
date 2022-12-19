@@ -10,6 +10,15 @@
             '{{ name }}': '{{ jskey }}',
         {% endfor %}
         };
+
+        {# Set const for Pipeline options if configured #}
+        const d_pipelines = {
+            {% if config['DESTINATION_PIPELINE_QUEUE'] is mapping %}
+                {% for name, value in config.get('DESTINATION_PIPELINE_QUEUE', {}).items() %}
+                    "{{ name }}": "{{ value }}",
+                {% endfor %}
+            {% endif %}
+        };
     </script>
 
     <script src="{{ url_for('static', filename='plugins/vue-select-1.3.3.js') }}"></script>
@@ -35,6 +44,16 @@
                             <p class="subtitle" v-bind:style="paragraphStyle">
                                 {% raw %}{{numberFailed}}{% endraw %} lines failed
                             </p>
+                        </div>
+                        <div class="field" v-if="Object.keys(pipelines).length">
+                            <div class="control">
+                                <label class="label">pipeline</label>
+                                <div class="select">
+                                    <select v-model="previewFormData.pipeline">
+                                        <option v-for="(key, value) in pipelines" :value="key">{% raw %}{{value}}{% endraw %}</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <div class="field">
                             <div class="control">
