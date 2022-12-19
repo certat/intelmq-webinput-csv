@@ -243,5 +243,4 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine]):
         writer.writeheader()
 
         for line in lines:
-            result = dict(line.items())
             writer.writerow(dict(line.items()))
