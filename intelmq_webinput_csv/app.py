@@ -215,7 +215,6 @@ def get_failed_upload():
     return send_file(tmp_file, mimetype='text/csv')
 
 
-
 def main():
     app.run()
 
