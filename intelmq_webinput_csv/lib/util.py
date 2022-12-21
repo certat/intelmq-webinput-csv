@@ -1,6 +1,7 @@
 import uuid
 import csv
 import json
+import random
 
 from typing import Union, List
 from datetime import date
@@ -244,3 +245,9 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine]):
 
         for line in lines:
             writer.writerow(dict(line.items()))
+
+
+def calculate_segments(reader):
+    segments = round(len(reader) / 100)
+    segments += random.randint(1, 9)  # Make the proces update bit more randomised
+    return segments

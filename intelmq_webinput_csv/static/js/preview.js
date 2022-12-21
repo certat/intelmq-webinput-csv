@@ -2,12 +2,15 @@
  * Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
  * SPDX-License-Identifier: AGPL-3.0
  */
+
 Vue.component('v-select', VueSelect.VueSelect)
 var vm_preview = new Vue({
     el: '#CSVapp',
 
     data: {
+        socket: io('/preview', {path: BASE_URL + 'socket.io/preview'}),
         numberTotal: 0,
+        numberSuccessful: 0,
         numberFailed: 0,
         numberSuccessful: 0,
         servedUseColumns: [],
@@ -127,6 +130,9 @@ var vm_preview = new Vue({
         },
         submitButtonClicked: function (e) {
             var button = $(e.target);
+            var progressBar = $("#progress");
+
+            progressBar.removeAttr('value');
             button.addClass("is-loading");
 
             $('body,html').animate({
@@ -166,31 +172,7 @@ var vm_preview = new Vue({
 
 
             this.saveDataInSession();
-
-            var request = new XMLHttpRequest();
-            var self = this;
-
-            request.onreadystatechange = function () {
-                if (request.readyState == XMLHttpRequest.DONE) {
-                    var previewResponse = self.readBody(request);
-                    previewResponse = JSON.parse(previewResponse);
-
-                    self.numberFailed = previewResponse.lines_invalid;
-                    self.numberTotal = previewResponse.succesful_lines;
-
-                    if (self.numberFailed > 0)
-                        $('button#failedButton').removeAttr('disabled')
-
-                    self.highlightErrors(previewResponse);
-                    button.removeClass("is-loading");
-
-                    var message = 'Successfully processed '+self.numberTotal+' lines.'
-                    alert(message);
-                }
-            };
-
-            request.open('POST', BASE_URL + '/submit');
-            request.send(formData);
+            this.socket.emit("submit", Object.fromEntries(formData.entries()));
         },
         failedButtonClicked: function (e) {
             var button = $(e.target);
@@ -236,29 +218,7 @@ var vm_preview = new Vue({
 
 
             this.saveDataInSession();
-
-            var request = new XMLHttpRequest();
-            var self = this;
-
-            request.onreadystatechange = function () {
-                if (request.readyState == XMLHttpRequest.DONE) {
-                    var previewResponse = self.readBody(request);
-                    sessionStorage.setItem('previewResponse', previewResponse);
-
-                    previewResponse = JSON.parse(previewResponse);
-                    self.numberFailed = previewResponse.lines_invalid;
-                    self.numberTotal = previewResponse.total;
-
-                    if (self.numberFailed > 0)
-                        $('button#failedButton').removeAttr('disabled')
-
-                    self.highlightErrors(previewResponse);
-                    button.removeClass("is-loading");
-                }
-            };
-
-            request.open('POST', BASE_URL + '/preview');
-            request.send(formData);
+            this.socket.emit("validate", Object.fromEntries(formData.entries()));
         },
         saveDataInSession: function () {
             this.getColumns();
@@ -382,6 +342,42 @@ var vm_preview = new Vue({
         },
         classificationTypeChange: function (event) {
             $("#resulting-taxonomy")[0].innerText = this.classificationMapping[event.target.value]
+        },
+        processingEvent: function (data) {
+            var progressBar = $("#progress");
+            progressBar.val(data['progress']);
+
+            if (data['failed'] > 0 && data['successful'] == 0) {
+                progressBar.removeClass("is-info is-warning")
+                progressBar.addClass("is-danger")
+            } else if (data['failed'] > 0 && data['successful'] > 0) {
+                progressBar.removeClass("is-info is-danger")
+                progressBar.addClass("is-warning")
+            }
+
+            this.numberTotal = data['total'];
+            this.numberSuccessful = data['successful'];
+            this.numberFailed = data['failed'];
+        },
+        finishedEvent: function (data) {
+            var progressBar = $("#progress");
+
+            this.numberTotal = data['total'];
+            this.numberFailed = data['failed'];
+            this.numberSuccessful = data['successful'];
+
+            button.removeClass("is-loading");
+
+            if (self.numberFailed > 0)
+                $('button#failedButton').removeAttr('disabled')
+
+            else if (self.numberFailed == 0) {
+                progressBar.removeClass("is-info")
+                progressBar.addClass("is-success")
+            }
+
+            progressBar.val(100);
+            alert(data['message']);
         }
     },
     beforeMount() {
@@ -390,6 +386,10 @@ var vm_preview = new Vue({
             jskey = custom_fields[field_name];
             this.previewFormData[jskey] = field_name;
         }
+
+        this.socket.on('data', this.processingEvent);
+        this.socket.on('processing', this.processingEvent);
+        this.socket.on('finished', this.finishedEvent);
 
         this.getServedDhoFields();
         this.getClassificationTypes();

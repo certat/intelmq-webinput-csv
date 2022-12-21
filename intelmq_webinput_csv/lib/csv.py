@@ -23,7 +23,7 @@ class CSV:
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
                  skipInitialSpace: int, loadLinesMax: int, has_header: bool,
                  skipInitialLines: int, columns: Union[None, list], **kwargs):
-        self.delimeter = delimiter
+        self.delimiter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace

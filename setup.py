@@ -26,6 +26,7 @@ setup(
     maintainer_email='wagner@cert.at',
     install_requires=[
         'Flask',
+        'flask-socketio',
         'intelmq>=3.0.0',
         ],
     test_suite='intelmq_webinput_csv.tests',

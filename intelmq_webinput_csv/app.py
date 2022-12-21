@@ -4,6 +4,7 @@
 import traceback
 import os
 
+from flask_socketio import SocketIO, emit
 from flask import Flask, request, render_template, send_file
 
 from intelmq import CONFIG_DIR
@@ -30,11 +31,12 @@ def create_app():
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
 
-    return app
+    socketio = SocketIO(app, always_connect=True)
+
+    return (app, socketio)
 
 
-# Create Flask App
-app = create_app()
+app, socketio = create_app()
 
 
 @app.route('/')
@@ -92,23 +94,30 @@ def upload():
     }
 
 
-@app.route('/preview', methods=['GET', 'POST'])
+@app.route('/preview', methods=['GET'])
 def preview():
     if request.method == 'GET':
         # Check config for generating UUID
         uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
         return render_template('preview.html', uuid=uuid)
 
-    parameters = util.handle_parameters(request.form)
+
+@socketio.on('validate', namespace='/preview')
+def validate(data):
+    parameters = util.handle_parameters(data)
     tmp_file = util.get_temp_file()
+
     if not tmp_file.exists():
         app.logger.info('no file')
-        return util.create_response('No file')
+        emit("finished", {'message': 'no file found'})
+        return
 
     exceptions = []
     invalid_lines = []
 
     with CSV.create(file=tmp_file, **parameters) as reader:
+        segment_size = util.calculate_segments(reader)
+
         for line in reader:
 
             try:
@@ -136,14 +145,22 @@ def preview():
                     repr(exc)
                 ))
 
+            if (line.index % segment_size) == 0:
+                emit('processing', {
+                    "total": len(reader),
+                    "failed": invalid_lines,
+                    "successful": line.index - invalid_lines,
+                    "progress": round((len(reader) / line.index) * 100)
+                })
+
     # Save invalid lines to CSV file in tmp
     util.save_failed_csv(reader, invalid_lines)
 
-    return {
+    emit('finished', {
         "total": len(reader),
-        "lines_invalid": len(invalid_lines),
+        "lines_invalid": invalid_lines,
         "errors": exceptions
-    }
+    })
 
 
 @app.route('/classification/types')
@@ -157,10 +174,11 @@ def harmonization_event_fields():
     return events['event']
 
 
-@app.route('/submit', methods=['POST'])
-def submit():
+@socketio.on('submit', namespace='/preview')
+def submit(data):
     tmp_file = util.get_temp_file()
-    parameters = util.handle_parameters(request.form)
+    parameters = util.handle_parameters(data)
+    parameters['loadLinesMax'] = 0
 
     if not tmp_file.exists():
         return util.create_response('No file')
@@ -170,6 +188,8 @@ def submit():
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
+        segment_size = util.calculate_segments(reader)
+
         for line in reader:
             try:
                 event = line.parse()
@@ -186,13 +206,24 @@ def submit():
             else:
                 successful_lines += 1
 
+            if (line.index % segment_size) == 0:
+                data = {
+                    "total": len(reader),
+                    "successful": successful_lines,
+                    "failed": line.index - successful_lines,
+                    "progress": round((line.index + 1) / len(reader) * 100)
+                }
+                emit('processing', data, namespace="/preview")
+
     # Save invalid lines to CSV file in tmp
     util.save_failed_csv(reader, invalid_lines)
 
-    return {
+    emit('finished', {
+        'total': len(reader),
+        'successful': successful_lines,
         "successful_lines": len(reader),
         "lines_invalid": len(invalid_lines),
-    }
+    }, namespace="/preview")
 
 
 @app.route('/uploads/current')
@@ -216,7 +247,7 @@ def get_failed_upload():
 
 
 def main():
-    app.run()
+    socketio.run(app)
 
 
 if __name__ == "__main__":
