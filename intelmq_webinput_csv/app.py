@@ -4,6 +4,7 @@
 import traceback
 import os
 
+from flask_socketio import SocketIO, emit
 from flask import Flask, request, render_template, send_file
 
 from intelmq import CONFIG_DIR
@@ -31,10 +32,12 @@ def create_app():
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
 
-    return app
+    socketio = SocketIO(app, always_connect=True)
+
+    return (app, socketio)
 
 
-app = create_app()
+app, socketio = create_app()
 
 
 @app.route('/')
@@ -205,7 +208,7 @@ def get_current_upload():
 
 
 def main():
-    app.run()
+    socketio.run(app)
 
 
 if __name__ == "__main__":

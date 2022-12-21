@@ -2,11 +2,13 @@
  * Copyright (c) 2017-2018 nic.at GmbH <wagner@cert.at>
  * SPDX-License-Identifier: AGPL-3.0
  */
+
 Vue.component('v-select', VueSelect.VueSelect)
 var vm_preview = new Vue({
     el: '#CSVapp',
 
     data: {
+        socket: io('/preview', {path: BASE_URL + 'socket.io/preview'}),
         numberTotal: 0,
         numberFailed: 0,
         servedUseColumns: [],
