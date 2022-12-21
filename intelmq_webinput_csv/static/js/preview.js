@@ -9,6 +9,7 @@ var vm_preview = new Vue({
     data: {
         numberTotal: 0,
         numberFailed: 0,
+        numberSuccessful: 0,
         servedUseColumns: [],
         servedColumnTypes: [],
         paragraphStyle: {

@@ -22,11 +22,12 @@ class CSV:
 
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
                  skipInitialSpace: int, loadLinesMax: int, has_header: bool,
-                 columns: Union[None, list], **kwargs):
-        self.delimiter = delimiter
+                 skipInitialLines: int, columns: Union[None, list], **kwargs):
+        self.delimeter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace
+        self.skipInitialLines = skipInitialLines
         self.max_lines = loadLinesMax
         self.has_header = has_header
         self.columns = columns
@@ -67,8 +68,8 @@ class CSV:
                 self.columns = first_line
 
         # Skip initial n lines
-        if self.skipInitialSpace:
-            for _ in range(self.skipInitialSpace):
+        if self.skipInitialLines:
+            for _ in range(self.skipInitialLines):
                 next(self.reader)
 
         return self
@@ -77,8 +78,7 @@ class CSV:
         self.handle.f.close()
 
     def __contains__(self, other):
-        result = (self.columns and other in self.columns)
-        return result
+        return (self.columns and other in self.columns)
 
     def __iter__(self):
         return self

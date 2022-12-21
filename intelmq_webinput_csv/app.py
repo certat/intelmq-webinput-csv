@@ -43,7 +43,7 @@ def form():
 
 
 @app.route('/upload', methods=['POST'])
-def upload_file():
+def upload():
     tmp_file = util.get_temp_file()
 
     if 'file' in request.files and request.files['file'].filename:
