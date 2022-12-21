@@ -95,21 +95,26 @@ def upload_file():
     }
 
 
-@app.route('/preview', methods=['GET', 'POST'])
+@app.route('/preview', methods=['GET'])
 def preview():
-    if request.method == 'GET':
-        return render_template('preview.html')
+    return render_template('preview.html')
 
-    parameters = util.handle_parameters(request.form)
+
+@socketio.on('validate', namespace='/preview')
+def validate(data):
+    parameters = util.handle_parameters(data)
     tmp_file = util.get_temp_file()
+
     if not tmp_file.exists():
         app.logger.info('no file')
-        return util.create_response('No file')
+        emit("finished", {'message': 'no file found'})
+        return
 
     exceptions = []
     invalid_lines = 0
 
     with CSV.create(file=tmp_file, **parameters) as reader:
+        devide = round(reader.len / 100)
         for line in reader:
 
             try:
@@ -137,11 +142,22 @@ def preview():
                     repr(exc)
                 ))
 
-    return {
+            data = {
+                "total": len(reader),
+                "failed": invalid_lines,
+                "successful": line.index - invalid_lines,
+                "progress": round((len(reader) / line.index) * 100)
+            }
+
+            if (line.index % devide) == 0:
+                emit('processing', data)
+
+    emit('finished', {
         "total": len(reader),
-        "lines_invalid": invalid_lines,
+        "failed": invalid_lines,
+        "successful": len(reader) - invalid_lines,
         "errors": exceptions
-    }
+    })
 
 
 @app.route('/classification/types')
@@ -155,12 +171,16 @@ def harmonization_event_fields():
     return events['event']
 
 
-@app.route('/submit', methods=['POST'])
-def submit():
+@socketio.on('submit', namespace='/preview')
+def submit(data):
     tmp_file = util.get_temp_file()
-    parameters = util.handle_parameters(request.form)
+    parameters = util.handle_parameters(data)
+    parameters['loadLinesMax'] = 0
+
     if not tmp_file.exists():
-        return util.create_response('No file')
+        app.logger.info('no file')
+        emit("preview", {'message': 'no file found'})
+        return
 
     destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
                                                   logger=app.logger,
@@ -173,6 +193,7 @@ def submit():
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
+        devide = round(len(reader) / 100)
         for line in reader:
             try:
                 event = line.parse()
@@ -192,9 +213,21 @@ def submit():
             else:
                 successful_lines += 1
 
-    return {
+            data = {
+                "total": len(reader),
+                "successful": successful_lines,
+                "failed": line.index - successful_lines,
+                "progress": round((line.index + 1) / len(reader) * 100)
+            }
+
+            if (line.index % devide) == 0:
+                emit('processing', data, namespace="/preview")
+
+    emit('finished', {
+        'total': len(reader),
+        'successful': successful_lines,
         'message': f'Successfully processed {successful_lines} lines.'
-    }
+    }, namespace="/preview")
 
 
 @app.route('/uploads/current')
