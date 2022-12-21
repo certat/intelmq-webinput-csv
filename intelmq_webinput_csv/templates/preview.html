@@ -46,38 +46,54 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="field">
-                            <div class="control">
-                                <label class="label">dry run</label>
-                                <input type="checkbox" v-model="previewFormData.dryRun">
-                            </div>
-                        </div>
-                        <br>
-                        <div class="content">
-                            <p class="subtitle">Constant fields (fallback):</p>
-                        </div>
-                        <div class="field">
-                            <div class="control">
-                                <label class="label">classification type</label>
-                                <div class="select">
-                                    <select v-model="previewFormData.classificationType" v-on:change="classificationTypeChange">
-                                        <option disabled value="">select ...</option>
-                                        <option v-for="type in classificationTypes" :value="type">{% raw %}{{type}}{% endraw %}</option>
-                                    </select>
-                                </div>
-                                <div><p>Taxonomy: <span id="resulting-taxonomy">select type</span></p></div>
-                            </div>
-                        </div>
-
-                        {% for name, value in config['CUSTOM_INPUT_FIELDS'].items() %}
-                            {% set jskey = 'custom' + name.title().replace('.', '') %}
-                            <div class="field">
+                        <nav class="panel">
+                            <p class="panel-heading">
+                                Options
+                            </p>
+                            <div class="panel-block">
                                 <div class="control">
-                                    <label class="label">{{ name }}</label>
-                                    <input class="input" type="text" placeholder="{{ name }}" v-model="previewFormData.{{ jskey }}">
+                                    <label class="label">timezone</label>
+                                    <div class="select">
+                                        <select v-model="previewFormData.timezone">
+                                            <option v-for="timezone in timezones" :value="timezone">{% raw %}{{timezone}}{% endraw %}</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        {% endfor %}
+                            <div class="panel-block">
+                                <div class="control">
+                                    <label class="label">dry run</label>
+                                    <input type="checkbox" v-model="previewFormData.dryRun">
+                                </div>
+                            </div>
+                            <br>
+                            <div class="panel-block">
+                                <p class="subtitle">Constant fields (fallback):</p>
+                            </div>
+                            <div class="panel-block">
+                                <div class="control">
+                                    <label class="label">classification type</label>
+                                    <div class="select">
+                                        <select v-model="previewFormData.classificationType" v-on:change="classificationTypeChange">
+                                            <option disabled value="">select ...</option>
+                                            <option v-for="type in classificationTypes" :value="type">{% raw %}{{type}}{% endraw %}</option>
+                                        </select>
+                                    </div>
+                                    <div><p>Taxonomy: <span id="resulting-taxonomy">select type</span></p></div>
+                                </div>
+                            </div>
+
+                            {% for name, value in config['CUSTOM_INPUT_FIELDS'].items() %}
+                                {% set jskey = 'custom' + name.title().replace('.', '') %}
+                                <div class="panel-block">
+                                    <div class="control">
+                                        <label class="label">{{ name }}</label>
+                                        <input class="input" type="text" placeholder="{{ name }}" v-model="previewFormData.{{ jskey }}">
+                                    </div>
+                                </div>
+                            {% endfor %}
+
+                        </nav>
                     </div>
                     <div class="column is-offset-1">
                         <table class="table is-bordered is-striped" id="dataTable">

@@ -17,22 +17,59 @@ SPDX-License-Identifier: AGPL-3.0
 </head>
 
 <body>
-    <script>
-        const BASE_URL = '{{ url_for("form") }}';
-    </script>
-    <section class="section" id="CSVapp">
-        <!--header-->
-        <section class="section">
-            <div class="container">
-                <h1 class="title is-spaced">
-                    {% block title %}{% endblock %}
-                </h1>
-                <p class="subtitle">
-                    {% block subtitle %}{% endblock %}
-                </p>
-            </div>
-        </section>
+  <script>
+    const BASE_URL = '{{ url_for("form") }}';
+  </script>
 
+    <section class="hero is-primary is-small">
+        <!-- Hero head: will stick at the top -->
+        <div class="hero-head">
+          <nav class="navbar">
+            <div class="container">
+              <div class="navbar-brand">
+                <a class="navbar-item">
+                  <nav class="level">
+                    <div class="level-left">
+                    <div class="level-item">
+                      <img src="https://certtools.github.io/images/intelmq_carrousel.png" height="10px">
+                    </div>
+                    <div class="level-item">
+                      <p class="is-size-4">  CSV Uploader</p>
+                    </div>
+                    </div>
+                  </nav>
+                </a>
+                <span class="navbar-burger" data-target="navbarMenuHeroA">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </span>
+              </div>
+              <div id="navbarMenuHeroA" class="navbar-menu">
+                <div class="navbar-end">
+                  <a href="{{ url_for('form') }}", class="navbar-item {% if request.url_rule.endpoint == 'form' %} is-active{% endif %}">
+                    Upload
+                  </a>
+                  <a href="{{ url_for('preview') }}", class="navbar-item {% if request.url_rule.endpoint == 'preview' %} is-active{% endif %}">
+                    Preview
+                  </a>
+                </div>
+              </div>
+            </div>
+          </nav>
+        </div>
+      
+        <!-- Hero content: will be in the middle -->
+        <div class="hero-body">
+          <div class="container has-text-centered">
+            <p class="title">
+                {% block title %}{% endblock %}
+            </p>
+          </div>
+        </div>
+    </section>
+
+    <section class="section" id="CSVapp">
         {% block content %}{% endblock %}
 
         <!--Footer-->
