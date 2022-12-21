@@ -32,7 +32,6 @@
 
 {% block content %}
 <form id="form" @change="saveDataInSession()">
-    <section class="section">
         <div class="columns">
             <div class="column is-one-quarter">
                 <div class="card block">
@@ -65,7 +64,7 @@
                         <progress id="progress" class="progress is-info" value="0" max="100" hidden>0%</progress>
                     </div>
                 </div>
-                <nav class="panel">
+                <nav class="panel is-info">
                     <p class="panel-heading">
                         Options
                     </p>
@@ -128,29 +127,29 @@
                         </div>
                     {% endfor %}
 
-                </nav>
-                <div class="container">
-                    <div class="field is-grouped">
-                        <div class="control">
-                            <button id="failedButton" class="button is-danger" type="button" v-on:click="failedButtonClicked($event)" disabled>Failed lines</button>
-                        </div>
-                        <div class="control">
-                            <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Validate table</button>
-                        </div>
-                        <div class="control">
-                            <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
+                    <div class="panel-block">
+                        <div class="container">
+                            <div class="field is-grouped">
+                                <div class="control">
+                                    <button id="failedButton" class="button is-danger" type="button" v-on:click="failedButtonClicked($event)" disabled>Failed lines</button>
+                                </div>
+                                <div class="control">
+                                    <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Validate table</button>
+                                </div>
+                                <div class="control">
+                                    <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                </nav>
             </div>
             <div class="column is-full">
                 <table class="table is-bordered is-striped" id="dataTable">
                     <thead style="background-color:#e6ffff">
                         <tr>
                             <th style="text-align:center;vertical-align:middle" v-for="selectGroup in customDhoFields">
-                                <div class="select">
-                                    <v-select taggable :options="selectGroup"></v-select>
-                                </div>
+                                <v-select taggable :options="selectGroup"></v-select>
                             </th>
                         </tr>
                         <tr>
@@ -176,6 +175,5 @@
             <div class="column is-one-eighth">
             </div>
         </div>
-    </section>
 </form>
 {% endblock %}
