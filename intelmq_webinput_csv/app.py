@@ -114,7 +114,8 @@ def validate(data):
     invalid_lines = 0
 
     with CSV.create(file=tmp_file, **parameters) as reader:
-        devide = round(reader.len / 100)
+        segment_size = util.calculate_segments(reader)
+
         for line in reader:
 
             try:
@@ -142,15 +143,13 @@ def validate(data):
                     repr(exc)
                 ))
 
-            data = {
-                "total": len(reader),
-                "failed": invalid_lines,
-                "successful": line.index - invalid_lines,
-                "progress": round((len(reader) / line.index) * 100)
-            }
-
-            if (line.index % devide) == 0:
-                emit('processing', data)
+            if (line.index % segment_size) == 0:
+                emit('processing', {
+                    "total": len(reader),
+                    "failed": invalid_lines,
+                    "successful": line.index - invalid_lines,
+                    "progress": round((len(reader) / line.index) * 100)
+                })
 
     emit('finished', {
         "total": len(reader),
@@ -193,7 +192,8 @@ def submit(data):
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
-        devide = round(len(reader) / 100)
+        segment_size = util.calculate_segments(reader)
+
         for line in reader:
             try:
                 event = line.parse()
@@ -220,7 +220,7 @@ def submit(data):
                 "progress": round((line.index + 1) / len(reader) * 100)
             }
 
-            if (line.index % devide) == 0:
+            if (line.index % segment_size) == 0:
                 emit('processing', data, namespace="/preview")
 
     emit('finished', {

@@ -1,4 +1,5 @@
 import json
+import random
 
 from typing import Union
 from datetime import date
@@ -162,3 +163,11 @@ def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
     """
     dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
     return Path(dir) / filename
+
+
+def calculate_segments(reader):
+    segments = round(len(reader) / 100)
+    segments += random.randint(1, 9)  # Make the proces update bit more randomised
+    return segments
+
+
