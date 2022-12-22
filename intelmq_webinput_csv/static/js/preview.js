@@ -8,7 +8,7 @@ var vm_preview = new Vue({
     el: '#CSVapp',
 
     data: {
-        socket: io('/preview', {path: BASE_URL + 'socket.io/preview'}),
+        socket: io('/preview', {path: BASE_URL + '/socket.io/preview'}),
         numberTotal: 0,
         numberSuccessful: 0,
         numberFailed: 0,
