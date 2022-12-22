@@ -94,12 +94,11 @@ def upload():
     }
 
 
-@app.route('/preview', methods=['GET'])
+@app.route('/preview')
 def preview():
-    if request.method == 'GET':
-        # Check config for generating UUID
-        uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
-        return render_template('preview.html', uuid=uuid)
+    # Check config for generating UUID
+    uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
+    return render_template('preview.html', uuid=uuid)
 
 
 @socketio.on('validate', namespace='/preview')
