@@ -247,7 +247,7 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine]):
             writer.writerow(dict(line.items()))
 
 
-def calculate_segments(reader):
-    segments = round(len(reader) / 100)
+def calculate_segments(size: int):
+    segments = round(size / 100)
     segments += random.randint(1, 9)  # Make the proces update bit more randomised
     return segments

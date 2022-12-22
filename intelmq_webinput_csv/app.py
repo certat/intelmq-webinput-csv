@@ -116,7 +116,7 @@ def validate(data):
     invalid_lines = []
 
     with CSV.create(file=tmp_file, **parameters) as reader:
-        segment_size = util.calculate_segments(reader)
+        segment_size = util.calculate_segments(reader.max_lines)
 
         for line in reader:
 
@@ -148,18 +148,20 @@ def validate(data):
             if (line.index % segment_size) == 0:
                 emit('processing', {
                     "total": len(reader),
-                    "failed": invalid_lines,
-                    "successful": line.index - invalid_lines,
-                    "progress": round((len(reader) / line.index) * 100)
+                    "failed": len(invalid_lines),
+                    "successful": (line.index + 1) - len(invalid_lines),
+                    "progress": round((line.index + 1) / len(reader) * 100)
                 })
 
     # Save invalid lines to CSV file in tmp
     util.save_failed_csv(reader, invalid_lines)
 
     emit('finished', {
-        "total": len(reader),
-        "lines_invalid": invalid_lines,
-        "errors": exceptions
+        "total": reader.max_lines,
+        "successful": reader.max_lines - len(invalid_lines),
+        "failed": len(invalid_lines),
+        "errors": exceptions,
+        "message": "Validation finished!"
     })
 
 
@@ -188,7 +190,7 @@ def submit(data):
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
-        segment_size = util.calculate_segments(reader)
+        segment_size = util.calculate_segments(len(reader))
 
         for line in reader:
             try:
@@ -210,7 +212,7 @@ def submit(data):
                 data = {
                     "total": len(reader),
                     "successful": successful_lines,
-                    "failed": line.index - successful_lines,
+                    "failed": len(invalid_lines),
                     "progress": round((line.index + 1) / len(reader) * 100)
                 }
                 emit('processing', data, namespace="/preview")
@@ -221,8 +223,8 @@ def submit(data):
     emit('finished', {
         'total': len(reader),
         'successful': successful_lines,
-        "successful_lines": len(reader),
-        "lines_invalid": len(invalid_lines),
+        "failed": len(invalid_lines),
+        'message': f'Successfully processed {successful_lines} lines.'
     }, namespace="/preview")
 
 
