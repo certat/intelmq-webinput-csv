@@ -36,6 +36,7 @@ var vm_preview = new Vue({
         hasHeader: JSON.parse(sessionStorage.hasHeader),
         headerContent: [],
         bodyContent: [],
+        usedButton: null, 
         pipelines: d_pipelines
     },
     computed: {
@@ -117,23 +118,12 @@ var vm_preview = new Vue({
                 this.setPredefinedData();
             }
         },
-        readBody: function (xhr) {
-            var data;
-            if (!xhr.responseType || xhr.responseType === "text") {
-                data = xhr.responseText;
-            } else if (xhr.responseType === "document") {
-                data = xhr.responseXML;
-            } else {
-                data = xhr.response;
-            }
-            return data;
-        },
         submitButtonClicked: function (e) {
-            var button = $(e.target);
+            this.usedButton = $(e.target);
             var progressBar = $("#progress");
 
             progressBar.removeAttr('value');
-            button.addClass("is-loading");
+            this.usedButton.addClass("is-loading");
 
             $('body,html').animate({
                 scrollTop: 0
@@ -179,8 +169,11 @@ var vm_preview = new Vue({
             window.open(BASE_URL + '/uploads/failed', '_blank');
         },
         refreshButtonClicked: function (e) {
-            var button = $(e.target);
-            button.addClass("is-loading");
+            this.usedButton = $(e.target);
+            var progressBar = $("#progress");
+
+            this.usedButton.addClass("is-loading");
+            progressBar.removeAttr('value');
 
             $('body,html').animate({
                 scrollTop: 0
@@ -247,7 +240,7 @@ var vm_preview = new Vue({
 
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[0].cells[i];
-                selectedValue = cell.firstChild.firstChild.firstChild.firstChild.firstChild.firstChild;
+                selectedValue = cell.firstChild.firstChild.firstChild.firstChild.firstChild;
                 if (null === selectedValue) {
                     value = null;
                 } else {
@@ -366,12 +359,12 @@ var vm_preview = new Vue({
             this.numberFailed = data['failed'];
             this.numberSuccessful = data['successful'];
 
-            button.removeClass("is-loading");
+            this.usedButton.removeClass("is-loading");
 
-            if (self.numberFailed > 0)
+            if (this.numberFailed > 0){
                 $('button#failedButton').removeAttr('disabled')
-
-            else if (self.numberFailed == 0) {
+                this.highlightErrors(data);
+            } else if (this.numberFailed == 0) {
                 progressBar.removeClass("is-info")
                 progressBar.addClass("is-success")
             }
