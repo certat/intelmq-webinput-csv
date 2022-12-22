@@ -201,6 +201,9 @@ def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipe
             logger=app.logger,
             direction='destination'
         )
+
+        # Load config and connect in Singleton
+        PIPELINE.load_configurations('destination')
         PIPELINE.connect()
 
     # Ensure that Pipeline has correct destination queue
