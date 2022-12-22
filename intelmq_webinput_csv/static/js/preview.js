@@ -33,7 +33,7 @@ var vm_preview = new Vue({
             pipeline: '',
             uuid: d_uuid
         },
-        hasHeader: JSON.parse(sessionStorage.hasHeader),
+        hasHeader: (sessionStorage.hasHeader === 'true'),
         headerContent: [],
         bodyContent: [],
         usedButton: null, 
@@ -294,8 +294,9 @@ var vm_preview = new Vue({
         },
         splitUploadResponse: function () {
             var uploadResponse = sessionStorage.getItem('uploadResponse');
-            uploadResponse = JSON.parse(uploadResponse);
             if (uploadResponse == "") return;
+
+            uploadResponse = JSON.parse(uploadResponse);
 
             if (this.hasHeader) {
                 this.headerContent = uploadResponse.preview.splice(0, 1);
