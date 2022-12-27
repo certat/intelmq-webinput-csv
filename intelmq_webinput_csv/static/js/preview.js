@@ -16,9 +16,6 @@ var vm_preview = new Vue({
         numberSuccessful: 0,
         servedUseColumns: [],
         servedColumnTypes: [],
-        paragraphStyle: {
-            color: 'black',
-        },
         classificationTypes: [],
         classificationMapping: {},
         servedDhoFields: [],
@@ -120,6 +117,8 @@ var vm_preview = new Vue({
             }
         },
         submitButtonClicked: function (e) {
+            this.cleanUp();
+
             this.usedButton = $(e.target);
             var progressBar = $("#progress");
 
@@ -161,7 +160,6 @@ var vm_preview = new Vue({
             formData.append('skipInitialLines', sessionStorage.skipInitialLines);
             formData.append('loadLinesMax', sessionStorage.loadLinesMax);
 
-
             this.saveDataInSession();
             this.socket.emit("submit", Object.fromEntries(formData.entries()));
         },
@@ -170,6 +168,8 @@ var vm_preview = new Vue({
             window.open(BASE_URL + '/uploads/failed', '_blank');
         },
         refreshButtonClicked: function (e) {
+            this.cleanUp();
+
             this.usedButton = $(e.target);
             var progressBar = $("#progress");
 
@@ -209,7 +209,6 @@ var vm_preview = new Vue({
             formData.append('skipInitialSpace', sessionStorage.skipInitialSpace);
             formData.append('skipInitialLines', sessionStorage.skipInitialLines);
             formData.append('loadLinesMax', sessionStorage.loadLinesMax);
-
 
             this.saveDataInSession();
             this.socket.emit("validate", Object.fromEntries(formData.entries()));
@@ -264,34 +263,39 @@ var vm_preview = new Vue({
                 this.customUseColumns = this.previewFormData.useColumn;
             }
         },
-        resetTableColor: function () {
-            var rows = $('#dataTable > tbody')[0].rows.length;
-            var columns = $('#dataTable > tbody')[0].rows[0].cells.length;
+        cleanUp: function () {
+            var progressBar = $("#progress");
+            this.message = "";
 
-            for (var i = 0; i < columns; i++) {
-                for (var j = 0; j < rows; j++) {
-                    try {
-                        $('#dataTable > tbody')[0].rows[j].cells[i].removeAttribute('style')
-                    } catch (err) {}  // Cell may not exist
-                }
-            }
+            // Disable Failed downoad button
+            $('button#failedButton').attr('disabled')
+
+            // Cleanup progressbar
+            progressBar.val(0);
+            progressBar.removeClass("is-danger is-warning")
+            progressBar.addClass("is-info")
+
+            // Remove any previous failed/successful indicators
+            numberFailed = numberSuccessful = 0;
+
+            // Ensure that no faulty cells are shown
+            $('td[style]').each( function() {
+                $(this).removeAttr('style');
+            });
         },
         highlightErrors: function (data) {
-            this.resetTableColor();
-            var rows = $('#dataTable > tbody')[0].rows.length;
+            return new Promise(resolve => {
+                var rows = $('#dataTable > tbody')[0].rows.length;
 
-            if (data.errors.length === 0) {
-                this.paragraphStyle.color = '#00cc00'
-            } else {
-                this.paragraphStyle.color = '#cc0000'
-            }
-
-            for (var i = 0; i < data.errors.length; i++) {
-                if (data.errors[i][0] >= rows) {
-                    continue;  // Row is not shown in preview
+                for (var i = 0; i < data.errors.length; i++) {
+                    if (data.errors[i][0] >= rows) {
+                        continue;  // Row is not shown in preview
+                    }
+                    $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
                 }
-                $('#dataTable > tbody')[0].rows[data.errors[i][0]].cells[data.errors[i][1]].setAttribute('style', 'background-color: #ffcccc')
-            }
+                
+                resolve();
+            });
         },
         splitUploadResponse: function () {
             var uploadResponse = sessionStorage.getItem('uploadResponse');
@@ -354,7 +358,7 @@ var vm_preview = new Vue({
             this.numberSuccessful = data['successful'];
             this.numberFailed = data['failed'];
         },
-        finishedEvent: function (data) {
+        finishedEvent: async function (data) {
             var progressBar = $("#progress");
 
             this.numberTotal = data['total'];
@@ -363,16 +367,16 @@ var vm_preview = new Vue({
 
             this.usedButton.removeClass("is-loading");
 
+            progressBar.val(100);
             this.message = data['message'];
 
             if (this.numberFailed > 0){
                 $('button#failedButton').removeAttr('disabled')
-                this.highlightErrors(data);
+                await this.highlightErrors(data);
             } else if (this.numberFailed == 0) {
                 progressBar.removeClass("is-info")
                 progressBar.addClass("is-success")
             }
-            progressBar.val(100);
         }
     },
     beforeMount() {
