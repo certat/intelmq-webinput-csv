@@ -12,6 +12,7 @@ var vm_preview = new Vue({
         numberTotal: 0,
         numberSuccessful: 0,
         numberFailed: 0,
+        message: "",
         numberSuccessful: 0,
         servedUseColumns: [],
         servedColumnTypes: [],
@@ -362,6 +363,8 @@ var vm_preview = new Vue({
 
             this.usedButton.removeClass("is-loading");
 
+            this.message = data['message'];
+
             if (this.numberFailed > 0){
                 $('button#failedButton').removeAttr('disabled')
                 this.highlightErrors(data);
@@ -369,9 +372,7 @@ var vm_preview = new Vue({
                 progressBar.removeClass("is-info")
                 progressBar.addClass("is-success")
             }
-
             progressBar.val(100);
-            alert(data['message']);
         }
     },
     beforeMount() {

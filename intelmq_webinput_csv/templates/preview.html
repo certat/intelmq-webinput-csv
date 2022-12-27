@@ -34,36 +34,45 @@
 <form id="form" @change="saveDataInSession()">
         <div class="columns">
             <div class="column is-one-quarter">
-                <div class="card block">
-                    <header class="card-header">
-                        <p class="card-header-title">
-                            Status
-                        </p>
-                    </header>
-                    <div class="card-content">
-                        <nav class="level">
-                            <div class="level-item has-text-centered">
-                            <div>
-                                <p class="heading">Total</p>
-                                <p class="title">{% raw %}{{ numberTotal }}{% endraw %}</p>
+                <nav class="panel is-link">
+                    <p class="panel-heading">
+                        Status
+                    </p>
+                    <div class="panel-block" v-if="message">
+                        <article class="message is-info">
+                            <div class="message-body">
+                                {% raw %}{{ message }}{% endraw %}
                             </div>
-                            </div>
-                            <div class="level-item has-text-centered">
-                            <div>
-                                <p class="heading">Successful</p>
-                                <p class="title">{% raw %}{{ numberSuccessful }}{% endraw %}</p>
-                            </div>
-                            </div>
-                            <div class="level-item has-text-centered">
-                            <div>
-                                <p class="heading">Failed</p>
-                                <p class="title">{% raw %}{{ numberFailed }}{% endraw %}</p>
-                            </div>
-                            </div>
-                        </nav>            
+                        </article>
+                    </div>
+                    <div class="panel-block">
+                        <div class="container">
+                            <nav class="level">
+                                <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Total</p>
+                                    <p class="title">{% raw %}{{ numberTotal }}{% endraw %}</p>
+                                </div>
+                                </div>
+                                <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Successful</p>
+                                    <p class="title">{% raw %}{{ numberSuccessful }}{% endraw %}</p>
+                                </div>
+                                </div>
+                                <div class="level-item has-text-centered">
+                                <div>
+                                    <p class="heading">Failed</p>
+                                    <p class="title">{% raw %}{{ numberFailed }}{% endraw %}</p>
+                                </div>
+                                </div>
+                            </nav>            
+                        </div>
+                    </div>
+                    <div class="panel-block">
                         <progress id="progress" class="progress is-info" value="0" max="100" hidden>0%</progress>
                     </div>
-                </div>
+                </nav>
                 <nav class="panel is-info">
                     <p class="panel-heading">
                         Options
