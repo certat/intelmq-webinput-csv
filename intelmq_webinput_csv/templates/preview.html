@@ -87,7 +87,7 @@
                         <div class="control">
                             <label class="label">pipeline</label>
                             <div class="select">
-                                <select v-model="previewFormData.pipeline">
+                                <select id="pipeline" v-model="previewFormData.pipeline">
                                     <option v-for="(key, value) in pipelines" :value="key">{% raw %}{{value}}{% endraw %}</option>
                                 </select>
                             </div>

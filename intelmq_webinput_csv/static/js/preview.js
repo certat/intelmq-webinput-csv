@@ -119,15 +119,22 @@ var vm_preview = new Vue({
         submitButtonClicked: function (e) {
             this.cleanUp();
 
+            $('body,html').animate({
+                scrollTop: 0
+            }, 800);
+
+            // Verify pipeline selection
+            if (Object.keys(this.pipelines).length && !this.previewFormData.pipeline) {
+                this.message = "Failed to select pipeline";
+                $('select#pipeline').parent().addClass("is-danger");
+                return;
+            }
+
             this.usedButton = $(e.target);
             var progressBar = $("#progress");
 
             progressBar.removeAttr('value');
             this.usedButton.addClass("is-loading");
-
-            $('body,html').animate({
-                scrollTop: 0
-            }, 800);
 
             this.getColumns();
             this.getUseColumn();
@@ -269,6 +276,7 @@ var vm_preview = new Vue({
 
             // Disable Failed downoad button
             $('button#failedButton').attr('disabled')
+            $('select#pipeline').parent().removeClass("is-danger");
 
             // Cleanup progressbar
             progressBar.val(0);
