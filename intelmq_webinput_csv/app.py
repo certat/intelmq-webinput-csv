@@ -146,10 +146,10 @@ def validate(data):
 
             if (line.index % segment_size) == 0:
                 emit('processing', {
-                    "total": len(reader),
+                    "total": reader.max_lines,
                     "failed": len(invalid_lines),
                     "successful": (line.index + 1) - len(invalid_lines),
-                    "progress": round((line.index + 1) / len(reader) * 100)
+                    "progress": round((line.index + 1) / reader.max_lines * 100)
                 })
 
     # Save invalid lines to CSV file in tmp
@@ -203,6 +203,7 @@ def submit(data):
                 app.logger.warning(ice.message)
                 invalid_lines.append(line)
             except Exception as e:
+                invalid_lines.append(line)
                 app.logger.error(f"Unknown error occured: {e}")
             else:
                 successful_lines += 1
