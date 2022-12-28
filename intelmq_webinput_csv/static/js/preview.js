@@ -280,11 +280,11 @@ var vm_preview = new Vue({
 
             // Cleanup progressbar
             progressBar.val(0);
-            progressBar.removeClass("is-danger is-warning")
+            progressBar.removeClass("is-success is-danger is-warning")
             progressBar.addClass("is-info")
 
             // Remove any previous failed/successful indicators
-            numberFailed = numberSuccessful = 0;
+            this.numberFailed = this.numberSuccessful = 0;
 
             // Ensure that no faulty cells are shown
             $('td[style]').each( function() {
@@ -352,7 +352,10 @@ var vm_preview = new Vue({
         },
         processingEvent: function (data) {
             var progressBar = $("#progress");
-            progressBar.val(data['progress']);
+            this.message = data['message'];
+
+            if (data['progress'])
+                progressBar.val(data['progress']);
 
             if (data['failed'] > 0 && data['successful'] == 0) {
                 progressBar.removeClass("is-info is-warning")
