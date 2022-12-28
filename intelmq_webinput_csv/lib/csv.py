@@ -8,7 +8,7 @@ from typing import Union, Tuple, List
 from concurrent.futures import ThreadPoolExecutor
 from flask import current_app as app
 
-from intelmq.lib.message import Event
+from intelmq.lib.message import Event, MessageFactory
 from intelmq.lib.utils import RewindableFileHandle
 from intelmq.lib.exceptions import IntelMQException, IntelMQHarmonizationException
 
@@ -146,7 +146,6 @@ class CSVLine():
 
         self.parameters = kwargs
         self.validation = False
-        self.event = Event(harmonization=kwargs.pop('harmonization'))
 
         # Calculate real index in file
         self.real_index = sum([
@@ -240,7 +239,7 @@ class CSVLine():
         self.invalid_cells = []
         self._verify_columns()
 
-        event = self.parse()
+        self.parse()
 
         self.validation = False
         return (event, self.invalid_cells)
@@ -251,6 +250,7 @@ class CSVLine():
         Returns:
             Event: filled IntelMQ Event or None if exception occured
         """
+        self.event = Event(harmonization=self.parameters.get('harmonization'))
         self._verify_columns()
 
         # Parse all cells in row
@@ -277,8 +277,9 @@ class CSVLine():
                 self._event_add(key, self.parameters[key])
 
         # Configure UUID
-        field_uuid = app.config.get('GENERATE_UUID')
-        if field_uuid:
-            self._event_add(field_uuid, self.parameters['uuid'])
+        #field_uuid = app.config.get('GENERATE_UUID')
+        #f field_uuid:
+        #   self._event_add(field_uuid, self.parameters['uuid'])
 
-        return self.event
+        raw_message = MessageFactory.serialize(self.event)
+        return self.event, raw_message
