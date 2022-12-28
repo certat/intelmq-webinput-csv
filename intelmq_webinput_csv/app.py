@@ -191,19 +191,18 @@ def submit(data):
     with CSV.create(tmp_file, **parameters) as reader:
         segment_size = util.calculate_segments(len(reader))
 
-        for line in reader:
+        for future in reader.processes_lines(lambda line: (line, line.parse())):
             try:
-                event = line.parse()
-
+                line, (event, raw_message) = future.result()
                 destination_pipeline = util.create_pipeline(parameters.get('pipeline'), event=event)
-                raw_message = MessageFactory.serialize(event)
                 destination_pipeline.send(raw_message)
 
+            except StopIteration:
+                break
             except InvalidCellException as ice:
                 app.logger.warning(ice.message)
-                invalid_lines.append(line)
+                invalid_lines.append(ice.line)
             except Exception as e:
-                invalid_lines.append(line)
                 app.logger.error(f"Unknown error occured: {e}")
             else:
                 successful_lines += 1
