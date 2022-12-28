@@ -1,9 +1,11 @@
 import csv
+import time
 import itertools
 import collections
 
 from pathlib import Path
 from typing import Union, Tuple, List
+from concurrent.futures import ThreadPoolExecutor
 from flask import current_app as app
 
 from intelmq.lib.message import Event
@@ -53,6 +55,7 @@ class CSV:
             self.parameters['harmonization'] = util.load_harmonization_config()
 
     def __enter__(self):
+        self.executor = ThreadPoolExecutor()
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
         self.reader = csv.reader(self.handle, delimiter=self.delimiter,
                                  quotechar=self.quotechar,
@@ -76,6 +79,7 @@ class CSV:
 
     def __exit__(self, _exc_type, _exc_value, _exc_traceback):
         self.handle.f.close()
+        self.executor.shutdown()
 
     def __contains__(self, other):
         return (self.columns and other in self.columns)
@@ -104,6 +108,27 @@ class CSV:
             raise StopIteration
 
         return line
+
+    def _submit_data(self, fn):
+        for line in self:
+            future = self.executor.submit(fn, line)
+            future.add_done_callback(self._callback)
+
+    def _callback(self, future):
+        self.futures.append(future)
+
+    def processes_lines(self, fn):
+        self.futures = list()
+        future_submit = self.executor.submit(self._submit_data, fn)
+
+        while not future_submit.done():
+            while self.futures:
+                yield self.futures.pop() 
+
+            time.sleep(0.1)
+
+        # Ensure that all data is yielded
+        yield from self.futures
 
     @staticmethod
     def create(*args, **kwargs):
