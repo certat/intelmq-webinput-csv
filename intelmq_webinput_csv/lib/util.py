@@ -1,4 +1,5 @@
 import json
+import time
 
 from typing import Union
 from datetime import date
@@ -149,6 +150,25 @@ def handle_parameters(form):
     parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
+
+def cleanup_tempdir(age: int = 5):
+    """ Cleanup old files in tmpdir
+
+    Parameters:
+        age: int indicating when files are old enough to be deleted
+    """
+    current = time.time()
+    dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
+    second_delta = age * 24 * 60 * 60  # day * hours * minutes * seconds
+
+    for child in Path(dir).glob("*.csv"):
+
+        if not child.is_file():
+            continue
+
+        m_time = child.stat().st_mtime
+        if m_time < (current - second_delta):
+            child.unlink(missing_ok=True)
 
 
 def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension: str = 'csv') -> Path:
