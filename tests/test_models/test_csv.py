@@ -29,6 +29,7 @@ line3.1,line3.2,line3.3
             'quotechar': '"',
             'escapechar': '/',
             'skipInitialSpace': 0,
+            'skipInitialLines': 0,
             'loadLinesMax': 0,
             'has_header': True,
             'columns': None,
@@ -80,9 +81,9 @@ line3.1,line3.2,line3.3
 
     def test_CSV_skip_initial_space(self, file1, parameters):
         # Test config with has_header and without
-        for has_header, skipInitialSpace in [(False, 2), (True, 1)]:
+        for has_header, skipInitialLines in [(False, 2), (True, 1)]:
             parameters['has_header'] = has_header
-            parameters['skipInitialSpace'] = skipInitialSpace
+            parameters['skipInitialLines'] = skipInitialLines
 
             with CSV.create(file1, **parameters) as csv:
                 counter = 2
