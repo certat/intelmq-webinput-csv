@@ -3,8 +3,9 @@
 # SPDX-License-Identifier: AGPL-3.0
 import traceback
 import os
+import secrets
 
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, session, redirect, url_for
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
@@ -30,6 +31,10 @@ def create_app():
     # Load IntelMQ-Webinput-CSV specific config
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
+
+    # Ensure a secret_key is set; not used for storing long data so can be reset during restarts
+    if not app.config.get("SECRET_KEY"):
+        app.config['SECRET_KEY'] = secrets.token_hex(32)
 
     return app
 
