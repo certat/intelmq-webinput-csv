@@ -44,12 +44,19 @@ app = create_app()
 
 @app.route('/')
 def form():
+    if not session.get('prefix'):
+        session['prefix'] = secrets.token_hex(8)
+        session.permanent = True
+
     return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(tmp_file)
@@ -99,11 +106,14 @@ def upload_file():
 
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
     if request.method == 'GET':
         return render_template('preview.html')
 
     parameters = util.handle_parameters(request.form)
-    tmp_file = util.get_temp_file()
+    tmp_file = util.get_temp_file(**session)
     if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
@@ -159,7 +169,10 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(request.form)
     if not tmp_file.exists():
         return util.create_response('No file')
@@ -201,7 +214,10 @@ def submit():
 
 @app.route('/uploads/current')
 def get_current_upload():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if not tmp_file.exists():
         return "File not found", 404

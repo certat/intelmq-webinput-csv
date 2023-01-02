@@ -151,6 +151,7 @@ def handle_parameters(form):
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
     return parameters
 
+
 def cleanup_tempdir(age: int = 5):
     """ Cleanup old files in tmpdir
 
@@ -171,7 +172,7 @@ def cleanup_tempdir(age: int = 5):
             child.unlink(missing_ok=True)
 
 
-def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension: str = 'csv') -> Path:
+def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension: str = 'csv', **kwargs) -> Path:
     """ Get path to temporary file
 
     Parameters:
