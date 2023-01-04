@@ -5,6 +5,7 @@ import traceback
 import os
 import secrets
 
+from werkzeug.middleware.proxy_fix import ProxyFix
 from flask import Flask, request, render_template, send_file, session, redirect, url_for
 
 from intelmq import CONFIG_DIR
@@ -31,6 +32,10 @@ def create_app():
     # Load IntelMQ-Webinput-CSV specific config
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
+
+    # Use ProxyFix if configured
+    if app.config.get("USE_PROXY_FIX"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_for=1, x_host=1)
 
     # Ensure a secret_key is set; not used for storing long data so can be reset during restarts
     if not app.config.get("SECRET_KEY"):
