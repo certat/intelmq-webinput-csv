@@ -60,17 +60,21 @@ class CSV:
                                  escapechar=self.escapechar
                       )
 
-        if self.has_header:
-            first_line = next(self.reader)
-            self.columns_raw = self.handle.current_line.strip('\n')
+        try:
+            if self.has_header:
+                first_line = next(self.reader)
+                self.columns_raw = self.handle.current_line.strip('\n')
 
-            if not self.columns:
-                self.columns = first_line
+                if not self.columns:
+                    self.columns = first_line
 
-        # Skip initial n lines
-        if self.skipInitialLines:
-            for _ in range(self.skipInitialLines):
-                next(self.reader)
+            # Skip initial n lines
+            if self.skipInitialLines:
+                for _ in range(self.skipInitialLines):
+                    next(self.reader)
+
+        except StopIteration:
+            pass
 
         return self
 
@@ -88,6 +92,10 @@ class CSV:
 
     def __next__(self):
         line = next(self.reader)
+
+        # Skip all empty lines
+        while not line:
+            line = next(self.reader)
 
         # Escape any escapechar
         line = CSVLine(
