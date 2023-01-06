@@ -2,6 +2,7 @@ import uuid
 import csv
 import json
 import random
+import time
 
 from typing import Union, List
 from datetime import date
@@ -160,16 +161,43 @@ def handle_parameters(form):
     return parameters
 
 
-def get_temp_file(filename: str = 'webinput_csv.csv') -> Path:
+def cleanup_tempdir(age: int = 5):
+    """ Cleanup old files in tmpdir
+
+    Parameters:
+        age: int indicating when files are old enough to be deleted
+    """
+    current = time.time()
+    dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
+    second_delta = age * 24 * 60 * 60  # day * hours * minutes * seconds
+
+    for child in Path(dir).glob("*.csv"):
+
+        if not child.is_file():
+            continue
+
+        m_time = child.stat().st_mtime
+        if m_time < (current - second_delta):
+            child.unlink(missing_ok=True)
+
+
+def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension: str = 'csv', **kwargs) -> Path:
     """ Get path to temporary file
 
     Parameters:
         filename (str): name of temporary file
+        prefix (str): to prepend for filename
+        extension (str): file extension to use
 
     Returns:
         Path: object to temp file
     """
     dir = app.config.get('VAR_STATE_PATH', VAR_STATE_PATH)
+
+    filename = f"{filename}.{extension}"
+    if prefix:
+        filename = f"{prefix}_{filename}"
+
     return Path(dir) / filename
 
 
