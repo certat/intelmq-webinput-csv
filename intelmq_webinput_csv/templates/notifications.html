@@ -1,0 +1,46 @@
+<div class="section">
+    {% with successes = get_flashed_messages(category_filter=["success"]) %}
+        {% if successes %}
+            <div class="container">
+                <div class="notification is-success">
+                    <button class="delete"></button>
+                    <ul>
+                        {% for msg in successes %}
+                            <li>{{ msg }}</li>
+                        {% endfor -%}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% with infos = get_flashed_messages(category_filter=["message"]) %}
+        {% if infos %}
+            <div class="container">
+                <div class="notification is-info">
+                    <button class="delete"></button>
+                    <ul>
+                        {% for msg in infos %}
+                            <li>{{ msg }}</li>
+                        {% endfor -%}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    {% with errors = get_flashed_messages(category_filter=["error"]) %}
+        {% if errors %}
+            <div class="container">
+                <div class="notification is-danger">
+                    <button class="delete"></button>
+                    <ul>
+                        {% for msg in errors %}
+                            <li>{{ msg }}</li>
+                        {% endfor -%}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+    {% endwith %}
+</div>

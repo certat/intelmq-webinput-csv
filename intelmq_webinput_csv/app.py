@@ -7,7 +7,7 @@ import secrets
 
 from flask_socketio import SocketIO, emit
 from werkzeug.middleware.proxy_fix import ProxyFix
-from flask import Flask, request, render_template, send_file, session, redirect, url_for
+from flask import Flask, request, render_template, send_file, session, flash, redirect
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
@@ -15,6 +15,7 @@ from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
 
 from intelmq_webinput_csv.lib import util
+from intelmq_webinput_csv.lib.decorators import use_csv_file
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
 from intelmq_webinput_csv.lib.csv import CSV
 
@@ -59,19 +60,16 @@ def form():
 
 
 @app.route('/upload', methods=['POST'])
-def upload_file():
-    if 'prefix' not in session:
-        return redirect(url_for('form'))
-
-    tmp_file = util.get_temp_file(**session)
-
+@use_csv_file
+def upload_file(csv_file):
     if 'file' in request.files and request.files['file'].filename:
-        request.files['file'].save(tmp_file)
+        request.files['file'].save(csv_file)
     elif 'text' in request.form and request.form['text']:
-        with tmp_file.open(mode='w', encoding='utf8') as handle:
+        with csv_file.open(mode='w', encoding='utf8') as handle:
             handle.write(request.form['text'])
-    elif request.form.get('use_last_file') and not tmp_file.exists():
-        return util.create_response('no file or text')
+    elif request.form.get('use_last_file') and not csv_file.exists():
+        flash("File not found!", "error")
+        return redirect('/')
 
     parameters = util.handle_parameters(request.form)
     preview = []
@@ -79,7 +77,7 @@ def upload_file():
     valid_date_times = None
 
     try:
-        with CSV.create(file=tmp_file, **parameters) as reader:
+        with CSV.create(file=csv_file, **parameters) as reader:
             total_lines = len(reader)
 
             # If has columns, set first line as column
@@ -112,29 +110,21 @@ def upload_file():
 
 
 @app.route('/preview')
-def preview():
-    if 'prefix' not in session:
-        return redirect(url_for('form'))
-
+@use_csv_file(required=True)
+def validate(csv_file):
     # Check config for generating UUID
     uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
     return render_template('preview.html', uuid=uuid)
 
 @socketio.on('validate', namespace='/preview')
-def validate(data):
-    parameters = util.handle_parameters(data)
-    tmp_file = util.get_temp_file(**session)
-
-    if not tmp_file.exists():
-        app.logger.info('no file')
-        emit("finished", {'message': 'no file found'})
-        return
-
+def validate(csv_file, data):
+    csv_file = util.get_temp_file(**session)
+    parameters = util.handle_parameters(request.form)
     exceptions = []
     invalid_lines = []
 
-    with CSV.create(file=tmp_file, **parameters) as reader:
-        segment_size = util.calculate_segments(reader.max_lines)
+    with CSV.create(file=csv_file, **parameters) as reader:
+        segment_size = util.calculate_segments(len(reader))
 
         for line in reader:
 
@@ -196,21 +186,15 @@ def harmonization_event_fields():
 
 @socketio.on('submit', namespace='/preview')
 def submit(data):
-    if 'prefix' not in session:
-        return redirect(url_for('form'))
-
-    tmp_file = util.get_temp_file(**session)
+    csv_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(data)
     parameters['loadLinesMax'] = 0
-
-    if not tmp_file.exists():
-        return util.create_response('No file')
 
     successful_lines = 0
     invalid_lines = []
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
-    with CSV.create(tmp_file, **parameters) as reader:
+    with CSV.create(csv_file, **parameters) as reader:
         segment_size = util.calculate_segments(len(reader))
 
         for line in reader:
@@ -251,26 +235,8 @@ def submit(data):
 
 
 @app.route('/uploads/current')
-def get_current_upload():
-    if 'prefix' not in session:
-        return redirect(url_for('form'))
-
-    tmp_file = util.get_temp_file(**session)
-
-    if not tmp_file.exists():
-        return "File not found", 404
-
-    return send_file(tmp_file, mimetype='text/csv')
-
-
-@app.route('/uploads/failed')
-def get_failed_upload():
-    tmp_file = util.get_temp_file(filename='webinput_invalid_csv.csv')
-
-    if not tmp_file.exists():
-        return "File not found", 404
-
-    return send_file(tmp_file, mimetype='text/csv')
+@use_csv_file(required=True)
+    return send_file(csv_file, mimetype='text/csv')
 
 
 @app.route('/uploads/failed')
