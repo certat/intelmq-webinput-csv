@@ -60,7 +60,7 @@ def form():
 
 
 @app.route('/upload', methods=['POST'])
-@use_csv_file
+@use_csv_file()
 def upload_file(csv_file):
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(csv_file)
@@ -111,13 +111,14 @@ def upload_file(csv_file):
 
 @app.route('/preview')
 @use_csv_file(required=True)
-def validate(csv_file):
+def preview(_):
     # Check config for generating UUID
     uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
     return render_template('preview.html', uuid=uuid)
 
+
 @socketio.on('validate', namespace='/preview')
-def validate(csv_file, data):
+def validate(data):
     csv_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(request.form)
     exceptions = []
@@ -236,6 +237,7 @@ def submit(data):
 
 @app.route('/uploads/current')
 @use_csv_file(required=True)
+def get_current_upload(csv_file):
     return send_file(csv_file, mimetype='text/csv')
 
 
