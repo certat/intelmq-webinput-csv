@@ -1,5 +1,7 @@
 import os
+import shutil
 import pytest
+import tempfile
 
 from pathlib import Path
 from intelmq.lib.utils import load_configuration
@@ -46,9 +48,18 @@ class BaseTest:
         # Importing would result in running `create_app` therefore environ should be set up first.
         from intelmq_webinput_csv.app import create_app
 
-        self.app = create_app()
-        self.app.app_context()
+        (self.app, socketio) = create_app()
 
-        yield
+        with self.app.app_context():
+            with tempfile.TemporaryDirectory() as temp_dir:
+                self.temp_dir = Path(temp_dir)
+
+                # Copy all files from temp_dir
+                temp_dir_fixture = Path(self.get_fixtures_path() / self.app.config['VAR_STATE_PATH'])
+                shutil.copytree(temp_dir_fixture, self.temp_dir, dirs_exist_ok=True)
+
+                self.app.config['VAR_STATE_PATH'] = self.temp_dir.resolve()
+
+                yield
 
         # POST
