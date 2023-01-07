@@ -1,10 +1,12 @@
+from __future__ import annotations  # Prevent circular import for type checking, default Pythonv3.11
+
 import uuid
 import csv
 import json
 import random
 import time
 
-from typing import Union, List
+from typing import Union, List, TYPE_CHECKING
 from datetime import date
 from pathlib import Path
 
@@ -17,7 +19,9 @@ from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.message import Event
 from intelmq.lib.utils import load_configuration
 from intelmq.lib.pipeline import PipelineFactory, Pipeline
-from intelmq_webinput_csv.lib.csv import CSV, CSVLine
+
+if TYPE_CHECKING:
+    from intelmq_webinput_csv.lib.csv import CSV, CSVLine
 
 PIPELINE = None
 HARMONIZATION_CONF = None
