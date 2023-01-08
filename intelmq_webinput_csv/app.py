@@ -125,6 +125,7 @@ def validate(csv_file, data):
     invalid_lines = []
 
     with CSV.create(file=csv_file, **parameters) as reader:
+        total_lines = min(len(reader), reader.max_lines)
         segment_size = util.calculate_segments(len(reader))
 
         for line in reader:
@@ -156,18 +157,18 @@ def validate(csv_file, data):
 
             if (line.index % segment_size) == 0:
                 emit('processing', {
-                    "total": reader.max_lines,
+                    "total": total_lines,
                     "failed": len(invalid_lines),
                     "successful": (line.index + 1) - len(invalid_lines),
-                    "progress": round((line.index + 1) / reader.max_lines * 100)
+                    "progress": round((line.index + 1) / total_lines * 100)
                 })
 
     # Save invalid lines to CSV file in tmp
     util.save_failed_csv(reader, invalid_lines, session=session)
 
     emit('finished', {
-        "total": reader.max_lines,
-        "successful": reader.max_lines - len(invalid_lines),
+        "total": total_lines,
+        "successful": total_lines - len(invalid_lines),
         "failed": len(invalid_lines),
         "errors": exceptions,
         "message": "Validation finished!"
