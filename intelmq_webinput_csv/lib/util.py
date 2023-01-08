@@ -254,15 +254,16 @@ def generate_uuid() -> str:
     return uuid.uuid4()
 
 
-def save_failed_csv(reader: CSV, lines: List[CSVLine]):
+def save_failed_csv(reader: CSV, lines: List[CSVLine], session=dict()):
     """
     Save all invalid lines to a seperate CSV file
 
     Parameters:
         reader(CSV): CSV object used to read the lines
         lines (List[CSVLine]): list of invalid lines
+        session (dict): Flask session obj
     """
-    invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
+    invalid_file = get_temp_file(filename='webinput_invalid', **session)
 
     with invalid_file.open('w+') as f:
         # Filter out all None columns

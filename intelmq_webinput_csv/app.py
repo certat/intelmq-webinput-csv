@@ -118,8 +118,8 @@ def preview(_):
 
 
 @socketio.on('validate', namespace='/preview')
-def validate(data):
-    csv_file = util.get_temp_file(**session)
+@use_csv_file(required=True)
+def validate(csv_file, data):
     parameters = util.handle_parameters(request.form)
     exceptions = []
     invalid_lines = []
@@ -163,7 +163,7 @@ def validate(data):
                 })
 
     # Save invalid lines to CSV file in tmp
-    util.save_failed_csv(reader, invalid_lines)
+    util.save_failed_csv(reader, invalid_lines, session=session)
 
     emit('finished', {
         "total": reader.max_lines,
@@ -186,8 +186,8 @@ def harmonization_event_fields():
 
 
 @socketio.on('submit', namespace='/preview')
-def submit(data):
-    csv_file = util.get_temp_file(**session)
+@use_csv_file(required=True)
+def submit(csv_file, data):
     parameters = util.handle_parameters(data)
     parameters['loadLinesMax'] = 0
 
@@ -225,7 +225,7 @@ def submit(data):
                 emit('processing', data, namespace="/preview")
 
     # Save invalid lines to CSV file in tmp
-    util.save_failed_csv(reader, invalid_lines)
+    util.save_failed_csv(reader, invalid_lines, session=session)
 
     emit('finished', {
         'total': len(reader),
@@ -242,13 +242,9 @@ def get_current_upload(csv_file):
 
 
 @app.route('/uploads/failed')
-def get_failed_upload():
-    tmp_file = util.get_temp_file(filename='webinput_invalid_csv.csv')
-
-    if not tmp_file.exists():
-        return "File not found", 404
-
-    return send_file(tmp_file, mimetype='text/csv')
+@use_csv_file(filename='webinput_invalid', required=True)
+def get_failed_upload(csv_file):
+    return send_file(csv_file, mimetype='text/csv')
 
 
 def main():

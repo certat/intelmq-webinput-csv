@@ -153,7 +153,7 @@ class CSVLine():
         """ Generate key:value pairs for all cells/columns
 
         Returns:
-            dict: with column - value 
+            dict: with column - value
         """
         # Loop through all columns and cells
         for (column, value) in self:

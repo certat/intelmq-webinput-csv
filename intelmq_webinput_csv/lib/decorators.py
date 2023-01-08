@@ -1,8 +1,7 @@
 from typing import Optional
 from functools import wraps
 
-from flask import current_app as app
-from flask import session, redirect, url_for, flash
+from flask import session, redirect, flash
 
 from intelmq_webinput_csv.lib import util
 
