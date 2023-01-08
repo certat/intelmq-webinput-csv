@@ -120,7 +120,7 @@ def preview(_):
 @socketio.on('validate', namespace='/preview')
 @use_csv_file(required=True)
 def validate(csv_file, data):
-    parameters = util.handle_parameters(request.form)
+    parameters = util.handle_parameters(data)
     exceptions = []
     invalid_lines = []
 
