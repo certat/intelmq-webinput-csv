@@ -4,6 +4,7 @@ import collections
 
 from pathlib import Path
 from typing import Union, Tuple, List
+from flask import current_app as app
 
 from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
@@ -231,8 +232,8 @@ class CSVLine():
 
         # Set any custom fields
         fields = collections.ChainMap(
-            self.parameters.get('constant_fields', {}),
-            self.parameters.get('custom_input_fields', {})
+            app.config.get('CONSTANT_FIELDS', {}),
+            self.parameters.get('CUSTOM_INPUT_FIELDS', {})
         )
 
         for key, value in fields.items():
@@ -242,7 +243,7 @@ class CSVLine():
         self._event_add('raw', self.raw)
 
         # set any required fields
-        required = ['classification.type', 'classification.identifier', 'feed.code'
+        required = ['classification.type', 'classification.identifier', 'feed.code',
                     'time.observation']
         for key in required:
             if self.parameters.get(key):
