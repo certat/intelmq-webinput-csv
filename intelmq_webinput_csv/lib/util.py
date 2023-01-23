@@ -143,6 +143,8 @@ def handle_extra(value: str) -> dict:
 
 def handle_parameters(form):
     parameters = {}
+    parameters.setdefault('CUSTOM_INPUT_FIELDS', {})
+
     for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)
     for key, value in PARAMETERS.items():
@@ -162,6 +164,13 @@ def handle_parameters(form):
     parameters['skipInitialSpace'] = json.loads(parameters['skipInitialSpace'])
     parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
+
+    # Set any custom_key fields
+    for key, value in form.items():
+        if key.startswith('custom_'):
+            key = key[7:]  # remove prefix `custom_`
+            custom_fields = parameters.get('CUSTOM_INPUT_FIELDS', {})
+            custom_fields[key] = value
     return parameters
 
 
