@@ -3,15 +3,16 @@
 # SPDX-License-Identifier: AGPL-3.0
 import traceback
 import os
+import secrets
 
 from flask_socketio import SocketIO, emit
-from flask import Flask, request, render_template, send_file
+from flask import Flask, request, render_template, send_file, session, redirect, url_for
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
-from intelmq.lib.pipeline import PipelineFactory
 
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
@@ -32,22 +33,38 @@ def create_app():
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
 
+    # Use ProxyFix if configured
+    if app.config.get("USE_PROXY_FIX"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_for=1, x_host=1)
+
+    # Ensure a secret_key is set; not used for storing long data so can be reset during restarts
+    if not app.config.get("SECRET_KEY"):
+        app.config['SECRET_KEY'] = secrets.token_hex(32)
+
     socketio = SocketIO(app, always_connect=True)
 
     return (app, socketio)
 
 
+# Create Flask App
 app, socketio = create_app()
 
 
 @app.route('/')
 def form():
+    if not session.get('prefix'):
+        session['prefix'] = secrets.token_hex(8)
+        session.permanent = True
+
     return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(tmp_file)
@@ -97,13 +114,17 @@ def upload_file():
 
 @app.route('/preview', methods=['GET'])
 def preview():
-    return render_template('preview.html')
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
+    return render_template('preview.html', uuid=uuid)
 
 
 @socketio.on('validate', namespace='/preview')
 def validate(data):
     parameters = util.handle_parameters(data)
-    tmp_file = util.get_temp_file()
+    tmp_file = util.get_temp_file(**session)
 
     if not tmp_file.exists():
         app.logger.info('no file')
@@ -111,7 +132,7 @@ def validate(data):
         return
 
     exceptions = []
-    invalid_lines = 0
+    invalid_lines = []
 
     with CSV.create(file=tmp_file, **parameters) as reader:
         segment_size = util.calculate_segments(reader)
@@ -122,7 +143,7 @@ def validate(data):
                 event, invalids = line.validate()
 
                 if invalids:
-                    invalid_lines += 1
+                    invalid_lines.append(line)
 
                 if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
                     app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
@@ -151,6 +172,9 @@ def validate(data):
                     "progress": round((len(reader) / line.index) * 100)
                 })
 
+    # Save invalid lines to CSV file in tmp
+    util.save_failed_csv(reader, invalid_lines)
+
     emit('finished', {
         "total": len(reader),
         "failed": invalid_lines,
@@ -172,7 +196,7 @@ def harmonization_event_fields():
 
 @socketio.on('submit', namespace='/preview')
 def submit(data):
-    tmp_file = util.get_temp_file()
+    tmp_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(data)
     parameters['loadLinesMax'] = 0
 
@@ -181,14 +205,8 @@ def submit(data):
         emit("preview", {'message': 'no file found'})
         return
 
-    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
-                                                  logger=app.logger,
-                                                  direction='destination')
-    if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-        destination_pipeline.set_queues(app.config['DESTINATION_PIPELINE_QUEUE'], "destination")
-        destination_pipeline.connect()
-
     successful_lines = 0
+    invalid_lines = []
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
@@ -198,30 +216,29 @@ def submit(data):
             try:
                 event = line.parse()
 
-                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-                    queue_name = app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
-                    destination_pipeline.set_queues(queue_name, "destination")
-                    destination_pipeline.connect()
-
+                destination_pipeline = util.create_pipeline(parameters.get('pipeline'), event=event)
                 raw_message = MessageFactory.serialize(event)
                 destination_pipeline.send(raw_message)
 
             except InvalidCellException as ice:
                 app.logger.warning(ice.message)
+                invalid_lines.append(line)
             except Exception as e:
                 app.logger.error(f"Unknown error occured: {e}")
             else:
                 successful_lines += 1
 
-            data = {
-                "total": len(reader),
-                "successful": successful_lines,
-                "failed": line.index - successful_lines,
-                "progress": round((line.index + 1) / len(reader) * 100)
-            }
-
             if (line.index % segment_size) == 0:
+                data = {
+                    "total": len(reader),
+                    "successful": successful_lines,
+                    "failed": line.index - successful_lines,
+                    "progress": round((line.index + 1) / len(reader) * 100)
+                }
                 emit('processing', data, namespace="/preview")
+
+    # Save invalid lines to CSV file in tmp
+    util.save_failed_csv(reader, invalid_lines)
 
     emit('finished', {
         'total': len(reader),
@@ -232,12 +249,26 @@ def submit(data):
 
 @app.route('/uploads/current')
 def get_current_upload():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if not tmp_file.exists():
         return "File not found", 404
 
     return send_file(tmp_file, mimetype='text/csv')
+
+
+@app.route('/uploads/failed')
+def get_failed_upload():
+    tmp_file = util.get_temp_file(filename='webinput_invalid_csv.csv')
+
+    if not tmp_file.exists():
+        return "File not found", 404
+
+    return send_file(tmp_file, mimetype='text/csv')
+
 
 
 def main():

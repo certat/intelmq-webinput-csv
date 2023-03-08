@@ -29,10 +29,13 @@ var vm_preview = new Vue({
             dryRun: true,
             useColumn: 0,
             columns: 'source.ip',
+            pipeline: ''
+            uuid: d_uuid
         },
         hasHeader: JSON.parse(sessionStorage.hasHeader),
         headerContent: [],
         bodyContent: [],
+        pipelines: d_pipelines
     },
     computed: {
         timezones: function () {
@@ -124,7 +127,10 @@ var vm_preview = new Vue({
             }
             return data;
         },
-        submitButtonClicked: function () {
+        submitButtonClicked: function (e) {
+            var button = $(e.target);
+            button.addClass("is-loading");
+
             var progressBar = $("#progress");
             progressBar.removeAttr('value');
 
@@ -138,10 +144,12 @@ var vm_preview = new Vue({
             var formData = new FormData();
 
             formData.append('timezone', this.previewFormData.timezone);
+            formData.append('uuid', this.previewFormData.uuid);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
             formData.append('columns', this.previewFormData.columns);
+            formData.append('pipeline', this.previewFormData.pipeline);
 
             // custom_fields defined in HTML
             for (field_name in custom_fields) {
@@ -165,7 +173,14 @@ var vm_preview = new Vue({
             this.saveDataInSession();
             this.socket.emit("submit", Object.fromEntries(formData.entries()));
         },
-        refreshButtonClicked: function () {
+        failedButtonClicked: function (e) {
+            var button = $(e.target);
+            window.open(BASE_URL + '/uploads/failed', '_blank');
+        },
+        refreshButtonClicked: function (e) {
+            var button = $(e.target);
+            button.addClass("is-loading");
+
             $('body,html').animate({
                 scrollTop: 0
             }, 800);
@@ -175,6 +190,7 @@ var vm_preview = new Vue({
 
             var formData = new FormData();
 
+            formData.append('pipeline', []);
             formData.append('timezone', this.previewFormData.timezone);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('dryrun', this.previewFormData.dryRun);
@@ -212,7 +228,7 @@ var vm_preview = new Vue({
         },
         loadDataFromSession: function () {
             for (key in this.previewFormData) {
-                if (sessionStorage.getItem(key) === null) {
+                if (sessionStorage.getItem(key) === null || key === 'uuid') {
                     continue;
                 } else {
                     try {

@@ -4,6 +4,7 @@ import collections
 
 from pathlib import Path
 from typing import Union, Tuple, List
+from flask import current_app as app
 
 from intelmq.lib.message import Event
 from intelmq.lib.utils import RewindableFileHandle
@@ -21,11 +22,12 @@ class CSV:
 
     def __init__(self, file: Union[Path, str], delimiter: str, quotechar: str, escapechar: str,
                  skipInitialSpace: int, loadLinesMax: int, has_header: bool,
-                 columns: Union[None, list], **kwargs):
-        self.delimeter = delimiter
+                 skipInitialLines: int, columns: Union[None, list], **kwargs):
+        self.delimiter = delimiter
         self.quotechar = quotechar
         self.escapechar = escapechar
         self.skipInitialSpace = skipInitialSpace
+        self.skipInitialLines = skipInitialLines
         self.max_lines = loadLinesMax
         self.has_header = has_header
         self.columns = columns
@@ -52,23 +54,27 @@ class CSV:
 
     def __enter__(self):
         self.handle = RewindableFileHandle(self.file.open('r', encoding='utf-8'))
-        self.reader = csv.reader(self.handle, delimiter=self.delimeter,
+        self.reader = csv.reader(self.handle, delimiter=self.delimiter,
                                  quotechar=self.quotechar,
                                  skipinitialspace=self.skipInitialSpace,
                                  escapechar=self.escapechar
                       )
 
-        if self.has_header:
-            first_line = next(self.reader)
-            self.columns_raw = self.handle.current_line
+        try:
+            if self.has_header:
+                first_line = next(self.reader)
+                self.columns_raw = self.handle.current_line.strip('\n')
 
-            if not self.columns:
-                self.columns = first_line
+                if not self.columns:
+                    self.columns = first_line
 
-        # Skip initial n lines
-        if self.skipInitialSpace:
-            for _ in range(self.skipInitialSpace):
-                next(self.reader)
+            # Skip initial n lines
+            if self.skipInitialLines:
+                for _ in range(self.skipInitialLines):
+                    next(self.reader)
+
+        except StopIteration:
+            pass
 
         return self
 
@@ -76,8 +82,7 @@ class CSV:
         self.handle.f.close()
 
     def __contains__(self, other):
-        result = (self.columns and other in self.columns)
-        return result
+        return (self.columns and other in self.columns)
 
     def __iter__(self):
         return self
@@ -87,6 +92,10 @@ class CSV:
 
     def __next__(self):
         line = next(self.reader)
+
+        # Skip all empty lines
+        while not line:
+            line = next(self.reader)
 
         # Escape any escapechar
         line = CSVLine(
@@ -139,6 +148,20 @@ class CSVLine():
         # Use Tuple columns, cell or None,cell
         columns = self.columns if self.columns else itertools.repeat(None)
         return zip(columns, self.cells)
+
+    def items(self) -> dict:
+        """ Generate key:value pairs for all cells/columns
+
+        Returns:
+            dict: with column - value 
+        """
+        # Loop through all columns and cells
+        for (column, value) in self:
+            # Skip empty columns or cells
+            if not column or not value:
+                continue
+
+            yield (column, value)
 
     def _event_add(self, key: str, value: str, overwrite: bool = False):
         """ Add field to IntelMQ Event
@@ -214,17 +237,13 @@ class CSVLine():
         self._verify_columns()
 
         # Parse all cells in row
-        for (column, value) in self:
-            # Skip empty columns or cells
-            if not column or not value:
-                continue
-
+        for (column, value) in self.items():
             self.parse_cell(value, column)
 
         # Set any custom fields
         fields = collections.ChainMap(
-            self.parameters.get('constant_fields', {}),
-            self.parameters.get('custom_input_fields', {})
+            app.config.get('CONSTANT_FIELDS', {}),
+            self.parameters.get('CUSTOM_INPUT_FIELDS', {})
         )
 
         for key, value in fields.items():
@@ -234,10 +253,15 @@ class CSVLine():
         self._event_add('raw', self.raw)
 
         # set any required fields
-        required = ['classification.type', 'classification.identifier', 'feed.code'
+        required = ['classification.type', 'classification.identifier', 'feed.code',
                     'time.observation']
         for key in required:
             if self.parameters.get(key):
                 self._event_add(key, self.parameters[key])
+
+        # Configure UUID
+        field_uuid = app.config.get('GENERATE_UUID')
+        if field_uuid:
+            self._event_add(field_uuid, self.parameters['uuid'])
 
         return self.event

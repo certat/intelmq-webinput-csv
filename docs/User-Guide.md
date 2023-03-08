@@ -17,7 +17,15 @@ needed to submit data to IntelMQ. There is no internal default.
 * `base_url`: can be a full URL (optionally with ports) or only a path.
   Needed if the program is run not in `/` but a sub-path.
 * `intelmq`: the parameters in this array are used to set-up the intelmq pipeline. `destination_pipeline_*` inside the array can be used to configure the pipeline, see the user-guide of intelmq for details.
-* `destination_pipeline_queue`: It is the queue/routing key to push the messages into.
+* `destination_pipeline_queue`: It is the queue/routing key to push the messages into. This option can be configured as:
+  * single key: `"destination_pipeline_queue": "pipeline"`, during which this pipeline is used by default
+  * dictionary, this generates a dropdown list so user can select which pipeline is being used. The key value will be used by the users to select the pipeline. 
+    ```json
+    "destination_pipeline_queue": {
+      "Pipeline 1": "pipeline1",
+      "Pipeline 2": "pipeline2"
+    }
+    ```
 * `destination_pipeline_queue_formatted`: Optional, if true, the `destination_pipeline_queue` is formatted like a python format string with the event as `ev`. E.g. `"destination_pipeline_queue": "{ev[feed.provider]}.{ev[feed.name]}"`
 * `custom_input_fields`: These fields are shown in the interface with the given default values, see also below.
 * `constant_fields`: Similar to above, but not shown to the user and added to all processed events.
