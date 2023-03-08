@@ -3,14 +3,15 @@
 # SPDX-License-Identifier: AGPL-3.0
 import traceback
 import os
+import secrets
 
-from flask import Flask, request, render_template, send_file
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, request, render_template, send_file, session, redirect, url_for
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
-from intelmq.lib.pipeline import PipelineFactory
 
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
@@ -31,20 +32,36 @@ def create_app():
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
 
+    # Use ProxyFix if configured
+    if app.config.get("USE_PROXY_FIX"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_for=1, x_host=1)
+
+    # Ensure a secret_key is set; not used for storing long data so can be reset during restarts
+    if not app.config.get("SECRET_KEY"):
+        app.config['SECRET_KEY'] = secrets.token_hex(32)
+
     return app
 
 
+# Create Flask App
 app = create_app()
 
 
 @app.route('/')
 def form():
+    if not session.get('prefix'):
+        session['prefix'] = secrets.token_hex(8)
+        session.permanent = True
+
     return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(tmp_file)
@@ -94,11 +111,16 @@ def upload_file():
 
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
     if request.method == 'GET':
-        return render_template('preview.html')
+        # Check config for generating UUID
+        uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
+        return render_template('preview.html', uuid=uuid)
 
     parameters = util.handle_parameters(request.form)
-    tmp_file = util.get_temp_file()
+    tmp_file = util.get_temp_file(**session)
     if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
@@ -157,17 +179,14 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(request.form)
+
     if not tmp_file.exists():
         return util.create_response('No file')
-
-    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
-                                                  logger=app.logger,
-                                                  direction='destination')
-    if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-        destination_pipeline.set_queues(app.config['DESTINATION_PIPELINE_QUEUE'], "destination")
-        destination_pipeline.connect()
 
     successful_lines = 0
     invalid_lines = []
@@ -178,11 +197,7 @@ def submit():
             try:
                 event = line.parse()
 
-                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-                    queue_name = app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
-                    destination_pipeline.set_queues(queue_name, "destination")
-                    destination_pipeline.connect()
-
+                destination_pipeline = util.create_pipeline(parameters.get('pipeline'), event=event)
                 raw_message = MessageFactory.serialize(event)
                 destination_pipeline.send(raw_message)
 
@@ -205,7 +220,10 @@ def submit():
 
 @app.route('/uploads/current')
 def get_current_upload():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if not tmp_file.exists():
         return "File not found", 404
