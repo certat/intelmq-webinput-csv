@@ -12,7 +12,6 @@ from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
 from intelmq.bots.experts.taxonomy.expert import TAXONOMY
 from intelmq.lib.message import MessageFactory
-from intelmq.lib.pipeline import PipelineFactory
 
 from intelmq_webinput_csv.lib import util
 from intelmq_webinput_csv.lib.exceptions import InvalidCellException
@@ -44,6 +43,7 @@ def create_app():
     return app
 
 
+# Create Flask App
 app = create_app()
 
 
@@ -181,15 +181,9 @@ def submit():
 
     tmp_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(request.form)
+
     if not tmp_file.exists():
         return util.create_response('No file')
-
-    destination_pipeline = PipelineFactory.create(pipeline_args=app.config['INTELMQ'],
-                                                  logger=app.logger,
-                                                  direction='destination')
-    if not app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-        destination_pipeline.set_queues(app.config['DESTINATION_PIPELINE_QUEUE'], "destination")
-        destination_pipeline.connect()
 
     successful_lines = 0
     parameters['time_observation'] = DateTime().generate_datetime_now()
@@ -199,11 +193,7 @@ def submit():
             try:
                 event = line.parse()
 
-                if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
-                    queue_name = app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
-                    destination_pipeline.set_queues(queue_name, "destination")
-                    destination_pipeline.connect()
-
+                destination_pipeline = util.create_pipeline(parameters.get('pipeline'), event=event)
                 raw_message = MessageFactory.serialize(event)
                 destination_pipeline.send(raw_message)
 

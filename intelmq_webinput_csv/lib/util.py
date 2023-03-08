@@ -12,10 +12,14 @@ from flask import current_app as app
 from intelmq_webinput_csv.version import __version__
 from intelmq import VAR_STATE_PATH
 from intelmq import HARMONIZATION_CONF_FILE
+from intelmq.lib.message import Event
 from intelmq.lib.utils import load_configuration
+from intelmq.lib.pipeline import PipelineFactory, Pipeline
 
+PIPELINE = None
 HARMONIZATION_CONF = None
 PARAMETERS = {
+    'pipeline': '',
     'uuid': '',
     'timezone': '+00:00',
     'classification.type': 'test',
@@ -203,6 +207,43 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
     return Path(dir) / filename
 
 
+<<<<<<< HEAD
+def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipeline:
+    """ Create Pipeline object
+
+    Parameters:
+        pipeline (str): Name of queue to connect to
+        connect (bool): whether to connect
+        event (Event): event to format queue
+
+    Returns:
+        Pipeline object
+    """
+    global PIPELINE
+
+    # If pipeline is not defined, no options are given, so use configured pipeline
+    if not pipeline:
+        pipeline = app.config['DESTINATION_PIPELINE_QUEUE']
+
+    # Format pipeline if configured
+    if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
+        pipeline = pipeline.format(ev=event)
+
+    # Singleton for Pipeline object
+    if not PIPELINE:
+        PIPELINE = PipelineFactory.create(
+            pipeline_args=app.config['INTELMQ'],
+            logger=app.logger,
+            direction='destination'
+        )
+        PIPELINE.connect()
+
+    # Ensure that Pipeline has correct destination queue
+    if pipeline not in PIPELINE.destination_queues.get('_default', []):
+        PIPELINE.set_queues(pipeline, "destination")
+
+    return PIPELINE
+
 def generate_uuid() -> str:
     """ Generate a UUID
 
@@ -210,3 +251,4 @@ def generate_uuid() -> str:
         str: random UUID
     """
     return uuid.uuid4()
+

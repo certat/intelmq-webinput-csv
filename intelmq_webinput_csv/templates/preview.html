@@ -11,6 +11,15 @@
         {% endfor %}
         };
 
+        {# Set const for Pipeline options if configured #}
+        const d_pipelines = {
+            {% if config['DESTINATION_PIPELINE_QUEUE'] is mapping %}
+                {% for name, value in config.get('DESTINATION_PIPELINE_QUEUE', {}).items() %}
+                    "{{ name }}": "{{ value }}",
+                {% endfor %}
+            {% endif %}
+        };
+
         const d_uuid = '{{ uuid }}';
     </script>
 
@@ -38,6 +47,14 @@
                                 {% raw %}{{numberFailed}}{% endraw %} lines failed
                             </p>
                         </div>
+                        <div class="field" v-if="Object.keys(pipelines).length">
+                            <div class="control">
+                                <label class="label">pipeline</label>
+                                <div class="select">
+                                    <select v-model="previewFormData.pipeline">
+                                        <option v-for="(key, value) in pipelines" :value="key">{% raw %}{{value}}{% endraw %}</option>
+                                    </select>
+                                </div>
                         <div class="field" v-if="previewFormData.uuid">
                             <div class="control">
                                 <label class="label">UUID</label>
