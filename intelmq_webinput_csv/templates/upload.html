@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block js %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/upload.js') }}" ></script>
+{% endblock %}
+
+{% block title %}Upload{% endblock %}
+{% block subtitle %}Upload file, copy/paste or reuse uploaded file{% endblock %}
+
+{% block content %}
+<div class="container" id="uploadApp">
+
+    <form id="form" @change="saveDataInSession()">
+        <!--file upload-->
+        <section class="section">
+            <div class="container">
+                <h4 class="title is-4">Content</h4>
+                <div class="field">
+                    <div class="control">
+                        <textarea class="textarea" id="textArea" v-model="uploadFormData.text"></textarea>
+                    </div>
+                </div>
+                <br>
+                <div class="file has-name">
+                    <label class="file-label">
+                            <input class="file-input" type="file" id="fileInput" @change="onChangeListener">
+                            <span class="file-cta">
+                                <span class="file-icon">
+                                    <i class="fa fa-upload"></i>
+                                </span>
+                                <span class="file-label">
+                                    Choose a file...
+                                </span>
+                            </span>
+                            <span class="file-name">
+                                {% raw %}{{fileName}}{% endraw %}
+                            </span>
+                        </label>
+                </div>
+                <br><br>
+                <div class="field">
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <p class="title is-6">use last uploaded file (<a href="{{ url_for('get_current_upload') }}">view</a>)</p>
+                        </div>
+                        <div class="column is-one-third">
+                            <div class="control">
+                                <div class="control">
+                                    <label class="checkbox">
+                                        <input type="checkbox" v-model="uploadFormData.useLastUploadedFile">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!--parser configuration-->
+        <section class="section">
+            <div class="container">
+                <h4 class="title is-4">Parser Configuration</h4>
+                <div class="field">
+                    <!-- obligatory -->
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">delimiter</label>
+                        </div>
+                        <div class="column is-one-third">
+                            <div class="select">
+                                <select v-model="uploadFormData.delimiter">
+                                    <option v-for="option in delimiterOptions" :value="option">{% raw %}{{option}}{% endraw %}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">quotechar</label>
+                        </div>
+                        <div class="column is-one-third">
+                            <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.quotechar">
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">escapechar</label>
+                        </div>
+                        <div class="column is-one-third">
+                            <input class="input" type="text" placeholder="Text input" v-model="uploadFormData.escapechar">
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">has header</label>
+                        </div>
+                        <div class="column is-one-third">
+                            <div class="control">
+                                <div class="control">
+                                    <label class="checkbox">
+                                            <input type="checkbox" v-model="uploadFormData.hasHeader">
+                                        </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- optional -->
+                    <div class="is-divider" data-content="OPTIONAL"></div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">skip initial space</label>
+                            <p class="subtitle is-6">When True, whitespace immediately following the delimiter is ignored. </p>
+                        </div>
+                        <div class="column is-one-third">
+                            <div class="control">
+                                <div class="control">
+                                    <label class="checkbox">
+                                        <input type="checkbox" v-model="uploadFormData.skipInitialSpace">
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">skip initial N lines</label>
+                            <p class="subtitle is-6">Skip initial N lines after the header.</p>
+                        </div>
+                        <div class="column is-one-third">
+                            <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.skipInitialLines">
+                        </div>
+                    </div>
+                    <div class="columns">
+                        <div class="column is-one-third">
+                            <label class="label">Show N lines maximum in preview</label>
+                            <p class="subtitle is-6">Do not show more than N lines in the preview. All the data is processed by the backend.</p>
+                        </div>
+                        <div class="column is-one-third">
+                            <input class="input" type="number" min="0" placeholder="number input" v-model="uploadFormData.loadLinesMax">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!--buttons-->
+        <section class="section">
+            <div class="container">
+                <div class="field is-grouped">
+                    <div class="control">
+                        <button class="button is-primary" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                    </div>
+                    <div class="control">
+                        <button class="button is-default" type="button" v-on:click="clearAll">Clear All</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </form>
+</div>
+{% endblock %}

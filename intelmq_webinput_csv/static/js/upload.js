@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0
  */
 var vm_upload = new Vue({
-    el: '#uploadApp',
+    el: '#CSVapp',
     fileName: '#fileInput',
     data: {
         fileName: 'no file chosen',
@@ -75,7 +75,7 @@ var vm_upload = new Vue({
                 }
             };
 
-            request.open('POST', '__BASE_URL__/upload');
+            request.open('POST', BASE_URL + '/upload');
             request.send(formData);
         },
         saveDataInSession: function () {
@@ -86,7 +86,7 @@ var vm_upload = new Vue({
             }
         },
         redirectToPreview: function () {
-            window.location.href = '__BASE_URL__/preview';
+            window.location.href = BASE_URL + '/preview';
         },
         clearAll: function () {
             sessionStorage.clear();
