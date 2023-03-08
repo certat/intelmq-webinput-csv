@@ -249,4 +249,9 @@ class CSVLine():
             if self.parameters.get(key):
                 self._event_add(key, self.parameters[key])
 
+        # Configure UUID
+        field_uuid = app.config.get('GENERATE_UUID')
+        if field_uuid:
+            self._event_add(field_uuid, self.parameters['uuid'])
+
         return self.event

@@ -26,6 +26,7 @@ var vm_preview = new Vue({
             dryRun: true,
             useColumn: 0,
             columns: 'source.ip',
+            uuid: d_uuid
         },
         hasHeader: JSON.parse(sessionStorage.hasHeader),
         headerContent: [],
@@ -132,6 +133,7 @@ var vm_preview = new Vue({
             var formData = new FormData();
 
             formData.append('timezone', this.previewFormData.timezone);
+            formData.append('uuid', this.previewFormData.uuid);
             formData.append('classification.type', this.previewFormData.classificationType);
             formData.append('dryrun', this.previewFormData.dryRun);
             formData.append('use_column', this.previewFormData.useColumn);
@@ -237,7 +239,7 @@ var vm_preview = new Vue({
         },
         loadDataFromSession: function () {
             for (key in this.previewFormData) {
-                if (sessionStorage.getItem(key) === null) {
+                if (sessionStorage.getItem(key) === null || key === 'uuid') {
                     continue;
                 } else {
                     try {

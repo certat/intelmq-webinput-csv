@@ -1,3 +1,4 @@
+import uuid
 import json
 import time
 
@@ -15,6 +16,7 @@ from intelmq.lib.utils import load_configuration
 
 HARMONIZATION_CONF = None
 PARAMETERS = {
+    'uuid': '',
     'timezone': '+00:00',
     'classification.type': 'test',
     'classification.identifier': 'test',
@@ -199,3 +201,12 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
         filename = f"{prefix}_{filename}"
 
     return Path(dir) / filename
+
+
+def generate_uuid() -> str:
+    """ Generate a UUID
+
+    Returns:
+        str: random UUID
+    """
+    return uuid.uuid4()
