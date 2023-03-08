@@ -3,8 +3,10 @@
 # SPDX-License-Identifier: AGPL-3.0
 import traceback
 import os
+import secrets
 
-from flask import Flask, request, render_template, send_file
+from werkzeug.middleware.proxy_fix import ProxyFix
+from flask import Flask, request, render_template, send_file, session, redirect, url_for
 
 from intelmq import CONFIG_DIR
 from intelmq.lib.harmonization import DateTime, IPAddress
@@ -30,6 +32,14 @@ def create_app():
     config_path = app.config.get('INTELMQ_WEBINPUT_CONFIG', os.path.join(CONFIG_DIR, 'webinput_csv.conf'))
     app.config.from_file(config_path, load=util.load_config)
 
+    # Use ProxyFix if configured
+    if app.config.get("USE_PROXY_FIX"):
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1, x_for=1, x_host=1)
+
+    # Ensure a secret_key is set; not used for storing long data so can be reset during restarts
+    if not app.config.get("SECRET_KEY"):
+        app.config['SECRET_KEY'] = secrets.token_hex(32)
+
     return app
 
 
@@ -39,12 +49,19 @@ app = create_app()
 
 @app.route('/')
 def form():
+    if not session.get('prefix'):
+        session['prefix'] = secrets.token_hex(8)
+        session.permanent = True
+
     return render_template('upload.html')
 
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if 'file' in request.files and request.files['file'].filename:
         request.files['file'].save(tmp_file)
@@ -94,11 +111,16 @@ def upload_file():
 
 @app.route('/preview', methods=['GET', 'POST'])
 def preview():
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
     if request.method == 'GET':
-        return render_template('preview.html')
+        # Check config for generating UUID
+        uuid = util.generate_uuid() if app.config.get('GENERATE_UUID') else ''
+        return render_template('preview.html', uuid=uuid)
 
     parameters = util.handle_parameters(request.form)
-    tmp_file = util.get_temp_file()
+    tmp_file = util.get_temp_file(**session)
     if not tmp_file.exists():
         app.logger.info('no file')
         return util.create_response('No file')
@@ -154,7 +176,10 @@ def harmonization_event_fields():
 
 @app.route('/submit', methods=['POST'])
 def submit():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
     parameters = util.handle_parameters(request.form)
 
     if not tmp_file.exists():
@@ -186,7 +211,10 @@ def submit():
 
 @app.route('/uploads/current')
 def get_current_upload():
-    tmp_file = util.get_temp_file()
+    if 'prefix' not in session:
+        return redirect(url_for('form'))
+
+    tmp_file = util.get_temp_file(**session)
 
     if not tmp_file.exists():
         return "File not found", 404
