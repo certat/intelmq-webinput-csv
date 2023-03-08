@@ -279,5 +279,3 @@ def generate_uuid() -> str:
         str: random UUID
     """
     return uuid.uuid4()
-
->>>>>>> master
