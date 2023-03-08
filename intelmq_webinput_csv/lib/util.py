@@ -1,8 +1,9 @@
+import csv
 import uuid
 import json
 import time
 
-from typing import Union
+from typing import Union, List
 from datetime import date
 from pathlib import Path
 
@@ -14,6 +15,7 @@ from intelmq import VAR_STATE_PATH
 from intelmq import HARMONIZATION_CONF_FILE
 from intelmq.lib.message import Event
 from intelmq.lib.utils import load_configuration
+from intelmq_webinput_csv.lib.csv import CSV, CSVLine
 from intelmq.lib.pipeline import PipelineFactory, Pipeline
 
 PIPELINE = None
@@ -206,8 +208,34 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
 
     return Path(dir) / filename
 
+def save_failed_csv(reader: CSV, lines: List[CSVLine]):
+    """
+    Save all invalid lines to a seperate CSV file
 
-<<<<<<< HEAD
+    Parameters:
+        reader(CSV): CSV object used to read the lines
+        lines (List[CSVLine]): list of invalid lines
+    """
+    invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
+
+    with invalid_file.open('w+') as f:
+        # Filter out all None columns
+        columns = [c for c in reader.columns if c]
+
+        writer = csv.DictWriter(
+            f,
+            fieldnames=columns,
+            delimiter=reader.delimiter,
+            quotechar=reader.quotechar,
+            escapechar=reader.escapechar
+        )
+
+        writer.writeheader()
+
+        for line in lines:
+            result = dict(line.items())
+            writer.writerow(dict(line.items()))
+
 def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipeline:
     """ Create Pipeline object
 
@@ -252,3 +280,4 @@ def generate_uuid() -> str:
     """
     return uuid.uuid4()
 
+>>>>>>> master

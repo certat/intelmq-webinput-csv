@@ -126,7 +126,7 @@ def preview():
         return util.create_response('No file')
 
     exceptions = []
-    invalid_lines = 0
+    invalid_lines = []
 
     with CSV.create(file=tmp_file, **parameters) as reader:
         for line in reader:
@@ -135,7 +135,7 @@ def preview():
                 event, invalids = line.validate()
 
                 if invalids:
-                    invalid_lines += 1
+                    invalid_lines.append(line)
 
                 if app.config.get('DESTINATION_PIPELINE_QUEUE_FORMATTED', False):
                     app.config['DESTINATION_PIPELINE_QUEUE'].format(ev=event)
@@ -156,9 +156,12 @@ def preview():
                     repr(exc)
                 ))
 
+    # Save invalid lines to CSV file in tmp
+    util.save_failed_csv(reader, invalid_lines)
+
     return {
         "total": len(reader),
-        "lines_invalid": invalid_lines,
+        "lines_invalid": len(invalid_lines),
         "errors": exceptions
     }
 
@@ -186,6 +189,7 @@ def submit():
         return util.create_response('No file')
 
     successful_lines = 0
+    invalid_lines = []
     parameters['time_observation'] = DateTime().generate_datetime_now()
 
     with CSV.create(tmp_file, **parameters) as reader:
@@ -199,13 +203,18 @@ def submit():
 
             except InvalidCellException as ice:
                 app.logger.warning(ice.message)
+                invalid_lines.append(line)
             except Exception as e:
                 app.logger.error(f"Unknown error occured: {e}")
             else:
                 successful_lines += 1
 
+    # Save invalid lines to CSV file in tmp
+    util.save_failed_csv(reader, invalid_lines)
+
     return {
-        'message': f'Successfully processed {successful_lines} lines.'
+        "successful_lines": len(reader),
+        "lines_invalid": len(invalid_lines),
     }
 
 
@@ -220,6 +229,17 @@ def get_current_upload():
         return "File not found", 404
 
     return send_file(tmp_file, mimetype='text/csv')
+
+
+@app.route('/uploads/failed')
+def get_failed_upload():
+    tmp_file = util.get_temp_file(filename='webinput_invalid_csv.csv')
+
+    if not tmp_file.exists():
+        return "File not found", 404
+
+    return send_file(tmp_file, mimetype='text/csv')
+
 
 
 def main():

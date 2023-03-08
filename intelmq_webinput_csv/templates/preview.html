@@ -144,10 +144,13 @@
             <div class="container">
                 <div class="field is-grouped">
                     <div class="control">
-                        <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked()">Refresh Table</button>
+                        <button id="failedButton" class="button is-danger" type="button" v-on:click="failedButtonClicked($event)" disabled>Failed lines</button>
                     </div>
                     <div class="control">
-                        <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked()">Submit</button>
+                        <button id="refreshButton" class="button is-info" type="button" v-on:click="refreshButtonClicked($event)">Validate table</button>
+                    </div>
+                    <div class="control">
+                        <button id="submitButton" class="button is-success" type="button" v-on:click="submitButtonClicked($event)">Submit</button>
                     </div>
                 </div>
             </div>
