@@ -1,0 +1,8 @@
+
+body {
+    overflow: auto;
+}
+
+.vs__dropdown-toggle {
+    min-width: 15em !important;
+}
