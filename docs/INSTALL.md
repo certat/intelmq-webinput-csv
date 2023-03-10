@@ -50,6 +50,8 @@ Configure your server to use the intelmq_webinput_csv executable as WSGI script.
 
 The backend needs to write `/var/lib/intelmq/webinput_csv.csv` and `/var/lib/intelmq/webinput_csv.temp` to save it's state. Both files need to be writeable by the used process.
 
+**Note: IntelMQ Webinput CSV uses [Flask-SocketIO](https://flask-socketio.readthedocs.io) for asynchrous functionality, for Flask-SocketIO deployement options see their [wiki](https://flask-socketio.readthedocs.io/en/latest/deployment.html).**
+
 # Afterwards
 
 Now continue with the [User Guide](User-Guide.md).
