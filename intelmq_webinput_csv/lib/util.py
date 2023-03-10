@@ -28,6 +28,7 @@ HARMONIZATION_CONF = None
 PARAMETERS = {
     'pipeline': '',
     'uuid': '',
+    'uuid': '',
     'timezone': '+00:00',
     'classification.type': 'test',
     'classification.identifier': 'test',
@@ -145,6 +146,8 @@ def handle_parameters(form):
     parameters = {}
     parameters.setdefault('CUSTOM_INPUT_FIELDS', {})
 
+    parameters.setdefault('CUSTOM_INPUT_FIELDS', {})
+
     for key, default_value in app.config.items():
         parameters[key] = form.get(key, default_value)
     for key, value in PARAMETERS.items():
@@ -164,6 +167,13 @@ def handle_parameters(form):
     parameters['skipInitialSpace'] = json.loads(parameters['skipInitialSpace'])
     parameters['has_header'] = json.loads(parameters['has_header'])
     parameters['loadLinesMax'] = int(parameters['loadLinesMax'])
+
+    # Set any custom_key fields
+    for key, value in form.items():
+        if key.startswith('custom_'):
+            key = key[7:]  # remove prefix `custom_`
+            custom_fields = parameters.get('CUSTOM_INPUT_FIELDS', {})
+            custom_fields[key] = value
 
     # Set any custom_key fields
     for key, value in form.items():
@@ -213,6 +223,10 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
 
     return Path(dir) / filename
 
+def calculate_segments(reader):
+    segments = round(len(reader) / 100)
+    segments += random.randint(1, 9)  # Make the proces update bit more randomised
+    return segments
 
 def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipeline:
     """ Create Pipeline object
@@ -272,7 +286,7 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine], session=dict()):
         lines (List[CSVLine]): list of invalid lines
         session (dict): Flask session obj
     """
-    invalid_file = get_temp_file(filename='webinput_invalid', **session)
+    invalid_file = get_temp_file(filename='webinput_invalid_csv.csv')
 
     with invalid_file.open('w+') as f:
         # Filter out all None columns
@@ -289,10 +303,10 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine], session=dict()):
         writer.writeheader()
 
         for line in lines:
+            result = dict(line.items())
             writer.writerow(dict(line.items()))
-
-
-def calculate_segments(size: int):
-    segments = round(size / 100)
+def calculate_segments(reader):
+    segments = round(len(reader) / 100)
     segments += random.randint(1, 9)  # Make the proces update bit more randomised
     return segments
+
