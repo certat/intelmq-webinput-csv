@@ -39,14 +39,35 @@
             <div class="container">
                 <div class="columns">
                     <div class="column is-one-quarter">
-                        <div class="container">
-                            <p class="subtitle" v-bind:style="paragraphStyle">
-                                {% raw %}{{numberTotal}}{% endraw %} lines in total
-                            </p>
-                            <p class="subtitle" v-bind:style="paragraphStyle">
-                                {% raw %}{{numberFailed}}{% endraw %} lines failed
-                            </p>
-                        </div>
+                        <div class="block card">
+                            <header class="card-header">
+                                <p class="card-header-title">
+                                  Status
+                                </p>
+                            </header>
+                            <div class="card-content">
+                                <nav class="level">
+                                    <div class="level-item has-text-centered">
+                                    <div>
+                                        <p class="heading">Total</p>
+                                        <p class="title">{% raw %}{{ numberTotal }}{% endraw %}</p>
+                                    </div>
+                                    </div>
+                                    <div class="level-item has-text-centered">
+                                    <div>
+                                        <p class="heading">Successful</p>
+                                        <p class="title">{% raw %}{{ numberSuccessful }}{% endraw %}</p>
+                                    </div>
+                                    </div>
+                                    <div class="level-item has-text-centered">
+                                    <div>
+                                        <p class="heading">Failed</p>
+                                        <p class="title">{% raw %}{{ numberFailed }}{% endraw %}</p>
+                                    </div>
+                                    </div>
+                                </nav>            
+                                <progress id="progress" class="progress is-info" value="0" max="100" hidden>0%</progress>
+                            </div>
                         <div class="field" v-if="Object.keys(pipelines).length">
                             <div class="control">
                                 <label class="label">pipeline</label>

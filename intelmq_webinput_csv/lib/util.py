@@ -1,6 +1,7 @@
 import csv
 import uuid
 import json
+import random
 import time
 
 from typing import Union, List
@@ -207,6 +208,11 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
         filename = f"{prefix}_{filename}"
 
     return Path(dir) / filename
+
+def calculate_segments(reader):
+    segments = round(len(reader) / 100)
+    segments += random.randint(1, 9)  # Make the proces update bit more randomised
+    return segments
 
 def save_failed_csv(reader: CSV, lines: List[CSVLine]):
     """
