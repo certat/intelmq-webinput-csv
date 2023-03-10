@@ -20,6 +20,10 @@ htmlcov/
 src/
 .eggs
 
+
+# Redis tmp files used for testing
+*.rdb
+
 # Debian build filed
 debian/files
 debian/intelmq-webinput-csv.postinst.debhelper
