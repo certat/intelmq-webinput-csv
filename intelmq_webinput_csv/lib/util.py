@@ -223,10 +223,6 @@ def get_temp_file(filename: str = 'webinput_csv', prefix: str = None, extension:
 
     return Path(dir) / filename
 
-def calculate_segments(reader):
-    segments = round(len(reader) / 100)
-    segments += random.randint(1, 9)  # Make the proces update bit more randomised
-    return segments
 
 def create_pipeline(pipeline, connect: bool = True, event: Event = None) -> Pipeline:
     """ Create Pipeline object
@@ -303,10 +299,10 @@ def save_failed_csv(reader: CSV, lines: List[CSVLine], session=dict()):
         writer.writeheader()
 
         for line in lines:
-            result = dict(line.items())
             writer.writerow(dict(line.items()))
+
+
 def calculate_segments(reader):
     segments = round(len(reader) / 100)
     segments += random.randint(1, 9)  # Make the proces update bit more randomised
     return segments
-
