@@ -2,7 +2,6 @@
 
 1. [Requirements](#requirements)
 2. [Installation](#installation)
-   * [Native packages](#native-packages)
    * [With pip](#with-pip)
      * [From PyPi](#from-pypi)
      * [From the repository](#from-the-repository)
