@@ -247,7 +247,7 @@ var vm_preview = new Vue({
 
             for (var i = 0; i < numberOfColumns; i++) {
                 var cell = dataTable.rows[0].cells[i];
-                selectedValue = cell.firstChild.firstChild.firstChild.firstChild.firstChild;
+                selectedValue = cell.firstChild.childNodes[1].firstChild.firstChild.firstChild;
                 if (null === selectedValue) {
                     value = null;
                 } else {
