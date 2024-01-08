@@ -42,7 +42,8 @@ def create_app():
     if not app.config.get("SECRET_KEY"):
         app.config['SECRET_KEY'] = secrets.token_hex(32)
 
-    socketio = SocketIO(app, always_connect=True)
+    cors_origins = app.config.get("CORS_ALLOWED_ORIGINS")
+    socketio = SocketIO(app, always_connect=True, cors_allowed_origins=cors_origins)
 
     return (app, socketio)
 
